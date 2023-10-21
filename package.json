@@ -1,0 +1,55 @@
+{
+    "name": "homebridge-appletv-enhanced",
+    "displayName": "Homebridge Apple TV Enhanced",
+    "version": "0.0.1-beta.4",
+    "description": "Plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV implementation of HomeKit.",
+    "main": "dist/index.js",
+    "author": "Maximilian Leith",
+    "scripts": {
+        "lint": "eslint src/**.ts --max-warnings=0",
+        "watch": "npm run build && npm link && nodemon",
+        "build": "rimraf ./dist && tsc",
+        "prepublishOnly": "npm run lint && npm run build",
+        "postinstall": "node dist/postinstall.js"
+    },
+    "engines": {
+        "homebridge": "^1.6.1",
+        "node": "^20.5.1 || ^18.18.2"
+    },
+    "keywords": [
+        "homebridge-plugin"
+    ],
+    "license": "MIT",
+    "files": [
+        "LICENSE",
+        "dist",
+        "config.schema.json"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/maxileith/homebridge-appletv-enhanced.git"
+    },
+    "bugs": {
+        "url": "http://github.com/maxileith/homebridge-appletv-enhanced/issues"
+    },
+    "devDependencies": {
+        "@types/node": "^18.16.20",
+        "@typescript-eslint/eslint-plugin": "^5.62.0",
+        "@typescript-eslint/parser": "^5.62.0",
+        "eslint": "^8.45.0",
+        "homebridge": "^1.6.1",
+        "nodemon": "^2.0.22",
+        "rimraf": "^3.0.2",
+        "standard-version": "^9.2.0",
+        "ts-node": "^10.9.1",
+        "typescript": "^4.9.5"
+    },
+    "dependencies": {
+        "@sebbo2002/node-pyatv": "^7.0.3"
+    },
+    "homepage": "https://github.com/maxileith/homebridge-appletv-enhanced#readme",
+    "funding": {
+        "type": "paypal",
+        "url": "https://www.paypal.me/maxileith/EUR"
+    }
+}

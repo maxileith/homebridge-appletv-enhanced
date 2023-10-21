@@ -1,0 +1,21 @@
+{
+    "pluginAlias": "AppleTVEnhanced",
+    "pluginType": "platform",
+    "singular": true,
+    "headerDisplay": "# Apple TV \n\n Plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV implementation of HomeKit. \n\n Made with ❤ by [maxileith](https://github.com/maxileith).",
+    "schema": {
+        "type": "object",
+        "properties": {
+            "name": {
+                "title": "Platform Name",
+                "type": "string",
+                "default": "Apple TV Enhanced",
+                "placeholder": "Apple TV Enhanced",
+                "required": true,
+                "description": "The name of the plugin, e.g. shown in the logs."
+            }
+        }
+    },
+    "form": null,
+    "display": null
+}
