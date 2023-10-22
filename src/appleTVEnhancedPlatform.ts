@@ -1,6 +1,6 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
 
-import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
+import { PLUGIN_NAME } from './settings';
 import { AppleTVEnhancedAccessory } from './appleTVEnhancedAccessory';
 import pyatvInstance from './pyatvInstance';
 
@@ -33,11 +33,12 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
    * This function is invoked when homebridge restores cached accessories from disk at startup.
    * It should be used to setup event handlers for characteristics and update respective values.
    */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     configureAccessory(accessory: PlatformAccessory) {
-        this.log.info('Loading accessory from cache:', accessory.displayName);
+        // this.log.info('Loading accessory from cache:', accessory.displayName);
 
-        // add the restored accessory to the accessories cache so we can track if it has already been registered
-        this.accessories.push(accessory);
+        // // add the restored accessory to the accessories cache so we can track if it has already been registered
+        // this.accessories.push(accessory);
     }
 
     /**
@@ -82,7 +83,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
                 this.log.info('Adding new accessory:', device.name);
 
                 // create a new accessory
-                const accessory = new this.api.platformAccessory(device.name, uuid);
+                const accessory = new this.api.platformAccessory(`Apple TV ${device.name}`, uuid);
 
                 // store a copy of the device object in the `accessory.context`
                 // the `context` property can be used to store any data about the accessory you may need
@@ -93,7 +94,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
                 new AppleTVEnhancedAccessory(this, accessory);
 
                 // link the accessory to your platform
-                this.api.publishExternalAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+                this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
             }
         }
     }

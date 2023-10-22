@@ -4,12 +4,6 @@ import { NodePyATVDevice, NodePyATVFindAndInstanceOptions, NodePyATVInstance } f
 const atvremote_path = `${__dirname}/.venv/bin/atvremote`;
 const atvscript_path = `${__dirname}/.venv/bin/atvscript`;
 
-interface ICachedDevice {
-    id: string;
-    host: string;
-    name: string;
-}
-
 class CustomPyAtvInstance extends NodePyATVInstance {
 
     cachedDevices: NodePyATVDevice[] = [];
@@ -19,11 +13,11 @@ class CustomPyAtvInstance extends NodePyATVInstance {
         return this.cachedDevices;
     }
 
-    deviceById(id: string): NodePyATVDevice | undefined {
-        return this.cachedDevices.find((d) => d.id === id);
+    deviceById(id: string): NodePyATVDevice {
+        return this.cachedDevices.find((d) => d.id === id) as NodePyATVDevice;
     }
 }
 
-const pyatvInstance = new CustomPyAtvInstance({ debug: true, atvscriptPath: atvscript_path, atvremotePath: atvremote_path });
+const pyatvInstance = new CustomPyAtvInstance({ debug: undefined, atvscriptPath: atvscript_path, atvremotePath: atvremote_path });
 
 export default pyatvInstance;
