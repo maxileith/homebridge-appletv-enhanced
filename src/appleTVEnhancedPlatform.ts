@@ -5,17 +5,20 @@ import { AppleTVEnhancedAccessory } from './appleTVEnhancedAccessory';
 import pyatvInstance from './pyatvInstance';
 
 export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
-    public readonly Service: typeof Service = this.api.hap.Service;
-    public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
+    public readonly Service: typeof Service;
+    public readonly Characteristic: typeof Characteristic;
 
     // this is used to track restored cached accessories
     public readonly accessories: PlatformAccessory[] = [];
 
     constructor(
-    public readonly log: Logger,
-    public readonly config: PlatformConfig,
-    public readonly api: API,
+        public readonly log: Logger,
+        public readonly config: PlatformConfig,
+        public readonly api: API,
     ) {
+        this.Service = this.api.hap.Service;
+        this.Characteristic = this.api.hap.Characteristic;
+
         this.log.debug('Finished initializing platform:', this.config.name);
 
         // When this event is fired it means Homebridge has restored all cached accessories from disk.
@@ -70,12 +73,13 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
 
             // create the accessory handler for the newly create accessory
             // this is imported from `platformAccessory.ts`
-            new AppleTVEnhancedAccessory(this, accessory);
+            (async () => {
+                const appletv = new AppleTVEnhancedAccessory(this, accessory);
+                await appletv.untilBooted();
 
-            // link the accessory to your platform
-            setTimeout(() => {
+                // link the accessory to your platform
                 this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
-            }, 10000);
+            })();
         }
     }
 }

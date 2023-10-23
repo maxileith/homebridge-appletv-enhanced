@@ -1,8 +1,8 @@
 import { NodePyATVDevice, NodePyATVFindAndInstanceOptions, NodePyATVInstance } from '@sebbo2002/node-pyatv';
 
 
-const atvremote_path = `${__dirname}/.venv/bin/atvremote`;
-const atvscript_path = `${__dirname}/.venv/bin/atvscript`;
+export const ATVREMOTE_PATH = `${__dirname}/.venv/bin/atvremote`;
+export const ATVSCRIPT_PATH = `${__dirname}/.venv/bin/atvscript`;
 
 class CustomPyAtvInstance extends NodePyATVInstance {
 
@@ -18,6 +18,6 @@ class CustomPyAtvInstance extends NodePyATVInstance {
     }
 }
 
-const pyatvInstance = new CustomPyAtvInstance({ debug: undefined, atvscriptPath: atvscript_path, atvremotePath: atvremote_path });
+const pyatvInstance = new CustomPyAtvInstance({ debug: undefined, atvscriptPath: ATVSCRIPT_PATH, atvremotePath: ATVREMOTE_PATH });
 
 export default pyatvInstance;

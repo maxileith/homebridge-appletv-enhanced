@@ -1,10 +1,12 @@
 import fs from 'fs';
-import { Service, PlatformAccessory, CharacteristicValue, Nullable } from 'homebridge';
+import http, { IncomingMessage, ServerResponse } from 'http';
+import { Service, PlatformAccessory, CharacteristicValue, Nullable, PrimitiveTypes } from 'homebridge';
 
 import { AppleTVEnhancedPlatform } from './appleTVEnhancedPlatform';
-import pyatvInstance from './pyatvInstance';
+import pyatvInstance, { ATVREMOTE_PATH } from './pyatvInstance';
 import { NodePyATVDevice, NodePyATVDeviceEvent, NodePyATVDeviceState, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
 import md5 from 'md5';
+import { spawn } from 'child_process';
 
 interface NodePyATVApp {
     id: string;
@@ -33,32 +35,66 @@ interface IAppConfigs {
     [k: string]: IAppConfig;
 }
 
+interface ICommonConfig {
+    configuredName?: string;
+    activeIdentifier?: number;
+}
+
+interface IMediaConfigs {
+    [k: string]: string;
+}
+
+interface IStateConfigs {
+    [k: string]: string;
+}
+
+const SETTINGS_ID = 959656755;
+
+const delay = ms => new Promise(res => setTimeout(res, ms));
+
 /**
  * Platform Accessory
  * An instance of this class is created for each accessory your platform registers
  * Each accessory may expose multiple services of different service types.
  */
 export class AppleTVEnhancedAccessory {
-    private service: Service;
+    private service: Service | undefined = undefined;
     private device: NodePyATVDevice;
     private inputs: IInputs = {};
     private stateServices: { [k: string]: Service } = {};
     private mediaServices: { [k: string]: Service } = {};
 
     private appConfigs: IAppConfigs | undefined = undefined;
+    private commonConfig: ICommonConfig | undefined = undefined;
+
+    private stateConfigs: IStateConfigs | undefined = undefined;
+    private mediaConfigs: IMediaConfigs | undefined = undefined;
+
+    private booted = false;
 
     constructor(
         private readonly platform: AppleTVEnhancedPlatform,
         private readonly accessory: PlatformAccessory,
     ) {
-        const discoveredDevice = pyatvInstance.deviceById(this.accessory.context.id as string);
+        this.device = pyatvInstance.deviceById(this.accessory.context.id as string);
+
+        const credentials = this.getCredentials();
+        if (credentials === '') {
+            this.pair(this.device.host, this.device.name).then(() => this.startUp());
+        } else {
+            this.startUp();
+        }
+    }
+
+    private startUp(): void {
+        const credentials = this.getCredentials();
+
         this.device = pyatvInstance.device({
-            host: discoveredDevice!.host!,
-            name: discoveredDevice!.name!,
-            // eslint-disable-next-line max-len
-            airplayCredentials: 'xxx',
-            // eslint-disable-next-line max-len
-            companionCredentials: 'xxx',
+            host: this.device.host,
+            name: this.device.name,
+            id: this.device.id,
+            airplayCredentials: credentials,
+            companionCredentials: credentials,
         });
 
         this.accessory.category = this.platform.api.hap.Categories.TV_SET_TOP_BOX;
@@ -66,17 +102,17 @@ export class AppleTVEnhancedAccessory {
         // set accessory information
         this.accessory.getService(this.platform.Service.AccessoryInformation)!
             .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Apple Inc.')
-            .setCharacteristic(this.platform.Characteristic.Model, discoveredDevice!.modelName!)
-            .setCharacteristic(this.platform.Characteristic.SerialNumber, discoveredDevice!.id!)
-            .setCharacteristic(this.platform.Characteristic.Name, discoveredDevice!.name)
-            .setCharacteristic(this.platform.Characteristic.FirmwareRevision, discoveredDevice!.version!);
+            .setCharacteristic(this.platform.Characteristic.Model, this.device.modelName!)
+            .setCharacteristic(this.platform.Characteristic.SerialNumber, this.device!.id!)
+            .setCharacteristic(this.platform.Characteristic.Name, this.device.name)
+            .setCharacteristic(this.platform.Characteristic.FirmwareRevision, this.device!.version!);
 
         // create the service
         this.service = this.accessory.getService(this.platform.Service.Television) || this.accessory.addService(this.platform.Service.Television);
         this.service
             .setCharacteristic(this.platform.Characteristic.Active, this.platform.Characteristic.Active.INACTIVE)
-            .setCharacteristic(this.platform.Characteristic.ActiveIdentifier, 862217314)
-            .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.accessory.context.displayName)
+            .setCharacteristic(this.platform.Characteristic.ActiveIdentifier, this.getCommonConfig().activeIdentifier || SETTINGS_ID)
+            .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getCommonConfig().configuredName || this.accessory.displayName)
             .setCharacteristic(this.platform.Characteristic.SleepDiscoveryMode, this.platform.Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE);
         // create handlers for required characteristics of the service
         this.service.getCharacteristic(this.platform.Characteristic.Active)
@@ -110,24 +146,34 @@ export class AppleTVEnhancedAccessory {
         // create listener to keep the current media type up to date
         this.device.on('update:mediaType', this.handleMediaTypeUpdate.bind(this));
 
-        const updateListener = (event: NodePyATVDeviceEvent | Error) => {
-            if (event instanceof Error || event.key === 'dateTime') {
-                return;
-            }
-            this.platform.log.error(`   ${event.key}: ${event?.value} (was ${event?.oldValue})`);
-        };
+        // const updateListener = (event: NodePyATVDeviceEvent | Error) => {
+        //     if (event instanceof Error || event.key === 'dateTime') {
+        //         return;
+        //     }
+        //     this.platform.log.error(`   ${event.key}: ${event?.value} (was ${event?.oldValue})`);
+        // };
 
-        this.device.on('update', updateListener);
+        // this.device.on('update', updateListener);
+
+        this.booted = true;
     }
 
     private createMediaTypeSensors(): void {
-        let state: keyof typeof NodePyATVMediaType;
-        for (state in NodePyATVMediaType) {
-            const s = this.accessory.getService(state) || this.accessory.addService(this.platform.Service.MotionSensor, state, state)
+        const mediaTypes = Object.keys(NodePyATVMediaType);
+        for (let i = 0; i < mediaTypes.length; i++) {
+            const mediaType = mediaTypes[i];
+            const s = this.accessory.getService(mediaType) || this.accessory.addService(this.platform.Service.MotionSensor, mediaType, mediaType)
                 .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
-                .setCharacteristic(this.platform.Characteristic.Name, state);
-            this.service.addLinkedService(s);
-            this.mediaServices[state] = s;
+                .setCharacteristic(this.platform.Characteristic.Name, mediaType)
+                .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getMediaConfig()[mediaType] || this.capitalizeFirstLetter(mediaType));
+            s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
+                .onSet(async (value) => {
+                    const oldConfiguredName = s.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+                    this.platform.log.info(`Changing configured name of media type sensor ${mediaType} from ${oldConfiguredName} to ${value}.`);
+                    this.setMediaTypeConfig(mediaType, value as string);
+                });
+            this.service!.addLinkedService(s);
+            this.mediaServices[mediaType] = s;
         }
     }
 
@@ -147,13 +193,21 @@ export class AppleTVEnhancedAccessory {
     }
 
     private createDeviceStateSensors(): void {
-        let state: keyof typeof NodePyATVDeviceState;
-        for (state in NodePyATVDeviceState) {
-            const s = this.accessory.getService(state) || this.accessory.addService(this.platform.Service.MotionSensor, state, state)
+        const deviceStates = Object.keys(NodePyATVDeviceState);
+        for (let i = 0; i < deviceStates.length; i++) {
+            const deviceState = deviceStates[i];
+            const s = this.accessory.getService(deviceState) || this.accessory.addService(this.platform.Service.MotionSensor, deviceState, deviceState)
                 .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
-                .setCharacteristic(this.platform.Characteristic.Name, state);
-            this.service.addLinkedService(s);
-            this.stateServices[state] = s;
+                .setCharacteristic(this.platform.Characteristic.Name, deviceState)
+                .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getDeviceStateConfig()[deviceState] || this.capitalizeFirstLetter(deviceState));
+            s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
+                .onSet(async (value) => {
+                    const oldConfiguredName = s.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+                    this.platform.log.info(`Changing configured name of device state sensor ${deviceState} from ${oldConfiguredName} to ${value}.`);
+                    this.setDeviceStateConfig(deviceState, value as string);
+                });
+            this.service!.addLinkedService(s);
+            this.stateServices[deviceState] = s;
         }
     }
 
@@ -213,7 +267,7 @@ export class AppleTVEnhancedAccessory {
                     s.setCharacteristic(this.platform.Characteristic.CurrentVisibilityState, value);
                     this.setAppConfigs(appConfigs);
                 });
-            this.service.addLinkedService(s);
+            this.service!.addLinkedService(s);
             this.inputs[app.id] = {
                 pyatvApp: app,
                 service: s,
@@ -235,19 +289,13 @@ export class AppleTVEnhancedAccessory {
         const appId = event.value;
         this.platform.log.warn(`Current App: ${appId}`);
         const appIdentifier = this.getAppConfigs()[appId].identifier;
-        this.service.setCharacteristic(this.platform.Characteristic.ActiveIdentifier, appIdentifier);
+        this.setCommonConfig('activeIdentifier', appIdentifier);
+        this.service!.setCharacteristic(this.platform.Characteristic.ActiveIdentifier, appIdentifier);
     }
 
     private getAppConfigs(): IAppConfigs {
         if (this.appConfigs === undefined) {
-            const dir = `${this.platform.api.user.storagePath()}/appletv-enhanced`;
-            if (!fs.existsSync(dir)){
-                fs.mkdirSync(dir);
-            }
-            const jsonPath = `${dir}/apps.json`;
-            try {
-                fs.writeFileSync(jsonPath, '{}', { encoding:'utf8', flag: 'wx' });
-            } catch (err) { /* empty */ }
+            const jsonPath = this.getPath('apps.json');
             this.appConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IAppConfigs;
         }
         return this.appConfigs;
@@ -255,12 +303,63 @@ export class AppleTVEnhancedAccessory {
 
     private setAppConfigs(value: IAppConfigs): void {
         this.appConfigs = value;
-        const jsonPath = `${this.platform.api.user.storagePath()}/appletv-enhanced/apps.json`;
+        const jsonPath = this.getPath('apps.json');
         fs.writeFileSync(jsonPath, JSON.stringify(value, null, 4), { encoding:'utf8', flag:'w' });
     }
 
+    private getCommonConfig(): ICommonConfig {
+        if (this.commonConfig === undefined) {
+            const jsonPath = this.getPath('common.json');
+            this.commonConfig = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IAppConfigs;
+        }
+        return this.commonConfig;
+    }
+
+    private setCommonConfig(key: string, value: PrimitiveTypes): void {
+        if (this.commonConfig === undefined) {
+            this.commonConfig = {};
+        }
+        this.commonConfig[key] = value;
+        const jsonPath = this.getPath('common.json');
+        fs.writeFileSync(jsonPath, JSON.stringify(this.commonConfig, null, 4), { encoding:'utf8', flag:'w' });
+    }
+
+    private getMediaConfig(): IMediaConfigs {
+        if (this.mediaConfigs === undefined) {
+            const jsonPath = this.getPath('media.json');
+            this.mediaConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IMediaConfigs;
+        }
+        return this.mediaConfigs;
+    }
+
+    private setMediaTypeConfig(key: string, value: string): void {
+        if (this.mediaConfigs === undefined) {
+            this.mediaConfigs = {};
+        }
+        this.mediaConfigs[key] = value;
+        const jsonPath = this.getPath('media.json');
+        fs.writeFileSync(jsonPath, JSON.stringify(this.mediaConfigs, null, 4), { encoding:'utf8', flag:'w' });
+    }
+
+    private getDeviceStateConfig(): IStateConfigs {
+        if (this.stateConfigs === undefined) {
+            const jsonPath = this.getPath('state.json');
+            this.stateConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IStateConfigs;
+        }
+        return this.stateConfigs;
+    }
+
+    private setDeviceStateConfig(key: string, value: string): void {
+        if (this.stateConfigs === undefined) {
+            this.stateConfigs = {};
+        }
+        this.stateConfigs[key] = value;
+        const jsonPath = this.getPath('state.json');
+        fs.writeFileSync(jsonPath, JSON.stringify(this.stateConfigs, null, 4), { encoding:'utf8', flag:'w' });
+    }
+
     private async handleActiveGet(): Promise<Nullable<CharacteristicValue>> {
-        return this.service.getCharacteristic(this.platform.Characteristic.Active).value;
+        return this.service!.getCharacteristic(this.platform.Characteristic.Active).value;
     }
 
     private async handleActiveSet(state: CharacteristicValue): Promise<void> {
@@ -283,11 +382,11 @@ export class AppleTVEnhancedAccessory {
         }
         this.platform.log.info(`New Active State: ${event.value}`);
         const value = event.value === 'on' ? this.platform.Characteristic.Active.ACTIVE : this.platform.Characteristic.Active.INACTIVE;
-        this.service.setCharacteristic(this.platform.Characteristic.Active, value);
+        this.service!.setCharacteristic(this.platform.Characteristic.Active, value);
     }
 
     private async handleActiveIdentifierGet(): Promise<Nullable<CharacteristicValue>> {
-        return this.service.getCharacteristic(this.platform.Characteristic.ActiveIdentifier).value;
+        return this.service!.getCharacteristic(this.platform.Characteristic.ActiveIdentifier).value;
     }
 
     private async handleActiveIdentifierSet(state: CharacteristicValue): Promise<void> {
@@ -299,6 +398,7 @@ export class AppleTVEnhancedAccessory {
             }
         }
         if (appId !== undefined) {
+            this.setCommonConfig('activeIdentifier', state as number);
             const app = this.inputs[appId];
             this.platform.log.info(`Launching App: ${app.pyatvApp.name}`);
             app.pyatvApp.launch();
@@ -306,15 +406,17 @@ export class AppleTVEnhancedAccessory {
     }
 
     private async handleConfiguredNameGet(): Promise<Nullable<CharacteristicValue>> {
-        return this.service.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+        return this.service!.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
     }
 
     private async handleConfiguredNameSet(state: CharacteristicValue): Promise<void> {
-        this.accessory.displayName = state as string;
+        const oldConfiguredName = this.service!.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+        this.platform.log.info(`Changed Configured Name from ${oldConfiguredName} to ${state}`);
+        this.setCommonConfig('configuredName', state as string);
     }
 
     private async handleSleepDiscoveryModeGet(): Promise<Nullable<CharacteristicValue>> {
-        return this.service.getCharacteristic(this.platform.Characteristic.SleepDiscoveryMode).value;
+        return this.service!.getCharacteristic(this.platform.Characteristic.SleepDiscoveryMode).value;
     }
 
     private async handleRemoteKeySet(state: CharacteristicValue): Promise<void> {
@@ -378,5 +480,97 @@ export class AppleTVEnhancedAccessory {
             bitString += character.charCodeAt(0).toString(2).padStart(8, '0');
         }
         return parseInt(bitString, 2);
+    }
+
+    private getPath(file: string, defaultContent = '{}'): string {
+        let dir = `${this.platform.api.user.storagePath()}/appletv-enhanced`;
+        if (!fs.existsSync(dir)){
+            fs.mkdirSync(dir);
+        }
+        dir += `/${this.device.id!.replaceAll(':', '')}`;
+        if (!fs.existsSync(dir)){
+            fs.mkdirSync(dir);
+        }
+        const filePath = `${dir}/${file}`;
+        try {
+            fs.writeFileSync(filePath, defaultContent, { encoding:'utf8', flag: 'wx' });
+        } catch (err) { /* empty */ }
+        return filePath;
+    }
+
+    private capitalizeFirstLetter(value: string): string {
+        return value.charAt(0).toUpperCase() + value.slice(1);
+    }
+
+    private getCredentials(): string {
+        const path = this.getPath('credentials.txt', '');
+        return fs.readFileSync(path, 'utf8').trim();
+    }
+
+    private saveCredentials(credentials: string): void {
+        const path = this.getPath('credentials.txt', '');
+        fs.writeFileSync(path, credentials, { encoding:'utf8', flag:'w' });
+    }
+
+    private async pair(ip: string, appleTVName: string): Promise<void> {
+        const ipSplitted = ip.split('.');
+        const ipEnd = ipSplitted[ipSplitted.length - 1];
+        const httpPort = 42000 + parseInt(ipEnd);
+
+        const htmlInput = fs.readFileSync(`${__dirname}/html/input.html`, 'utf8');
+        const htmlAfterPost = fs.readFileSync(`${__dirname}/html/afterPost.html`, 'utf8');
+
+        let savedCredentials = false;
+
+        const process = spawn(ATVREMOTE_PATH, ['-s', ip, '--protocol', 'companion', 'pair']);
+        process.stderr.setEncoding('utf8');
+        process.stderr.on('data', (data) => {
+            this.platform.log.error('stderr: ' + data);
+        });
+        process.stdout.setEncoding('utf8');
+        process.stdout.on('data', (data) => {
+            this.platform.log.debug('stdout: ' + data);
+
+            const split = data.split(': ');
+            if (split.length === 2 && split[0] !== 'Enter PIN on screen') {
+                this.platform.log.debug(`extracted credentials: ${split[1]}`);
+                this.saveCredentials(split[1]);
+                savedCredentials = true;
+            }
+        });
+
+        const requestListener = (req: IncomingMessage, res: ServerResponse<IncomingMessage> & { req: IncomingMessage }): void => {
+            res.writeHead(200);
+            if (req.method === 'GET') {
+                res.end(htmlInput);
+            } else {
+                let reqBody = '';
+                req.on('data', (chunk) => {
+                    reqBody += chunk;
+                });
+                req.on('end', () => {
+                    const pin = parseInt(reqBody.split('=')[1]);
+                    this.platform.log.info(`Got PIN ${pin} for Apple TV ${appleTVName}.`);
+                    process.stdin.write(`${pin}\n`);
+                    res.end(htmlAfterPost);
+                });
+            }
+        };
+        const server = http.createServer(requestListener);
+        server.listen(httpPort, '0.0.0.0', () => {
+            this.platform.log.warn(`You need to pair your Apple TV ${appleTVName} before the plugin can connect to it. 
+Enter the PIN that is currently displayed on the device here: http://homebridge.local:${httpPort}/`);
+        });
+
+        while (!savedCredentials) {
+            await delay(100);
+        }
+        server.close();
+    }
+
+    public async untilBooted(): Promise<void> {
+        while (!this.booted) {
+            await delay(100);
+        }
     }
 }
