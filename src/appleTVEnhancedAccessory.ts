@@ -4,6 +4,7 @@ import { Service, PlatformAccessory, CharacteristicValue, Nullable } from 'homeb
 import { AppleTVEnhancedPlatform } from './appleTVEnhancedPlatform';
 import pyatvInstance from './pyatvInstance';
 import { NodePyATVDevice, NodePyATVDeviceEvent, NodePyATVDeviceState, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
+import md5 from 'md5';
 
 interface NodePyATVApp {
     id: string;
@@ -11,15 +12,21 @@ interface NodePyATVApp {
     launch: () => Promise<void>;
 }
 
-interface Inputs {
+interface IInput {
     pyatvApp: NodePyATVApp;
     service: Service;
+}
+
+
+interface IInputs {
+    [k: string]: IInput;
 }
 
 interface IAppConfig {
     configuredName: string;
     isConfigured: 0 | 1;
     visibilityState: 0 | 1;
+    identifier: number;
 }
 
 interface IAppConfigs {
@@ -34,7 +41,7 @@ interface IAppConfigs {
 export class AppleTVEnhancedAccessory {
     private service: Service;
     private device: NodePyATVDevice;
-    private inputs: Inputs[] = [];
+    private inputs: IInputs = {};
     private stateServices: { [k: string]: Service } = {};
     private mediaServices: { [k: string]: Service } = {};
 
@@ -68,7 +75,7 @@ export class AppleTVEnhancedAccessory {
         this.service = this.accessory.getService(this.platform.Service.Television) || this.accessory.addService(this.platform.Service.Television);
         this.service
             .setCharacteristic(this.platform.Characteristic.Active, this.platform.Characteristic.Active.INACTIVE)
-            .setCharacteristic(this.platform.Characteristic.ActiveIdentifier, 0)
+            .setCharacteristic(this.platform.Characteristic.ActiveIdentifier, 862217314)
             .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.accessory.context.displayName)
             .setCharacteristic(this.platform.Characteristic.SleepDiscoveryMode, this.platform.Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE);
         // create handlers for required characteristics of the service
@@ -168,12 +175,13 @@ export class AppleTVEnhancedAccessory {
     private createInputs(apps: NodePyATVApp[]): void {
         const appConfigs = this.getAppConfigs();
 
-        apps.forEach((app, k) => {
+        apps.forEach((app) => {
             if (!Object.keys(appConfigs).includes(app.id)) {
                 appConfigs[app.id] = {
                     configuredName: app.name,
                     isConfigured: this.platform.Characteristic.IsConfigured.CONFIGURED,
                     visibilityState: this.platform.Characteristic.CurrentVisibilityState.SHOWN,
+                    identifier: this.appIdToNumber(app.id),
                 };
             }
             this.platform.log.info(`Adding ${appConfigs[app.id].configuredName} (${app.id}) as an input.`);
@@ -185,7 +193,7 @@ export class AppleTVEnhancedAccessory {
                 .setCharacteristic(this.platform.Characteristic.CurrentVisibilityState, appConfigs[app.id].visibilityState)
                 .setCharacteristic(this.platform.Characteristic.InputDeviceType, this.platform.Characteristic.InputDeviceType.OTHER)
                 .setCharacteristic(this.platform.Characteristic.TargetVisibilityState, appConfigs[app.id].visibilityState)
-                .setCharacteristic(this.platform.Characteristic.Identifier, k);
+                .setCharacteristic(this.platform.Characteristic.Identifier, appConfigs[app.id].identifier);
             s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
                 .onSet(async (value) => {
                     this.platform.log.info(`Changing configured name of ${app.id} from ${appConfigs[app.id].configuredName} to ${value}.`);
@@ -206,10 +214,10 @@ export class AppleTVEnhancedAccessory {
                     this.setAppConfigs(appConfigs);
                 });
             this.service.addLinkedService(s);
-            this.inputs.push({
+            this.inputs[app.id] = {
                 pyatvApp: app,
                 service: s,
-            });
+            };
         });
         this.setAppConfigs(appConfigs);
     }
@@ -226,10 +234,8 @@ export class AppleTVEnhancedAccessory {
         }
         const appId = event.value;
         this.platform.log.warn(`Current App: ${appId}`);
-        const index = this.inputs.findIndex((e) => e.pyatvApp.id === appId);
-        if (index !== -1) {
-            this.service.setCharacteristic(this.platform.Characteristic.ActiveIdentifier, index);
-        }
+        const appIdentifier = this.getAppConfigs()[appId].identifier;
+        this.service.setCharacteristic(this.platform.Characteristic.ActiveIdentifier, appIdentifier);
     }
 
     private getAppConfigs(): IAppConfigs {
@@ -285,9 +291,18 @@ export class AppleTVEnhancedAccessory {
     }
 
     private async handleActiveIdentifierSet(state: CharacteristicValue): Promise<void> {
-        const app = this.inputs[state as number];
-        this.platform.log.info(`Launching App: ${app.pyatvApp.name}`);
-        app.pyatvApp.launch();
+        const appConfigs = this.getAppConfigs();
+        let appId: string | undefined = undefined;
+        for (const key in appConfigs) {
+            if (appConfigs[key].identifier === state) {
+                appId = key;
+            }
+        }
+        if (appId !== undefined) {
+            const app = this.inputs[appId];
+            this.platform.log.info(`Launching App: ${app.pyatvApp.name}`);
+            app.pyatvApp.launch();
+        }
     }
 
     private async handleConfiguredNameGet(): Promise<Nullable<CharacteristicValue>> {
@@ -354,5 +369,14 @@ export class AppleTVEnhancedAccessory {
             this.device?.topMenu();
             break;
         }
+    }
+
+    private appIdToNumber(appId: string): number {
+        const hash = md5(appId).substring(10, 14);
+        let bitString = '';
+        for (const [, character] of Object.entries(hash)) {
+            bitString += character.charCodeAt(0).toString(2).padStart(8, '0');
+        }
+        return parseInt(bitString, 2);
     }
 }
