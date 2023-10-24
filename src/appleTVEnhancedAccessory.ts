@@ -8,7 +8,7 @@ import md5 from 'md5';
 import { spawn } from 'child_process';
 import path from 'path';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
-import { capitalizeFirstLetter } from './utils';
+import { capitalizeFirstLetter, delay } from './utils';
 
 interface NodePyATVApp {
     id: string;
@@ -52,7 +52,19 @@ interface IStateConfigs {
 
 const SETTINGS_ID = 959656755;
 
-const delay = ms => new Promise(res => setTimeout(res, ms));
+const HIDE_BY_DEFAULT_APPS = [
+    'com.apple.podcasts',
+    'com.apple.TVAppStore',
+    'com.apple.TVSearch',
+    'com.apple.Arcade',
+    'com.apple.TVHomeSharing',
+    'com.apple.TVSettings',
+    'com.apple.Fitness',
+    'com.apple.TVShows',
+    'com.apple.TVMovies',
+    'com.apple.facetime',
+];
+
 
 /**
  * Platform Accessory
@@ -165,6 +177,9 @@ export class AppleTVEnhancedAccessory {
         const mediaTypes = Object.keys(NodePyATVMediaType);
         for (let i = 0; i < mediaTypes.length; i++) {
             const mediaType = mediaTypes[i];
+            if (this.platform.config.mediaTypes !== undefined && !this.platform.config.mediaTypes.includes(mediaType)) {
+                continue;
+            }
             this.platform.log.info(`Adding media type ${mediaType} as a motion sensor.`);
             const s = this.accessory.getService(mediaType) || this.accessory.addService(this.platform.Service.MotionSensor, mediaType, mediaType)
                 .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
@@ -186,11 +201,11 @@ export class AppleTVEnhancedAccessory {
             return;
         }
         this.platform.log.info(`New Media Type State: ${event.value}`);
-        if (event.oldValue !== null) {
+        if (event.oldValue !== null && this.mediaTypeServices[event.oldValue]) {
             const s = this.mediaTypeServices[event.oldValue];
             s.setCharacteristic(this.platform.Characteristic.MotionDetected, false);
         }
-        if (event.value !== null) {
+        if (event.value !== null && this.mediaTypeServices[event.value]) {
             const s = this.mediaTypeServices[event.value];
             s.setCharacteristic(this.platform.Characteristic.MotionDetected, true);
         }
@@ -200,6 +215,9 @@ export class AppleTVEnhancedAccessory {
         const deviceStates = Object.keys(NodePyATVDeviceState);
         for (let i = 0; i < deviceStates.length; i++) {
             const deviceState = deviceStates[i];
+            if (this.platform.config.deviceStates !== undefined && !this.platform.config.deviceStates.includes(deviceState)) {
+                continue;
+            }
             this.platform.log.info(`Adding device state ${deviceState} as a motion sensor.`);
             const s = this.accessory.getService(deviceState) || this.accessory.addService(this.platform.Service.MotionSensor, deviceState, deviceState)
                 .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
@@ -221,11 +239,11 @@ export class AppleTVEnhancedAccessory {
             return;
         }
         this.platform.log.info(`New Device State: ${event.value}`);
-        if (event.oldValue !== null) {
+        if (event.oldValue !== null && this.deviceStateServices[event.oldValue] !== undefined) {
             const s = this.deviceStateServices[event.oldValue];
             s.setCharacteristic(this.platform.Characteristic.MotionDetected, false);
         }
-        if (event.value !== null) {
+        if (event.value !== null && this.deviceStateServices[event.value] !== undefined) {
             const s = this.deviceStateServices[event.value];
             s.setCharacteristic(this.platform.Characteristic.MotionDetected, true);
         }
@@ -239,7 +257,9 @@ export class AppleTVEnhancedAccessory {
                 appConfigs[app.id] = {
                     configuredName: app.name,
                     isConfigured: this.platform.Characteristic.IsConfigured.CONFIGURED,
-                    visibilityState: this.platform.Characteristic.CurrentVisibilityState.SHOWN,
+                    visibilityState: HIDE_BY_DEFAULT_APPS.includes(app.id)
+                        ? this.platform.Characteristic.CurrentVisibilityState.HIDDEN
+                        : this.platform.Characteristic.CurrentVisibilityState.SHOWN,
                     identifier: this.appIdToNumber(app.id),
                 };
             }
