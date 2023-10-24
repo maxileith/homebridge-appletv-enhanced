@@ -10,6 +10,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
 
     // this is used to track restored cached accessories
     public readonly accessories: PlatformAccessory[] = [];
+    private publishedUUIDs: string[] = [];
 
     constructor(
         public readonly log: Logger,
@@ -29,6 +30,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             log.debug('Executed didFinishLaunching callback');
             // run the method to discover / register your devices as accessories
             this.discoverDevices();
+            setInterval(() => this.discoverDevices(), 60000);
         });
     }
 
@@ -60,6 +62,10 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             // something globally unique, but constant, for example, the device serial
             // number or MAC address
             const uuid = this.api.hap.uuid.generate(device.id as string);
+            if (this.publishedUUIDs.includes(uuid)) {
+                continue;
+            }
+            this.publishedUUIDs.push(uuid);
 
             // the accessory does not yet exist, so we need to create it
             this.log.info('Adding new accessory:', device.name);
