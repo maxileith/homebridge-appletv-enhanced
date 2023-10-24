@@ -8,7 +8,7 @@
     "scripts": {
         "lint": "eslint src/**.ts --max-warnings=0",
         "watch": "npm run build && npm link && nodemon",
-        "build": "rm -r ./dist && tsc && mkdir dist/html && cp src/html/* dist/html/ && cp ./LICENSE ./dist/LICENSE && cp ./requirements.txt ./dist/requirements.txt",
+        "build": "npm install && rm -r ./dist && tsc && mkdir dist/html && cp src/html/* dist/html/ && cp ./LICENSE ./dist/LICENSE && cp ./requirements.txt ./dist/requirements.txt",
         "prepublishOnly": "npm run lint && npm run build",
         "postinstall": "node dist/postinstall.js"
     },
