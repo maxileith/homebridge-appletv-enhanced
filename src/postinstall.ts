@@ -23,6 +23,7 @@ function createProcess(command: string, args?: readonly string[] | undefined, op
 const appleTVEnhancedDir = path.join(os.homedir(), '.homebridge', 'appletv-enhanced');
 const venvDir = path.join(appleTVEnhancedDir, '.venv');
 const pipDir = path.join(venvDir, 'bin', 'pip3');
+const requirementsDir = path.join(__dirname, 'requirements.txt');
 if (!fs.existsSync(appleTVEnhancedDir)){
     fs.mkdirSync(appleTVEnhancedDir);
 }
@@ -31,7 +32,7 @@ createVenv();
 
 async function createVenv(): Promise<void> {
     console.log('Creating a python virtual environment ...');
-    const p = createProcess('python', ['-m', 'venv', venvDir, '--clear']);
+    const p = createProcess('python3', ['-m', 'venv', venvDir, '--clear']);
     await p.on('close', () => upgradePip());
 }
 
@@ -43,7 +44,7 @@ async function upgradePip(): Promise<void> {
 
 async function installPyatv(): Promise<void> {
     console.log('\nInstalling Python packages ...');
-    const p = createProcess(pipDir, ['install', '-r', 'requirements.txt']);
+    const p = createProcess(pipDir, ['install', '-r', requirementsDir]);
     await p.on('close', () => finalize());
 }
 

@@ -1,7 +1,7 @@
 {
     "name": "homebridge-appletv-enhanced",
     "displayName": "Homebridge Apple TV Enhanced",
-    "version": "0.1.0-beta.1",
+    "version": "0.1.0-beta.3",
     "description": "Plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV implementation of HomeKit.",
     "main": "dist/index.js",
     "author": "Maximilian Leith",
@@ -17,7 +17,15 @@
         "node": "^20.8.1 || ^18.18.2"
     },
     "keywords": [
-        "homebridge-plugin"
+        "homebridge-plugin",
+        "appletv",
+        "apple",
+        "tv",
+        "homebridge",
+        "plugin",
+        "playing",
+        "state",
+        "media"
     ],
     "license": "MIT",
     "files": [
@@ -25,6 +33,9 @@
         "dist",
         "config.schema.json"
     ],
+    "publishConfig": {
+        "access": "public"
+    },
     "repository": {
         "type": "git",
         "url": "git://github.com/maxileith/homebridge-appletv-enhanced.git"

@@ -27,7 +27,7 @@
             "deviceStates": {
                 "title": "Device States",
                 "type": "array",
-                "default": ["music", "video"],
+                "default": ["playing", "paused", "stopped"],
                 "items": {
                     "title": "Device State",
                     "type": "string",
