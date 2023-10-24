@@ -4,7 +4,7 @@ import { Service, PlatformAccessory, CharacteristicValue, Nullable, PrimitiveTyp
 
 import { AppleTVEnhancedPlatform } from './appleTVEnhancedPlatform';
 import pyatvInstance, { ATVREMOTE_PATH } from './pyatvInstance';
-import { NodePyATVDevice, NodePyATVDeviceEvent, NodePyATVDeviceState, NodePyATVMediaType, NodePyATVPowerState } from '@sebbo2002/node-pyatv';
+import { NodePyATVDevice, NodePyATVDeviceEvent, NodePyATVDeviceState, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
 import md5 from 'md5';
 import { spawn } from 'child_process';
 

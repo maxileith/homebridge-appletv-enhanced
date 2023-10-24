@@ -9,4 +9,4 @@ const logging = (error, stdout, stderr) => {
     process.stderr.write(stderr);
 };
 
-exec(`sleep 1 && python -m venv "${venvDir}" && sleep 1 && ${pipPath} install pyatv==0.14.2`, logging);
+exec(`sleep 1 && python -m venv "${venvDir}" && sleep 1 && ${pipPath} install pyatv==0.14.3`, logging);

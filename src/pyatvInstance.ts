@@ -18,6 +18,10 @@ class CustomPyAtvInstance extends NodePyATVInstance {
     }
 }
 
-const pyatvInstance = new CustomPyAtvInstance({ debug: undefined, atvscriptPath: ATVSCRIPT_PATH, atvremotePath: ATVREMOTE_PATH });
+const pyatvInstance = new CustomPyAtvInstance({
+    debug: undefined,
+    atvscriptPath: ATVSCRIPT_PATH,
+    atvremotePath: ATVREMOTE_PATH,
+});
 
 export default pyatvInstance;
