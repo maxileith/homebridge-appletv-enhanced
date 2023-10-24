@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import path from 'path';
-import os from 'os';
 import fs from 'fs';
+import os from 'os';
 import { SpawnOptionsWithoutStdio, spawn } from 'child_process';
 
 const toStdout = (data) => {
@@ -21,8 +21,8 @@ function createProcess(command: string, args?: readonly string[] | undefined, op
 }
 
 let homebridgeDir = path.join(os.homedir(), '.homebridge');
-if (!fs.existsSync(homebridgeDir)){
-    homebridgeDir = path.join('var', 'lib', 'homebridge');
+if (!fs.existsSync(homebridgeDir)) {
+    homebridgeDir = path.join('/var', 'lib', 'homebridge');
 }
 
 const appleTVEnhancedDir = path.join(homebridgeDir, 'appletv-enhanced');
