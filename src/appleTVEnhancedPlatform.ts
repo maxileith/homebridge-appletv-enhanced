@@ -28,6 +28,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
         // to start discovery of new accessories.
         this.api.on('didFinishLaunching', () => {
             log.debug('Executed didFinishLaunching callback');
+
             // run the method to discover / register your devices as accessories
             CustomPyAtvInstance.createInstance(this.api.user.storagePath());
             this.discoverDevices();
@@ -92,4 +93,6 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             })();
         }
     }
+
+
 }

@@ -20,7 +20,12 @@ function createProcess(command: string, args?: readonly string[] | undefined, op
     return p;
 }
 
-const appleTVEnhancedDir = path.join(os.homedir(), '.homebridge', 'appletv-enhanced');
+let homebridgeDir = path.join(os.homedir(), '.homebridge');
+if (!fs.existsSync(homebridgeDir)){
+    homebridgeDir = path.join('var', 'lib', 'homebridge');
+}
+
+const appleTVEnhancedDir = path.join(homebridgeDir, 'appletv-enhanced');
 const venvDir = path.join(appleTVEnhancedDir, '.venv');
 const pipDir = path.join(venvDir, 'bin', 'pip3');
 const requirementsDir = path.join(__dirname, 'requirements.txt');

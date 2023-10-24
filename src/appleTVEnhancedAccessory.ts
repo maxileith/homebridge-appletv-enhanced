@@ -8,7 +8,7 @@ import md5 from 'md5';
 import { spawn } from 'child_process';
 import path from 'path';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
-import { capitalizeFirstLetter, delay } from './utils';
+import { capitalizeFirstLetter, delay, getLocalIPs } from './utils';
 
 interface NodePyATVApp {
     id: string;
@@ -553,6 +553,9 @@ export class AppleTVEnhancedAccessory {
         let goOn = false;
         let success = false;
 
+        const localIPs = getLocalIPs();
+        const localIP = localIPs.length === 0 ? 'homebridge.local' : localIPs[0];
+
         while (!success) {
             let backOffSeconds = 0;
             let processClosed = false;
@@ -610,7 +613,7 @@ export class AppleTVEnhancedAccessory {
             const server = http.createServer(requestListener);
             server.listen(httpPort, '0.0.0.0', () => {
                 // eslint-disable-next-line max-len
-                this.platform.log.warn(`You need to pair your Apple TV ${appleTVName} before the plugin can connect to it. Enter the PIN that is currently displayed on the device here: http://homebridge.local:${httpPort}/`);
+                this.platform.log.warn(`You need to pair your Apple TV ${appleTVName} before the plugin can connect to it. Enter the PIN that is currently displayed on the device here: http://${localIP}:${httpPort}/`);
             });
 
             while (!goOn || !processClosed) {
