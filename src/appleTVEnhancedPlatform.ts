@@ -2,7 +2,7 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 
 import { PLUGIN_NAME } from './settings';
 import { AppleTVEnhancedAccessory } from './appleTVEnhancedAccessory';
-import pyatvInstance from './pyatvInstance';
+import CustomPyAtvInstance from './CustomPyAtvInstance';
 
 export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
     public readonly Service: typeof Service;
@@ -29,6 +29,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
         this.api.on('didFinishLaunching', () => {
             log.debug('Executed didFinishLaunching callback');
             // run the method to discover / register your devices as accessories
+            CustomPyAtvInstance.createInstance(this.api.user.storagePath());
             this.discoverDevices();
             setInterval(() => this.discoverDevices(), 60000);
         });
@@ -53,7 +54,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
    */
     async discoverDevices() {
 
-        const devices = (await pyatvInstance.find()).filter((d) => d.model?.startsWith('AppleTV'));
+        const devices = (await CustomPyAtvInstance.getInstance()!.find()).filter((d) => d.model?.startsWith('AppleTV'));
 
         // loop over the discovered devices and register each one if it has not already been registered
         for (const device of devices) {

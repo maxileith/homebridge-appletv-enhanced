@@ -3,11 +3,12 @@ import http, { IncomingMessage, ServerResponse } from 'http';
 import { Service, PlatformAccessory, CharacteristicValue, Nullable, PrimitiveTypes } from 'homebridge';
 
 import { AppleTVEnhancedPlatform } from './appleTVEnhancedPlatform';
-import pyatvInstance, { ATVREMOTE_PATH } from './pyatvInstance';
 import { NodePyATVDevice, NodePyATVDeviceEvent, NodePyATVDeviceState, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
 import md5 from 'md5';
 import { spawn } from 'child_process';
 import path from 'path';
+import CustomPyAtvInstance from './CustomPyAtvInstance';
+import { capitalizeFirstLetter } from './utils';
 
 interface NodePyATVApp {
     id: string;
@@ -77,7 +78,7 @@ export class AppleTVEnhancedAccessory {
         private readonly platform: AppleTVEnhancedPlatform,
         private readonly accessory: PlatformAccessory,
     ) {
-        this.device = pyatvInstance.deviceById(this.accessory.context.id as string);
+        this.device = CustomPyAtvInstance.getInstance()!.deviceById(this.accessory.context.id as string);
 
         const credentials = this.getCredentials();
         if (credentials === '') {
@@ -90,7 +91,7 @@ export class AppleTVEnhancedAccessory {
     private async startUp(): Promise<void> {
         const credentials = this.getCredentials();
 
-        this.device = pyatvInstance.device({
+        this.device = CustomPyAtvInstance.getInstance()!.device({
             host: this.device.host,
             name: this.device.name,
             id: this.device.id,
@@ -167,8 +168,8 @@ export class AppleTVEnhancedAccessory {
             this.platform.log.info(`Adding media type ${mediaType} as a motion sensor.`);
             const s = this.accessory.getService(mediaType) || this.accessory.addService(this.platform.Service.MotionSensor, mediaType, mediaType)
                 .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
-                .setCharacteristic(this.platform.Characteristic.Name, this.capitalizeFirstLetter(mediaType))
-                .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getMediaConfig()[mediaType] || this.capitalizeFirstLetter(mediaType));
+                .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(mediaType))
+                .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getMediaConfig()[mediaType] || capitalizeFirstLetter(mediaType));
             s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
                 .onSet(async (value) => {
                     const oldConfiguredName = s.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
@@ -202,8 +203,8 @@ export class AppleTVEnhancedAccessory {
             this.platform.log.info(`Adding device state ${deviceState} as a motion sensor.`);
             const s = this.accessory.getService(deviceState) || this.accessory.addService(this.platform.Service.MotionSensor, deviceState, deviceState)
                 .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
-                .setCharacteristic(this.platform.Characteristic.Name, this.capitalizeFirstLetter(deviceState))
-                .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getDeviceStateConfig()[deviceState] || this.capitalizeFirstLetter(deviceState));
+                .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(deviceState))
+                .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getDeviceStateConfig()[deviceState] || capitalizeFirstLetter(deviceState));
             s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
                 .onSet(async (value) => {
                     const oldConfiguredName = s.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
@@ -511,10 +512,6 @@ export class AppleTVEnhancedAccessory {
         return filePath;
     }
 
-    private capitalizeFirstLetter(value: string): string {
-        return value.charAt(0).toUpperCase() + value.slice(1);
-    }
-
     private getCredentials(): string {
         const path = this.getPath('credentials.txt', '');
         return fs.readFileSync(path, 'utf8').trim();
@@ -540,7 +537,7 @@ export class AppleTVEnhancedAccessory {
             let backOffSeconds = 0;
             let processClosed = false;
 
-            const process = spawn(ATVREMOTE_PATH, ['-s', ip, '--protocol', 'companion', 'pair']);
+            const process = spawn(CustomPyAtvInstance.getInstance()!.atvremotePath, ['-s', ip, '--protocol', 'companion', 'pair']);
             process.stderr.setEncoding('utf8');
             process.stderr.on('data', (data: string) => {
                 this.platform.log.error('stderr: ' + data);
