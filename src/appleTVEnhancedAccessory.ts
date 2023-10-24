@@ -7,6 +7,7 @@ import pyatvInstance, { ATVREMOTE_PATH } from './pyatvInstance';
 import { NodePyATVDevice, NodePyATVDeviceEvent, NodePyATVDeviceState, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
 import md5 from 'md5';
 import { spawn } from 'child_process';
+import path from 'path';
 
 interface NodePyATVApp {
     id: string;
@@ -495,7 +496,7 @@ export class AppleTVEnhancedAccessory {
     }
 
     private getPath(file: string, defaultContent = '{}'): string {
-        let dir = `${this.platform.api.user.storagePath()}/appletv-enhanced`;
+        let dir = path.join(this.platform.api.user.storagePath(), 'appletv-enhanced');
         if (!fs.existsSync(dir)){
             fs.mkdirSync(dir);
         }
@@ -503,7 +504,7 @@ export class AppleTVEnhancedAccessory {
         if (!fs.existsSync(dir)){
             fs.mkdirSync(dir);
         }
-        const filePath = `${dir}/${file}`;
+        const filePath = path.join(dir, file);
         try {
             fs.writeFileSync(filePath, defaultContent, { encoding:'utf8', flag: 'wx' });
         } catch (err) { /* empty */ }
@@ -529,8 +530,8 @@ export class AppleTVEnhancedAccessory {
         const ipEnd = ipSplitted[ipSplitted.length - 1];
         const httpPort = 42000 + parseInt(ipEnd);
 
-        const htmlInput = fs.readFileSync(`${__dirname}/html/input.html`, 'utf8');
-        const htmlAfterPost = fs.readFileSync(`${__dirname}/html/afterPost.html`, 'utf8');
+        const htmlInput = fs.readFileSync(path.join(__dirname, 'html', 'input.html'), 'utf8');
+        const htmlAfterPost = fs.readFileSync(path.join(__dirname, 'html', 'afterPost.html'), 'utf8');
 
         let goOn = false;
         let success = false;
