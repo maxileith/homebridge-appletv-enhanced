@@ -6,16 +6,15 @@ export function capitalizeFirstLetter(value: string): string {
 
 export const delay = ms => new Promise(res => setTimeout(res, ms));
 
-export function getLocalIPs(): string[] {
-    const localIPs: string[] = [];
+export function getLocalIP(): string {
     const interfaces = networkInterfaces();
     for (const k in interfaces) {
         const networkInterface = interfaces[k]!;
         for (const info of networkInterface) {
             if (!info.internal && info.family === 'IPv4') {
-                localIPs.push(info.address);
+                return info.address;
             }
         }
     }
-    return localIPs;
+    return 'homebridge.local';
 }

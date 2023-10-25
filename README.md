@@ -19,6 +19,10 @@ This plugin automatically discovers Apple TV devices in the local network and ex
 -   For each device state (idle, playing, loading, seeking, paused, stopped) the plugin will create a motion sensor (device states can be hidden or shown by changing the configuration).
 -   If you do not want all Apple TVs to be exposed, it is possible to blacklist them by providing the MAC-Address.
 
+## Screenshots
+
+<img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/inputs.png" width=280/> <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/sensors.png" width=280/>
+
 ## Important information from behind the scenes
 
 ## Configuration
@@ -44,3 +48,7 @@ To configure manually, add the following to the `platforms` section of Homebridg
     "blacklist": ["AA:BB:CC:DD:EE:FF"]
 }
 ```
+
+## Known Issues
+
+-   After adding an Apple TV device to the Home app, the same input appears many times, e.g. YouTube, instead of the different apps you have installed. This is most likely a HomeKit issue since you can see in the settings of the Set-Top Box device in HomeKit, that the inputs (Apps) are listed correctly. Wait some time or restart the plugin, that seems to work most of the time. Once the correct inputs are displayed in the Home App, they will stay right.

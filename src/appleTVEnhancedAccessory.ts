@@ -8,47 +8,9 @@ import md5 from 'md5';
 import { spawn } from 'child_process';
 import path from 'path';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
-import { capitalizeFirstLetter, delay, getLocalIPs } from './utils';
+import { capitalizeFirstLetter, delay, getLocalIP } from './utils';
+import { IAppConfigs, ICommonConfig, IInputs, IMediaConfigs, IStateConfigs, NodePyATVApp } from './interfaces';
 
-interface NodePyATVApp {
-    id: string;
-    name: string;
-    launch: () => Promise<void>;
-}
-
-interface IInput {
-    pyatvApp: NodePyATVApp;
-    service: Service;
-}
-
-
-interface IInputs {
-    [k: string]: IInput;
-}
-
-interface IAppConfig {
-    configuredName: string;
-    isConfigured: 0 | 1;
-    visibilityState: 0 | 1;
-    identifier: number;
-}
-
-interface IAppConfigs {
-    [k: string]: IAppConfig;
-}
-
-interface ICommonConfig {
-    configuredName?: string;
-    activeIdentifier?: number;
-}
-
-interface IMediaConfigs {
-    [k: string]: string;
-}
-
-interface IStateConfigs {
-    [k: string]: string;
-}
 
 const SETTINGS_ID = 959656755;
 
@@ -553,8 +515,7 @@ export class AppleTVEnhancedAccessory {
         let goOn = false;
         let success = false;
 
-        const localIPs = getLocalIPs();
-        const localIP = localIPs.length === 0 ? 'homebridge.local' : localIPs[0];
+        const localIP = getLocalIP();
 
         while (!success) {
             let backOffSeconds = 0;
