@@ -56,15 +56,16 @@ export class AppleTVEnhancedAccessory {
 
         const credentials = this.getCredentials();
         if (credentials === '') {
-            this.pair(this.device.host, this.device.name).then(() => this.startUp());
+            this.pair(this.device.host, this.device.name).then((c) => {
+                this.saveCredentials(c);
+                this.startUp(c);
+            });
         } else {
-            this.startUp();
+            this.startUp(credentials);
         }
     }
 
-    private async startUp(): Promise<void> {
-        const credentials = this.getCredentials();
-
+    private async startUp(credentials: string): Promise<void> {
         this.device = CustomPyAtvInstance.getInstance()!.device({
             host: this.device.host,
             name: this.device.name,
@@ -123,15 +124,6 @@ export class AppleTVEnhancedAccessory {
         // create listener to keep the current media type up to date
         this.device.on('update:mediaType', this.handleMediaTypeUpdate.bind(this));
 
-        // const updateListener = (event: NodePyATVDeviceEvent | Error) => {
-        //     if (event instanceof Error || event.key === 'dateTime') {
-        //         return;
-        //     }
-        //     this.platform.log.error(`   ${event.key}: ${event?.value} (was ${event?.oldValue})`);
-        // };
-
-        // this.device.on('update', updateListener);
-
         this.booted = true;
     }
 
@@ -149,7 +141,13 @@ export class AppleTVEnhancedAccessory {
                 .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getMediaConfig()[mediaType] || capitalizeFirstLetter(mediaType));
             s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
                 .onSet(async (value) => {
+                    if (value === '') {
+                        return;
+                    }
                     const oldConfiguredName = s.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+                    if (oldConfiguredName === value) {
+                        return;
+                    }
                     this.platform.log.info(`Changing configured name of media type sensor ${mediaType} from ${oldConfiguredName} to ${value}.`);
                     this.setMediaTypeConfig(mediaType, value as string);
                 });
@@ -187,7 +185,13 @@ export class AppleTVEnhancedAccessory {
                 .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getDeviceStateConfig()[deviceState] || capitalizeFirstLetter(deviceState));
             s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
                 .onSet(async (value) => {
+                    if (value === '') {
+                        return;
+                    }
                     const oldConfiguredName = s.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+                    if (oldConfiguredName === value) {
+                        return;
+                    }
                     this.platform.log.info(`Changing configured name of device state sensor ${deviceState} from ${oldConfiguredName} to ${value}.`);
                     this.setDeviceStateConfig(deviceState, value as string);
                 });
@@ -237,6 +241,12 @@ export class AppleTVEnhancedAccessory {
                 .setCharacteristic(this.platform.Characteristic.Identifier, appConfigs[app.id].identifier);
             s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
                 .onSet(async (value) => {
+                    if (value === '') {
+                        return;
+                    }
+                    if (appConfigs[app.id].configuredName === value) {
+                        return;
+                    }
                     this.platform.log.info(`Changing configured name of ${app.id} from ${appConfigs[app.id].configuredName} to ${value}.`);
                     appConfigs[app.id].configuredName = value as string;
                     this.setAppConfigs(appConfigs);
@@ -313,7 +323,7 @@ export class AppleTVEnhancedAccessory {
 
     private getMediaConfig(): IMediaConfigs {
         if (this.mediaConfigs === undefined) {
-            const jsonPath = this.getPath('media.json');
+            const jsonPath = this.getPath('mediaTypes.json');
             this.mediaConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IMediaConfigs;
         }
         return this.mediaConfigs;
@@ -324,13 +334,13 @@ export class AppleTVEnhancedAccessory {
             this.mediaConfigs = {};
         }
         this.mediaConfigs[key] = value;
-        const jsonPath = this.getPath('media.json');
+        const jsonPath = this.getPath('mediaTypes.json');
         fs.writeFileSync(jsonPath, JSON.stringify(this.mediaConfigs, null, 4), { encoding:'utf8', flag:'w' });
     }
 
     private getDeviceStateConfig(): IStateConfigs {
         if (this.stateConfigs === undefined) {
-            const jsonPath = this.getPath('state.json');
+            const jsonPath = this.getPath('deviceStates.json');
             this.stateConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IStateConfigs;
         }
         return this.stateConfigs;
@@ -341,7 +351,7 @@ export class AppleTVEnhancedAccessory {
             this.stateConfigs = {};
         }
         this.stateConfigs[key] = value;
-        const jsonPath = this.getPath('state.json');
+        const jsonPath = this.getPath('deviceStates.json');
         fs.writeFileSync(jsonPath, JSON.stringify(this.stateConfigs, null, 4), { encoding:'utf8', flag:'w' });
     }
 
@@ -406,7 +416,13 @@ export class AppleTVEnhancedAccessory {
     }
 
     private async handleConfiguredNameSet(state: CharacteristicValue): Promise<void> {
+        if (state === '') {
+            return;
+        }
         const oldConfiguredName = this.service!.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+        if (oldConfiguredName === state) {
+            return;
+        }
         this.platform.log.info(`Changed Configured Name from ${oldConfiguredName} to ${state}`);
         this.setCommonConfig('configuredName', state as string);
     }
@@ -504,7 +520,7 @@ export class AppleTVEnhancedAccessory {
         fs.writeFileSync(path, credentials, { encoding:'utf8', flag:'w' });
     }
 
-    private async pair(ip: string, appleTVName: string): Promise<void> {
+    private async pair(ip: string, appleTVName: string): Promise<string> {
         const ipSplitted = ip.split('.');
         const ipEnd = ipSplitted[ipSplitted.length - 1];
         const httpPort = 42000 + parseInt(ipEnd);
@@ -516,6 +532,7 @@ export class AppleTVEnhancedAccessory {
         let success = false;
 
         const localIP = getLocalIP();
+        let credentials = '';
 
         while (!success) {
             let backOffSeconds = 0;
@@ -544,8 +561,8 @@ export class AppleTVEnhancedAccessory {
                 }
                 if (data.includes('You may now use these credentials: ')) {
                     const split = data.split(': ');
+                    credentials = split[1].trim();
                     this.platform.log.debug(`extracted credentials: ${split[1]}`);
-                    this.saveCredentials(split[1]);
                     goOn = true;
                     success = true;
                 }
@@ -587,6 +604,8 @@ export class AppleTVEnhancedAccessory {
                 await delay(1000 * backOffSeconds);
             }
         }
+
+        return credentials;
     }
 
     public async untilBooted(): Promise<void> {
