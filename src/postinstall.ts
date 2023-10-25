@@ -11,6 +11,22 @@ const toStderr = (data) => {
     process.stderr.write(data);
 };
 
+const COMMON_HOMEBRIDGE_DIRS = [
+    '/var/lib/homebridge',
+    path.join(os.homedir(), '.homebridge'),
+    '/homebridge',
+    '/volume1/homebridge',
+];
+
+function getHomebridgeDir(): string {
+    for (const dir of COMMON_HOMEBRIDGE_DIRS) {
+        if (fs.existsSync(dir)) {
+            return dir;
+        }
+    }
+    throw new Error('cannot find homebridge storage path');
+}
+
 function createProcess(command: string, args?: readonly string[] | undefined, options?: SpawnOptionsWithoutStdio | undefined) {
     const p = spawn(command, args, options);
     p.stdout.setEncoding('utf8');
@@ -20,11 +36,7 @@ function createProcess(command: string, args?: readonly string[] | undefined, op
     return p;
 }
 
-let homebridgeDir = path.join(os.homedir(), '.homebridge');
-if (!fs.existsSync(homebridgeDir)) {
-    homebridgeDir = path.join('/var', 'lib', 'homebridge');
-}
-
+const homebridgeDir = getHomebridgeDir();
 const appleTVEnhancedDir = path.join(homebridgeDir, 'appletv-enhanced');
 const venvDir = path.join(appleTVEnhancedDir, '.venv');
 const pipDir = path.join(venvDir, 'bin', 'pip3');

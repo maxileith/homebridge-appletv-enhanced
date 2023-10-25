@@ -11,6 +11,6 @@
         "esModuleInterop": true,
         "noImplicitAny": false
     },
-    "include": ["src/", "src/postinstall.ts"],
+    "include": ["src/"],
     "exclude": ["**/*.spec.ts"]
 }
