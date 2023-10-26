@@ -1,4 +1,5 @@
-import { Service } from 'homebridge';
+import { PlatformConfig, Service } from 'homebridge';
+import { TNodePyATVDeviceState, TNodePyATVMediaType } from './types';
 
 export interface NodePyATVApp {
     id: string;
@@ -38,4 +39,10 @@ export interface IMediaConfigs {
 
 export interface IStateConfigs {
     [k: string]: string;
+}
+
+export interface AppleTVEnhancedPlatformConfig extends PlatformConfig {
+    blacklist?: string[];
+    mediaTypes?: TNodePyATVMediaType;
+    deviceStates?: TNodePyATVDeviceState;
 }

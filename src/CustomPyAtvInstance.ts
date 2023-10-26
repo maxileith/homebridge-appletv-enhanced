@@ -20,9 +20,11 @@ class CustomPyAtvInstance extends NodePyATVInstance {
         this.atvremotePath = options.atvremotePath;
     }
 
-    public async find(options?: NodePyATVFindAndInstanceOptions | undefined): Promise<NodePyATVDevice[]> {
-        this.cachedDevices = await super.find(options);
-        return this.cachedDevices;
+    public async find(options?: NodePyATVFindAndInstanceOptions): Promise<NodePyATVDevice[]> {
+        return super.find(options).then(async (results) => {
+            this.cachedDevices = results;
+            return results;
+        });
     }
 
     public deviceById(id: string): NodePyATVDevice {
@@ -36,13 +38,11 @@ class CustomPyAtvInstance extends NodePyATVInstance {
     public static createInstance(storagePath: string, options?: NodePyATVInstanceOptions): void {
         const script = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvscript');
         const remote = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvremote');
-        if (this.instance === undefined) {
-            this.instance = new CustomPyAtvInstance({
-                atvscriptPath: script,
-                atvremotePath: remote,
-                ...options,
-            });
-        }
+        this.instance = new CustomPyAtvInstance({
+            atvscriptPath: script,
+            atvremotePath: remote,
+            ...options,
+        });
     }
 }
 

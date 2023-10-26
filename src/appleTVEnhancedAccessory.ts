@@ -10,6 +10,7 @@ import path from 'path';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
 import { capitalizeFirstLetter, delay, getLocalIP } from './utils';
 import { IAppConfigs, ICommonConfig, IInputs, IMediaConfigs, IStateConfigs, NodePyATVApp } from './interfaces';
+import { TNodePyATVDeviceState, TNodePyATVMediaType } from './types';
 
 
 const SETTINGS_ID = 959656755;
@@ -145,10 +146,10 @@ export class AppleTVEnhancedAccessory {
     }
 
     private createMediaTypeSensors(): void {
-        const mediaTypes = Object.keys(NodePyATVMediaType);
+        const mediaTypes = Object.keys(NodePyATVMediaType) as TNodePyATVMediaType[];
         for (let i = 0; i < mediaTypes.length; i++) {
             const mediaType = mediaTypes[i];
-            if (this.platform.config.mediaTypes !== undefined && !this.platform.config.mediaTypes.includes(mediaType)) {
+            if (this.platform.config.mediaTypes && !this.platform.config.mediaTypes.includes(mediaType)) {
                 continue;
             }
             this.platform.log.info(`Adding media type ${mediaType} as a motion sensor.`);
@@ -193,10 +194,10 @@ export class AppleTVEnhancedAccessory {
     }
 
     private createDeviceStateSensors(): void {
-        const deviceStates = Object.keys(NodePyATVDeviceState);
+        const deviceStates = Object.keys(NodePyATVDeviceState) as TNodePyATVDeviceState[];
         for (let i = 0; i < deviceStates.length; i++) {
             const deviceState = deviceStates[i];
-            if (this.platform.config.deviceStates !== undefined && !this.platform.config.deviceStates.includes(deviceState)) {
+            if (this.platform.config.deviceStates && !this.platform.config.deviceStates.includes(deviceState)) {
                 continue;
             }
             this.platform.log.info(`Adding device state ${deviceState} as a motion sensor.`);

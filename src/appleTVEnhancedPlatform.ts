@@ -1,8 +1,9 @@
-import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
+import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, Service, Characteristic } from 'homebridge';
 
 import { PLUGIN_NAME } from './settings';
 import { AppleTVEnhancedAccessory } from './appleTVEnhancedAccessory';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
+import { AppleTVEnhancedPlatformConfig } from './interfaces';
 
 export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
     public readonly Service: typeof Service;
@@ -14,7 +15,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
 
     constructor(
         public readonly log: Logger,
-        public readonly config: PlatformConfig,
+        public readonly config: AppleTVEnhancedPlatformConfig,
         public readonly api: API,
     ) {
         this.Service = this.api.hap.Service;
@@ -55,39 +56,38 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
    * must not be registered again to prevent "duplicate UUID" errors.
    */
     async discoverDevices() {
-
-        const devices = (await CustomPyAtvInstance.getInstance()!.find()).filter((d) => d.model?.startsWith('AppleTV') && d.os === 'TvOS');
+        const scanResults = await CustomPyAtvInstance.getInstance()!.find();
+        const appleTVs = scanResults.filter((d) => d.model?.startsWith('AppleTV') && d.os === 'TvOS');
 
         // loop over the discovered devices and register each one if it has not already been registered
-        for (const device of devices) {
-            if (this.config.blacklist && (this.config.blacklist as string[]).includes(device.id as string)) {
+        for (const appleTV of appleTVs) {
+            if (this.config.blacklist && this.config.blacklist.includes(appleTV.id as string)) {
                 continue;
             }
 
             // generate a unique id for the accessory this should be generated from
             // something globally unique, but constant, for example, the device serial
             // number or MAC address
-            const uuid = this.api.hap.uuid.generate(device.id as string);
+            const uuid = this.api.hap.uuid.generate(appleTV.id as string);
             if (this.publishedUUIDs.includes(uuid)) {
                 continue;
             }
             this.publishedUUIDs.push(uuid);
 
             // the accessory does not yet exist, so we need to create it
-            this.log.info('Adding new accessory:', device.name);
+            this.log.info('Adding Apple TV:', appleTV.name);
 
             // create a new accessory
-            const accessory = new this.api.platformAccessory(`Apple TV ${device.name}`, uuid);
+            const accessory = new this.api.platformAccessory(`Apple TV ${appleTV.name}`, uuid);
 
             // store a copy of the device object in the `accessory.context`
             // the `context` property can be used to store any data about the accessory you may need
-            accessory.context.id = device.id;
+            accessory.context.id = appleTV.id;
 
             // create the accessory handler for the newly create accessory
             // this is imported from `platformAccessory.ts`
             (async () => {
-                const appletv = new AppleTVEnhancedAccessory(this, accessory);
-                await appletv.untilBooted();
+                await (new AppleTVEnhancedAccessory(this, accessory)).untilBooted();
 
                 // link the accessory to your platform
                 this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
