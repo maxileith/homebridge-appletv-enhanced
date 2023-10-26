@@ -47,6 +47,7 @@ export class AppleTVEnhancedAccessory {
     private mediaConfigs: IMediaConfigs | undefined = undefined;
 
     private booted = false;
+    private offline = false;
 
     constructor(
         private readonly platform: AppleTVEnhancedPlatform,
@@ -105,26 +106,42 @@ export class AppleTVEnhancedAccessory {
             .onGet(this.handleSleepDiscoveryModeGet.bind(this));
         this.service.getCharacteristic(this.platform.Characteristic.RemoteKey)
             .onSet(this.handleRemoteKeySet.bind(this));
-        // create listeners for updating the service
-        this.device.on('update:powerState', this.handleActiveUpdate.bind(this));
 
-        // create input services
+        // create input and sensor services
         const apps = await this.device.listApps();
         this.createInputs(apps);
-        // create listener to keep the current app up to date
-        this.device.on('update:appId', this.handleInputUpdate.bind(this));
-
-        // create device state motion sensors
         this.createDeviceStateSensors();
-        // create listener to keep the current device state up to date
-        this.device.on('update:deviceState', this.handleDeviceStateUpdate.bind(this));
-
-        // create media type motion sensors
         this.createMediaTypeSensors();
-        // create listener to keep the current media type up to date
-        this.device.on('update:mediaType', this.handleMediaTypeUpdate.bind(this));
+
+        // create event listeners to keep everything up-to-date
+        this.createListeners();
 
         this.booted = true;
+    }
+
+    private createListeners(): void {
+        this.platform.log.debug('recreating listeners');
+
+        const filterErrorHandler = (event: NodePyATVDeviceEvent | Error, listener: (event: NodePyATVDeviceEvent) => void): void => {
+            if (!(event instanceof Error)) {
+                if (this.offline && event.value !== null) {
+                    this.platform.log.info('Reestablished the connection');
+                    this.offline = false;
+                }
+                this.platform.log.debug(`event ${event.key}: ${event.value}`);
+                listener.bind(this, event);
+            }
+        };
+
+        this.device.on('update:powerState', (e) => filterErrorHandler(e, this.handleActiveUpdate));
+        this.device.on('update:appId', (e) => filterErrorHandler(e, this.handleInputUpdate));
+        this.device.on('update:deviceState', (e) => filterErrorHandler(e, this.handleDeviceStateUpdate));
+        this.device.on('update:mediaType', (e) => filterErrorHandler(e, this.handleMediaTypeUpdate));
+
+        this.device.on('error', () => {
+            this.offline = true;
+            this.platform.log.warn('Lost connection. Trying to reconnect ...');
+        });
     }
 
     private createMediaTypeSensors(): void {
@@ -156,10 +173,7 @@ export class AppleTVEnhancedAccessory {
         }
     }
 
-    private async handleMediaTypeUpdate(event: NodePyATVDeviceEvent | Error): Promise<void> {
-        if (event instanceof Error) {
-            return;
-        }
+    private async handleMediaTypeUpdate(event: NodePyATVDeviceEvent): Promise<void> {
         this.platform.log.info(`New Media Type State: ${event.value}`);
         if (event.oldValue !== null && this.mediaTypeServices[event.oldValue]) {
             const s = this.mediaTypeServices[event.oldValue];
@@ -200,10 +214,7 @@ export class AppleTVEnhancedAccessory {
         }
     }
 
-    private async handleDeviceStateUpdate(event: NodePyATVDeviceEvent | Error): Promise<void> {
-        if (event instanceof Error) {
-            return;
-        }
+    private async handleDeviceStateUpdate(event: NodePyATVDeviceEvent): Promise<void> {
         this.platform.log.info(`New Device State: ${event.value}`);
         if (event.oldValue !== null && this.deviceStateServices[event.oldValue] !== undefined) {
             const s = this.deviceStateServices[event.oldValue];
@@ -273,10 +284,7 @@ export class AppleTVEnhancedAccessory {
         this.setAppConfigs(appConfigs);
     }
 
-    private async handleInputUpdate(event: NodePyATVDeviceEvent | Error): Promise<void> {
-        if (event instanceof Error) {
-            return;
-        }
+    private async handleInputUpdate(event: NodePyATVDeviceEvent): Promise<void> {
         if (event === null) {
             return;
         }
@@ -376,10 +384,7 @@ export class AppleTVEnhancedAccessory {
         }
     }
 
-    private handleActiveUpdate(event: NodePyATVDeviceEvent | Error) {
-        if (event instanceof Error) {
-            return;
-        }
+    private handleActiveUpdate(event: NodePyATVDeviceEvent) {
         if (event.value === null) {
             return;
         }
