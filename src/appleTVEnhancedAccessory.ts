@@ -168,6 +168,13 @@ export class AppleTVEnhancedAccessory {
                     this.platform.log.info(`Changing configured name of media type sensor ${mediaType} from ${oldConfiguredName} to ${value}.`);
                     this.setMediaTypeConfig(mediaType, value as string);
                 });
+            s.getCharacteristic(this.platform.Characteristic.MotionDetected)
+                .onGet(async () => {
+                    if (this.offline) {
+                        throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+                    }
+                    return s.getCharacteristic(this.platform.Characteristic.MotionDetected).value;
+                });
             this.service!.addLinkedService(s);
             this.mediaTypeServices[mediaType] = s;
         }
@@ -208,6 +215,13 @@ export class AppleTVEnhancedAccessory {
                     }
                     this.platform.log.info(`Changing configured name of device state sensor ${deviceState} from ${oldConfiguredName} to ${value}.`);
                     this.setDeviceStateConfig(deviceState, value as string);
+                });
+            s.getCharacteristic(this.platform.Characteristic.MotionDetected)
+                .onGet(async () => {
+                    if (this.offline) {
+                        throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+                    }
+                    return s.getCharacteristic(this.platform.Characteristic.MotionDetected).value;
                 });
             this.service!.addLinkedService(s);
             this.deviceStateServices[deviceState] = s;
@@ -364,6 +378,9 @@ export class AppleTVEnhancedAccessory {
     }
 
     private async handleActiveGet(): Promise<Nullable<CharacteristicValue>> {
+        if (this.offline) {
+            throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+        }
         return this.service!.getCharacteristic(this.platform.Characteristic.Active).value;
     }
 
