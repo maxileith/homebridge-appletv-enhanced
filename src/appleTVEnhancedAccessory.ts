@@ -13,8 +13,6 @@ import { IAppConfigs, ICommonConfig, IInputs, IMediaConfigs, IStateConfigs, Node
 import { TNodePyATVDeviceState, TNodePyATVMediaType } from './types';
 
 
-const SETTINGS_ID = 959656755;
-
 const HIDE_BY_DEFAULT_APPS = [
     'com.apple.podcasts',
     'com.apple.TVAppStore',
@@ -90,7 +88,7 @@ export class AppleTVEnhancedAccessory {
         this.service = this.accessory.getService(this.platform.Service.Television) || this.accessory.addService(this.platform.Service.Television);
         this.service
             .setCharacteristic(this.platform.Characteristic.Active, this.platform.Characteristic.Active.INACTIVE)
-            .setCharacteristic(this.platform.Characteristic.ActiveIdentifier, this.getCommonConfig().activeIdentifier || SETTINGS_ID)
+            .setCharacteristic(this.platform.Characteristic.ActiveIdentifier, this.getCommonConfig().activeIdentifier || this.appIdToNumber('com.apple.TVSettings'))
             .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getCommonConfig().configuredName || this.accessory.displayName)
             .setCharacteristic(this.platform.Characteristic.SleepDiscoveryMode, this.platform.Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE);
         // create handlers for required characteristics of the service
@@ -509,12 +507,9 @@ export class AppleTVEnhancedAccessory {
     }
 
     private appIdToNumber(appId: string): number {
-        const hash = md5(appId).substring(10, 14);
-        let bitString = '';
-        for (const [, character] of Object.entries(hash)) {
-            bitString += character.charCodeAt(0).toString(2).padStart(8, '0');
-        }
-        return parseInt(bitString, 2);
+        const hash = new Uint8Array(md5(appId, { asBytes: true }));
+        const view = new DataView(hash.buffer);
+        return view.getUint32(0);
     }
 
     private getPath(file: string, defaultContent = '{}'): string {
