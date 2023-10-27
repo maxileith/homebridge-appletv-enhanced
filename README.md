@@ -14,12 +14,24 @@ This plugin automatically discovers Apple TV devices in the local network and ex
 -   Automatically discover Apple TVs in your local network.
 -   Pairing process without the need to access the command line like with other plugins.
 -   Change the current App by selecting an input in HomeKit.
-    -   The plugin is developed in a way that makes it possible to renamed, hide or show inputs in HomeKit natively ... and safes it.
+    -   The plugin is developed in a way that makes it possible to rename, hide or show inputs in HomeKit natively ... and safes it.
 -   For each media type (music, video, tv and unknown) the plugin will create a motion sensor (media types can be hidden or shown by changing the configuration).
 -   For each device state (idle, playing, loading, seeking, paused, stopped) the plugin will create a motion sensor (device states can be hidden or shown by changing the configuration).
 -   If you do not want all Apple TVs to be exposed, it is possible to blacklist them by providing the MAC-Address.
 
-## Screenshots
+## Pairing
+
+After installing and starting the plugin devices will automatically be discovered. Look out for warning messages (yellow) in the log. You will be asked to pair your Apple TV. In order to do that, just the link displayed in the log message, e.g. http://192.168.0.16:42015/. On this page you can enter the 4-digit PIN displayed on your Apple TV to pair it.
+
+<img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/enterPIN.jpg" width=280/> <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/pinTransmitted.jpg" width=280/>
+
+After you have entered the PIN, you need to check the logs if pairing was successful. If you entered a wrong PIN or the pairing request expired, a new attempt will be initiated. Take a look into the logs, there you will find the link to the new pairing page.
+
+If you enter the PIN wrong or let the pairing request timeout too often, you will need to wait to start a new pairing attempt.
+
+## Capabilities
+
+The screenshots speak for themselves ...
 
 <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/inputs.png" width=280/> <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/sensors.png" width=280/>
 
