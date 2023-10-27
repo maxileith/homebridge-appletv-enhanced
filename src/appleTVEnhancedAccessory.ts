@@ -55,11 +55,11 @@ export class AppleTVEnhancedAccessory {
         this.device = CustomPyAtvInstance.getInstance()!.deviceById(this.accessory.context.id as string);
 
         const credentials = this.getCredentials();
-        this.platform.log.warn(`Your Apple TV ${this.device.name} was paired successfully. Please add it to your home in the Home app: com.apple.home://launch`);
         if (credentials === '') {
             this.pair(this.device.host, this.device.name).then((c) => {
                 this.saveCredentials(c);
                 this.startUp(c);
+                this.platform.log.warn(`Your Apple TV ${this.device.name} was paired successfully. Please add it to your home in the Home app: com.apple.home://launch`);
             });
         } else {
             this.startUp(credentials);
