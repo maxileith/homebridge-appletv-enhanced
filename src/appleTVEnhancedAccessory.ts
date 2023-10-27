@@ -129,14 +129,14 @@ export class AppleTVEnhancedAccessory {
                     this.offline = false;
                 }
                 this.platform.log.debug(`event ${event.key}: ${event.value}`);
-                listener.bind(this, event);
+                listener(event);
             }
         };
 
-        this.device.on('update:powerState', (e) => filterErrorHandler(e, this.handleActiveUpdate));
-        this.device.on('update:appId', (e) => filterErrorHandler(e, this.handleInputUpdate));
-        this.device.on('update:deviceState', (e) => filterErrorHandler(e, this.handleDeviceStateUpdate));
-        this.device.on('update:mediaType', (e) => filterErrorHandler(e, this.handleMediaTypeUpdate));
+        this.device.on('update:powerState', (e) => filterErrorHandler(e, this.handleActiveUpdate.bind(this)));
+        this.device.on('update:appId', (e) => filterErrorHandler(e, this.handleInputUpdate.bind(this)));
+        this.device.on('update:deviceState', (e) => filterErrorHandler(e, this.handleDeviceStateUpdate.bind(this)));
+        this.device.on('update:mediaType', (e) => filterErrorHandler(e, this.handleMediaTypeUpdate.bind(this)));
 
         this.device.on('error', (e) => {
             this.platform.log.debug(e as unknown as string);
@@ -308,9 +308,12 @@ export class AppleTVEnhancedAccessory {
         }
         const appId = event.value;
         this.platform.log.warn(`Current App: ${appId}`);
-        const appIdentifier = this.getAppConfigs()[appId].identifier;
-        this.setCommonConfig('activeIdentifier', appIdentifier);
-        this.service!.setCharacteristic(this.platform.Characteristic.ActiveIdentifier, appIdentifier);
+        const appConfig = this.getAppConfigs()[appId];
+        if (appConfig) {
+            const appIdentifier = appConfig.identifier;
+            this.setCommonConfig('activeIdentifier', appIdentifier);
+            this.service!.setCharacteristic(this.platform.Characteristic.ActiveIdentifier, appIdentifier);
+        }
     }
 
     private getAppConfigs(): IAppConfigs {
