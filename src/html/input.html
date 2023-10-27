@@ -7,20 +7,143 @@
         <style>
             body {
                 font-family: Arial, Helvetica, sans-serif;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                width: 100%;
+                height: 100vh;
+            }
+            .bg-image {
+                background-image: url(https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/staticHtmlContent/background.jpg);
+                background-position: center center;
+                background-repeat: no-repeat;
+                background-size: cover;
+                height: calc(100vh + 60px);
+                width: calc(100% + 60px);
+                filter: blur(15px);
+                -webkit-filter: blur(15px);
+                position: absolute;
+                top: -30px;
+                left: -30px;
+                opacity: 0.8;
+            }
+            input {
+                padding: 0.5rem;
+                border: 0;
+                width: 2.5rem;
+                height: 4rem;
+                text-align: center;
+                font-size: 2rem;
+                border-radius: 0.75rem;
+                margin: 0.25rem;
+                background-color: rgba(255, 255, 255, 0.4);
+            }
+            .box {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                width: 100%;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+            .box div {
+                text-align: center;
+                max-width: 20rem;
+                margin-bottom: 5rem;
+                background-color: rgba(255, 255, 255, 0.4);
+                padding: 2rem;
+                border-radius: 1rem;
+            }
+            #appleTVLogo {
+                max-width: 10rem;
             }
         </style>
     </head>
     <body>
-        <h1>Apple TV Pairing</h1>
-        <form action="/" method="post">
-            <label for="fname">PIN (4-digits):</label><br />
-            <input
-                type="text"
-                id="pin"
-                name="pin"
-                pattern="[0-9]{4}"
-            /><br /><br />
-            <input type="submit" value="Submit" />
-        </form>
+        <div class="bg-image"></div>
+        <div class="box">
+            <div>
+                <img
+                    src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/staticHtmlContent/appleTVLogo.png"
+                    id="appleTVLogo"
+                />
+                <h3>Enter the PIN on your Apple TV.</h3>
+                <form action="/" method="post" name="pin">
+                    <input
+                        type="text"
+                        id="a"
+                        onkeyup="moveOnMax(this, '', 'b')"
+                        autofocus
+                        name="a"
+                        inputmode="numeric"
+                    />
+                    <input
+                        type="text"
+                        id="b"
+                        onkeyup="moveOnMax(this, 'a', 'c')"
+                        name="b"
+                        inputmode="numeric"
+                    />
+                    <input
+                        type="text"
+                        id="c"
+                        onkeyup="moveOnMax(this, 'b', 'd')"
+                        name="c"
+                        inputmode="numeric"
+                    />
+                    <input
+                        type="text"
+                        id="d"
+                        onkeyup="moveOnMax(this, 'c', '')"
+                        name="d"
+                        inputmode="numeric"
+                    />
+                </form>
+            </div>
+        </div>
+
+        <script>
+            function moveOnMax(field, lastFieldID, nextFieldID) {
+                field.value = field.value.substring(field.value.length - 1);
+                if (
+                    event.key.includes("Arrow") ||
+                    event.code.includes("Arrow")
+                ) {
+                    return;
+                }
+                if (event.key === "Backspace" || event.code === "Backspace") {
+                    if (lastFieldID !== "") {
+                        document.getElementById(lastFieldID).value = "";
+                        document.getElementById(lastFieldID).focus();
+                        return;
+                    }
+                }
+                if (field.value.length === 1) {
+                    if (nextFieldID !== "") {
+                        document.getElementById(nextFieldID).focus();
+                    } else {
+                        checkAndSubmit();
+                    }
+                }
+            }
+
+            function checkAndSubmit() {
+                if (document.getElementById("a").value.length !== 1) {
+                    return;
+                }
+                if (document.getElementById("b").value.length !== 1) {
+                    return;
+                }
+                if (document.getElementById("c").value.length !== 1) {
+                    return;
+                }
+                if (document.getElementById("d").value.length !== 1) {
+                    return;
+                }
+                document.pin.submit();
+            }
+        </script>
     </body>
 </html>

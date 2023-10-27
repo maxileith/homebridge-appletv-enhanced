@@ -55,6 +55,7 @@ export class AppleTVEnhancedAccessory {
         this.device = CustomPyAtvInstance.getInstance()!.deviceById(this.accessory.context.id as string);
 
         const credentials = this.getCredentials();
+        this.platform.log.warn(`Your Apple TV ${this.device.name} was paired successfully. Please add it to your home in the Home app: com.apple.home://launch`);
         if (credentials === '') {
             this.pair(this.device.host, this.device.name).then((c) => {
                 this.saveCredentials(c);
@@ -137,7 +138,8 @@ export class AppleTVEnhancedAccessory {
         this.device.on('update:deviceState', (e) => filterErrorHandler(e, this.handleDeviceStateUpdate));
         this.device.on('update:mediaType', (e) => filterErrorHandler(e, this.handleMediaTypeUpdate));
 
-        this.device.on('error', () => {
+        this.device.on('error', (e) => {
+            this.platform.log.debug(e as unknown as string);
             this.offline = true;
             this.platform.log.warn('Lost connection. Trying to reconnect ...');
         });
@@ -590,6 +592,12 @@ export class AppleTVEnhancedAccessory {
             });
 
             const requestListener = (req: IncomingMessage, res: ServerResponse<IncomingMessage> & { req: IncomingMessage }): void => {
+                res.setHeader('Content-Security-Policy', 'default-src * \'self\' data: \'unsafe-inline\' \'unsafe-hashes\' \'unsafe-eval\';\
+                script-src * \'self\' data: \'unsafe-inline\' \'unsafe-hashes\' \'unsafe-eval\';\
+                script-src-elem * \'self\' data: \'unsafe-inline\' \'unsafe-hashes\' \'unsafe-eval\';\
+                script-src-attr * \'self\' data: \'unsafe-inline\' \'unsafe-hashes\' \'unsafe-eval\';\
+                media-src * \'self\'');
+                res.setHeader('Cache-Control', 'max-age=0, no-cache, must-revalidate, proxy-revalidate');
                 res.writeHead(200);
                 if (req.method === 'GET') {
                     res.end(htmlInput);
@@ -599,7 +607,8 @@ export class AppleTVEnhancedAccessory {
                         reqBody += chunk;
                     });
                     req.on('end', () => {
-                        const pin = parseInt(reqBody.split('=')[1]);
+                        const [a, b, c, d] = reqBody.split('&').map((e) => e.charAt(2));
+                        const pin = `${a}${b}${c}${d}`;
                         this.platform.log.info(`Got PIN ${pin} for Apple TV ${appleTVName}.`);
                         process.stdin.write(`${pin}\n`);
                         res.end(htmlAfterPost);
