@@ -1,8 +1,9 @@
 import * as nodePyatv from '@sebbo2002/node-pyatv';
+import { Logger } from 'homebridge';
 import path from 'path';
 
 
-class CustomPyAtvInstance extends nodePyatv.NodePyATVInstance {
+class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
 
     private static cachedDevices: nodePyatv.NodePyATVDevice[] = [];
 
@@ -14,7 +15,7 @@ class CustomPyAtvInstance extends nodePyatv.NodePyATVInstance {
     }
 
     public async find(options?: nodePyatv.NodePyATVFindAndInstanceOptions): Promise<nodePyatv.NodePyATVDevice[]> {
-        return CustomPyAtvInstance.find(options);
+        return CustomPyATVInstance.find(options);
     }
 
     public static async find(options?: nodePyatv.NodePyATVFindAndInstanceOptions): Promise<nodePyatv.NodePyATVDevice[]> {
@@ -32,9 +33,13 @@ class CustomPyAtvInstance extends nodePyatv.NodePyATVInstance {
         }
     }
 
-    public static setStoragePath(storagePath: string): void {
+    public static setStoragePath(storagePath: string, logger?: Logger): void {
         this.atvscriptPath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvscript');
         this.atvremotePath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvremote');
+        if (logger) {
+            logger.debug(`PyATVInstance: Set atvscript path to "${this.atvscriptPath}".`);
+            logger.debug(`PyATVInstance: Set atvremote path to "${this.atvremotePath}".`);
+        }
     }
 
     private static extendOptions<T extends nodePyatv.NodePyATVDeviceOptions | nodePyatv.NodePyATVInstanceOptions | undefined>(options: T): T {
@@ -54,4 +59,4 @@ class CustomPyAtvInstance extends nodePyatv.NodePyATVInstance {
     }
 }
 
-export default CustomPyAtvInstance;
+export default CustomPyATVInstance;
