@@ -297,7 +297,7 @@ export class AppleTVEnhancedAccessory {
         apps.forEach((app) => {
             if (!Object.keys(appConfigs).includes(app.id)) {
                 appConfigs[app.id] = {
-                    configuredName: app.name,
+                    configuredName: app.id === 'com.apple.TVWatchList' ? 'Apple TV' : this.trimAppName(app.name),
                     isConfigured: this.platform.Characteristic.IsConfigured.CONFIGURED,
                     visibilityState: HIDE_BY_DEFAULT_APPS.includes(app.id)
                         ? this.platform.Characteristic.CurrentVisibilityState.HIDDEN
@@ -737,5 +737,15 @@ export class AppleTVEnhancedAccessory {
             await delay(100);
         }
         this.log.debug('Reporting as booted.');
+    }
+
+    private trimAppName(value: string): string {
+        while (!/[a-zA-Z0-9]/.test(value.charAt(0))) {
+            value = value.substring(1);
+        }
+        while (!/[a-zA-Z0-9]/.test(value.charAt(value.length - 1))) {
+            value = value.substring(0, value.length - 1);
+        }
+        return value;
     }
 }

@@ -60,7 +60,3 @@ To configure manually, add the following to the `platforms` section of Homebridg
     "blacklist": ["AA:BB:CC:DD:EE:FF"]
 }
 ```
-
-## Known Issues
-
--   After adding an Apple TV device to the Home app, the same input appears many times, e.g. YouTube, instead of the different apps you have installed. This is most likely a HomeKit issue since you can see in the settings of the Set-Top Box device in HomeKit, that the inputs (Apps) are listed correctly. Wait some time or restart the plugin, that seems to work most of the time. Once the correct inputs are displayed in the Home App, they will stay right.
