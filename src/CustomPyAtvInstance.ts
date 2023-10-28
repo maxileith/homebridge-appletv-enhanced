@@ -25,12 +25,12 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
         });
     }
 
-    public static device(options: nodePyatv.NodePyATVDeviceOptions | { id: string }): nodePyatv.NodePyATVDevice {
-        if (options.id) {
-            return this.cachedDevices.find((d) => d.id === options.id) as nodePyatv.NodePyATVDevice;
-        } else {
-            return super.device(this.extendOptions(options as nodePyatv.NodePyATVDeviceOptions));
-        }
+    public static device(options: nodePyatv.NodePyATVDeviceOptions): nodePyatv.NodePyATVDevice {
+        return super.device(this.extendOptions(options as nodePyatv.NodePyATVDeviceOptions));
+    }
+
+    public static deviceById(id: string): nodePyatv.NodePyATVDevice {
+        return this.cachedDevices.find((d) => d.id === id) as nodePyatv.NodePyATVDevice;
     }
 
     public static setStoragePath(storagePath: string, logger?: Logger): void {

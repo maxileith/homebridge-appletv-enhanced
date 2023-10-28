@@ -57,7 +57,7 @@ export class AppleTVEnhancedAccessory {
         private readonly platform: AppleTVEnhancedPlatform,
         private readonly accessory: PlatformAccessory,
     ) {
-        this.device = CustomPyAtvInstance.device({ id: this.accessory.context.id as string });
+        this.device = CustomPyAtvInstance.deviceById(this.accessory.context.id as string);
 
         this.log = new AccessoryLogger(this.platform.log, this.device.name, this.device.id!);
 
