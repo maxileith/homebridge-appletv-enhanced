@@ -18,3 +18,13 @@ export function getLocalIP(): string {
     }
     return 'homebridge.local';
 }
+
+export function trimSpecialCharacters(value: string): string {
+    while (!/[a-zA-Z0-9]/.test(value.charAt(0))) {
+        value = value.substring(1);
+    }
+    while (!/[a-zA-Z0-9]/.test(value.charAt(value.length - 1))) {
+        value = value.substring(0, value.length - 1);
+    }
+    return value;
+}

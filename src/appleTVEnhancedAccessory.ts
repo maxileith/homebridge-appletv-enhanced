@@ -8,7 +8,7 @@ import md5 from 'md5';
 import { spawn } from 'child_process';
 import path from 'path';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
-import { capitalizeFirstLetter, delay, getLocalIP } from './utils';
+import { capitalizeFirstLetter, delay, getLocalIP, trimSpecialCharacters } from './utils';
 import { IAppConfigs, ICommonConfig, IInputs, IMediaConfigs, IStateConfigs, NodePyATVApp } from './interfaces';
 import { TNodePyATVDeviceState, TNodePyATVMediaType } from './types';
 import AccessoryLogger from './AccessoryLogger';
@@ -78,6 +78,9 @@ export class AppleTVEnhancedAccessory {
             host: this.device.host,
             name: this.device.name,
             id: this.device.id,
+            model: this.device.model,
+            modelName: this.device.modelName,
+            version: this.device.version,
             airplayCredentials: credentials,
             companionCredentials: credentials,
         });
@@ -89,10 +92,10 @@ export class AppleTVEnhancedAccessory {
             .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Apple Inc.')
             .setCharacteristic(this.platform.Characteristic.Model, this.device.modelName!)
             .setCharacteristic(this.platform.Characteristic.SerialNumber, this.device.id!)
-            .setCharacteristic(this.platform.Characteristic.Name, this.device.name)
+            .setCharacteristic(this.platform.Characteristic.Name, trimSpecialCharacters(this.device.name))
             .setCharacteristic(this.platform.Characteristic.FirmwareRevision, this.device.version!);
 
-        const configuredName: string = this.getCommonConfig().configuredName || this.accessory.displayName;
+        const configuredName: string = this.getCommonConfig().configuredName || trimSpecialCharacters(this.accessory.displayName);
 
         // create the service
         this.service = this.accessory.getService(this.platform.Service.Television) || this.accessory.addService(this.platform.Service.Television);
@@ -101,7 +104,8 @@ export class AppleTVEnhancedAccessory {
             .setCharacteristic(this.platform.Characteristic.ActiveIdentifier, this.getCommonConfig().activeIdentifier || this.appIdToNumber('com.apple.TVSettings'))
             .setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName)
             .setCharacteristic(this.platform.Characteristic.SleepDiscoveryMode, this.platform.Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE)
-            .setCharacteristic(this.platform.Characteristic.CurrentMediaState, this.platform.Characteristic.CurrentMediaState.INTERRUPTED);
+            .setCharacteristic(this.platform.Characteristic.CurrentMediaState, this.platform.Characteristic.CurrentMediaState.INTERRUPTED)
+            .setCharacteristic(this.platform.Characteristic.FirmwareRevision, this.device.version!);
         // create handlers for required characteristics of the service
         this.service.getCharacteristic(this.platform.Characteristic.Active)
             .onGet(this.handleActiveGet.bind(this))
@@ -297,7 +301,7 @@ export class AppleTVEnhancedAccessory {
         apps.forEach((app) => {
             if (!Object.keys(appConfigs).includes(app.id)) {
                 appConfigs[app.id] = {
-                    configuredName: app.id === 'com.apple.TVWatchList' ? 'Apple TV' : this.trimAppName(app.name),
+                    configuredName: app.id === 'com.apple.TVWatchList' ? 'Apple TV' : trimSpecialCharacters(app.name),
                     isConfigured: this.platform.Characteristic.IsConfigured.CONFIGURED,
                     visibilityState: HIDE_BY_DEFAULT_APPS.includes(app.id)
                         ? this.platform.Characteristic.CurrentVisibilityState.HIDDEN
@@ -737,15 +741,5 @@ export class AppleTVEnhancedAccessory {
             await delay(100);
         }
         this.log.debug('Reporting as booted.');
-    }
-
-    private trimAppName(value: string): string {
-        while (!/[a-zA-Z0-9]/.test(value.charAt(0))) {
-            value = value.substring(1);
-        }
-        while (!/[a-zA-Z0-9]/.test(value.charAt(value.length - 1))) {
-            value = value.substring(0, value.length - 1);
-        }
-        return value;
     }
 }
