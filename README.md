@@ -4,6 +4,7 @@
 [![npm](https://img.shields.io/npm/v/homebridge-appletv-enhanced)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
 [![npm](https://badgen.net/npm/dt/homebridge-appletv-enhanced)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
 [![donate](https://badgen.net/badge/donate/paypal/91BE09)](https://www.paypal.me/maxileith)
+[![PyPI pyversions](https://img.shields.io/badge/Python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue)](https://pypi.python.org/pypi/pyatv/)
 
 [Homebridge](https://github.com/homebridge/homebridge) plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV integration of HomeKit.
 
@@ -42,7 +43,7 @@ The screenshots speak for themselves ...
 This easiest way to use this plugin is to use [homebridge-config-ui-x](https://www.npmjs.com/package/homebridge-config-ui-x).  
 To configure manually, add the following to the `platforms` section of Homebridge's `config.json` after installing the plugin.
 
-**Config:**
+**`config.json`**
 
 ```json
 {
