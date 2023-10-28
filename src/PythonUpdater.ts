@@ -87,7 +87,7 @@ class PythonUpdater {
     private async areRequirementsSatisfied(): Promise<boolean> {
         const [freeze] = await this.runCommand(this.venvPipPath, ['freeze'], undefined, true);
         const requirements = fs.readFileSync(this.requirementsPath).toString();
-        return freeze.trim() === requirements.trim();
+        return freeze.trim().replaceAll('-', '_') === requirements.trim().replaceAll('-', '_');
     }
 
     private async installRequirements(): Promise<void> {
