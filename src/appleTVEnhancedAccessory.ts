@@ -536,52 +536,55 @@ export class AppleTVEnhancedAccessory {
         switch (state) {
         case this.platform.Characteristic.RemoteKey.REWIND:
             this.log.info('remote rewind');
+            this.device.skipBackward();
             break;
         case this.platform.Characteristic.RemoteKey.FAST_FORWARD:
             this.log.info('remote fast forward');
+            this.device.skipForward();
             break;
         case this.platform.Characteristic.RemoteKey.NEXT_TRACK:
             this.log.info('remote next rack');
-            this.device?.skipForward();
+            this.device.next();
             break;
         case this.platform.Characteristic.RemoteKey.PREVIOUS_TRACK:
             this.log.info('remote previous track');
-            this.device?.skipBackward();
+            this.device.previous();
             break;
         case this.platform.Characteristic.RemoteKey.ARROW_UP:
             this.log.info('remote arrow up');
-            this.device?.up();
+            this.device.up();
             break;
         case this.platform.Characteristic.RemoteKey.ARROW_DOWN:
             this.log.info('remote arrow down');
-            this.device?.down();
+            this.device.down();
             break;
         case this.platform.Characteristic.RemoteKey.ARROW_LEFT:
             this.log.info('remote arrow left');
-            this.device?.left();
+            this.device.left();
             break;
         case this.platform.Characteristic.RemoteKey.ARROW_RIGHT:
             this.log.info('remote arrow right');
-            this.device?.right();
+            this.device.right();
             break;
         case this.platform.Characteristic.RemoteKey.SELECT:
             this.log.info('remote select');
-            this.device?.select();
+            this.device.select();
             break;
         case this.platform.Characteristic.RemoteKey.BACK:
             this.log.info('remote back');
+            this.device.menu();
             break;
         case this.platform.Characteristic.RemoteKey.EXIT:
             this.log.info('remote exit');
-            this.device?.home();
+            this.device.home();
             break;
         case this.platform.Characteristic.RemoteKey.PLAY_PAUSE:
             this.log.info('remote play/pause');
-            this.device?.playPause();
+            this.device.playPause();
             break;
         case this.platform.Characteristic.RemoteKey.INFORMATION:
             this.log.info('remote information');
-            this.device?.topMenu();
+            this.device.topMenu();
             break;
         }
     }
