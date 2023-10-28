@@ -27,17 +27,6 @@
                 left: -30px;
                 opacity: 0.8;
             }
-            open input {
-                padding: 0.5rem;
-                border: 0;
-                width: 2.5rem;
-                height: 4rem;
-                text-align: center;
-                font-size: 2rem;
-                border-radius: 0.75rem;
-                margin: 0.25rem;
-                background-color: rgba(255, 255, 255, 0.4);
-            }
             .box {
                 display: flex;
                 align-items: center;
@@ -48,7 +37,7 @@
                 top: 0;
                 left: 0;
             }
-            .box div {
+            #success {
                 text-align: center;
                 max-width: 20rem;
                 margin-bottom: 5rem;
@@ -68,7 +57,7 @@
     <body>
         <div class="bg-image"></div>
         <div class="box">
-            <div>
+            <div id="success" style="display: none">
                 <img
                     src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/staticHtmlContent/appleTVLogo.png"
                     id="appleTVLogo"
@@ -88,6 +77,26 @@
                     </p>
                 </a>
             </div>
+            <div id="loading">
+                <img
+                    src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/staticHtmlContent/loading.svg"
+                    id="appleTVLogo"
+                />
+            </div>
         </div>
+        <script>
+            setTimeout(() => {
+                fetch("/", { method: "GET" })
+                    .then(() => {
+                        window.location.replace("/");
+                    })
+                    .catch(() => {
+                        document.getElementById("loading").style.display =
+                            "none";
+                        document.getElementById("success").style.display =
+                            "unset";
+                    });
+            }, 5000);
+        </script>
     </body>
 </html>
