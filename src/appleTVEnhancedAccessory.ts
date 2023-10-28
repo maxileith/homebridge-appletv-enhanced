@@ -100,7 +100,8 @@ export class AppleTVEnhancedAccessory {
             .setCharacteristic(this.platform.Characteristic.Active, this.platform.Characteristic.Active.INACTIVE)
             .setCharacteristic(this.platform.Characteristic.ActiveIdentifier, this.getCommonConfig().activeIdentifier || this.appIdToNumber('com.apple.TVSettings'))
             .setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName)
-            .setCharacteristic(this.platform.Characteristic.SleepDiscoveryMode, this.platform.Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE);
+            .setCharacteristic(this.platform.Characteristic.SleepDiscoveryMode, this.platform.Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE)
+            .setCharacteristic(this.platform.Characteristic.CurrentMediaState, this.platform.Characteristic.CurrentMediaState.INTERRUPTED);
         // create handlers for required characteristics of the service
         this.service.getCharacteristic(this.platform.Characteristic.Active)
             .onGet(this.handleActiveGet.bind(this))
@@ -255,6 +256,38 @@ export class AppleTVEnhancedAccessory {
         if (event.value !== null && this.deviceStateServices[event.value] !== undefined) {
             const s = this.deviceStateServices[event.value];
             s.setCharacteristic(this.platform.Characteristic.MotionDetected, true);
+        }
+        switch (event.value) {
+        case NodePyATVDeviceState.playing:
+            this.service?.setCharacteristic(
+                this.platform.Characteristic.CurrentMediaState,
+                this.platform.Characteristic.CurrentMediaState.PLAY,
+            );
+            break;
+        case NodePyATVDeviceState.paused:
+            this.service?.setCharacteristic(
+                this.platform.Characteristic.CurrentMediaState,
+                this.platform.Characteristic.CurrentMediaState.PAUSE,
+            );
+            break;
+        case NodePyATVDeviceState.stopped:
+            this.service?.setCharacteristic(
+                this.platform.Characteristic.CurrentMediaState,
+                this.platform.Characteristic.CurrentMediaState.STOP,
+            );
+            break;
+        case NodePyATVDeviceState.loading:
+            this.service?.setCharacteristic(
+                this.platform.Characteristic.CurrentMediaState,
+                this.platform.Characteristic.CurrentMediaState.LOADING,
+            );
+            break;
+        case null:
+            this.service?.setCharacteristic(
+                this.platform.Characteristic.CurrentMediaState,
+                this.platform.Characteristic.CurrentMediaState.INTERRUPTED,
+            );
+            break;
         }
     }
 
