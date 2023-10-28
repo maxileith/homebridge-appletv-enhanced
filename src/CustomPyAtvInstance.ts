@@ -1,48 +1,56 @@
-import { NodePyATVDevice, NodePyATVFindAndInstanceOptions, NodePyATVInstance, NodePyATVInstanceOptions} from '@sebbo2002/node-pyatv';
+import * as nodePyatv from '@sebbo2002/node-pyatv';
 import path from 'path';
 
-interface CustomNodePyATVInstanceOptions extends NodePyATVInstanceOptions {
-    atvremotePath: string;
-    atvscriptPath: string;
-}
 
-class CustomPyAtvInstance extends NodePyATVInstance {
+class CustomPyAtvInstance extends nodePyatv.NodePyATVInstance {
 
-    private cachedDevices: NodePyATVDevice[] = [];
-    private static instance: CustomPyAtvInstance | undefined = undefined;
+    private static cachedDevices: nodePyatv.NodePyATVDevice[] = [];
 
-    public readonly atvscriptPath: string;
-    public readonly atvremotePath: string;
+    private static atvscriptPath: string | undefined = undefined;
+    private static atvremotePath: string | undefined = undefined;
 
-    private constructor(options: CustomNodePyATVInstanceOptions) {
+    private constructor(options: nodePyatv.NodePyATVInstanceOptions) {
         super(options);
-        this.atvscriptPath = options.atvscriptPath;
-        this.atvremotePath = options.atvremotePath;
     }
 
-    public async find(options?: NodePyATVFindAndInstanceOptions): Promise<NodePyATVDevice[]> {
-        return super.find(options).then(async (results) => {
+    public async find(options?: nodePyatv.NodePyATVFindAndInstanceOptions): Promise<nodePyatv.NodePyATVDevice[]> {
+        return CustomPyAtvInstance.find(options);
+    }
+
+    public static async find(options?: nodePyatv.NodePyATVFindAndInstanceOptions): Promise<nodePyatv.NodePyATVDevice[]> {
+        return nodePyatv.NodePyATVInstance.find(this.extendOptions(options)).then(async (results) => {
             this.cachedDevices = results;
             return results;
         });
     }
 
-    public deviceById(id: string): NodePyATVDevice {
-        return this.cachedDevices.find((d) => d.id === id) as NodePyATVDevice;
+    public static device(options: nodePyatv.NodePyATVDeviceOptions | { id: string }): nodePyatv.NodePyATVDevice {
+        if (options.id) {
+            return this.cachedDevices.find((d) => d.id === options.id) as nodePyatv.NodePyATVDevice;
+        } else {
+            return super.device(this.extendOptions(options as nodePyatv.NodePyATVDeviceOptions));
+        }
     }
 
-    public static getInstance(): CustomPyAtvInstance | undefined {
-        return this.instance;
+    public static setStoragePath(storagePath: string): void {
+        this.atvscriptPath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvscript');
+        this.atvremotePath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvremote');
     }
 
-    public static createInstance(storagePath: string, options?: NodePyATVInstanceOptions): void {
-        const script = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvscript');
-        const remote = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvremote');
-        this.instance = new CustomPyAtvInstance({
-            atvscriptPath: script,
-            atvremotePath: remote,
+    private static extendOptions<T extends nodePyatv.NodePyATVDeviceOptions | nodePyatv.NodePyATVInstanceOptions | undefined>(options: T): T {
+        return {
+            atvscriptPath: this.atvscriptPath,
+            atvremotePath: this.atvremotePath,
             ...options,
-        });
+        };
+    }
+
+    public static getAtvremotePath(): string {
+        return this.atvremotePath || 'atvremote';
+    }
+
+    public static getAtvscriptPath(): string {
+        return this.atvremotePath || 'atvscript';
     }
 }
 

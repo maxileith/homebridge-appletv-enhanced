@@ -52,7 +52,7 @@ export class AppleTVEnhancedAccessory {
         private readonly platform: AppleTVEnhancedPlatform,
         private readonly accessory: PlatformAccessory,
     ) {
-        this.device = CustomPyAtvInstance.getInstance()!.deviceById(this.accessory.context.id as string);
+        this.device = CustomPyAtvInstance.device({ id: this.accessory.context.id as string });
 
         const credentials = this.getCredentials();
         if (credentials === '') {
@@ -67,7 +67,7 @@ export class AppleTVEnhancedAccessory {
     }
 
     private async startUp(credentials: string): Promise<void> {
-        this.device = CustomPyAtvInstance.getInstance()!.device({
+        this.device = CustomPyAtvInstance.device({
             host: this.device.host,
             name: this.device.name,
             id: this.device.id,
@@ -561,7 +561,7 @@ export class AppleTVEnhancedAccessory {
             let backOffSeconds = 0;
             let processClosed = false;
 
-            const process = spawn(CustomPyAtvInstance.getInstance()!.atvremotePath, ['-s', ip, '--protocol', 'companion', 'pair']);
+            const process = spawn(CustomPyAtvInstance.getAtvremotePath(), ['-s', ip, '--protocol', 'companion', 'pair']);
             process.stderr.setEncoding('utf8');
             process.stderr.on('data', (data: string) => {
                 this.platform.log.error('stderr: ' + data);

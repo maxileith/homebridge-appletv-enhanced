@@ -4,6 +4,7 @@ import { PLUGIN_NAME } from './settings';
 import { AppleTVEnhancedAccessory } from './appleTVEnhancedAccessory';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
 import { AppleTVEnhancedPlatformConfig } from './interfaces';
+import { NodePyATVDevice } from '@sebbo2002/node-pyatv';
 
 export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
     public readonly Service: typeof Service;
@@ -32,7 +33,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             this.log.info('Starting device discovery');
 
             // run the method to discover / register your devices as accessories
-            CustomPyAtvInstance.createInstance(this.api.user.storagePath());
+            CustomPyAtvInstance.setStoragePath(this.api.user.storagePath());
             this.discoverDevices();
             setInterval(() => this.discoverDevices(), 60000);
         });
@@ -56,7 +57,10 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
    * must not be registered again to prevent "duplicate UUID" errors.
    */
     async discoverDevices() {
-        const scanResults = await CustomPyAtvInstance.getInstance()!.find();
+        const scanResults = await CustomPyAtvInstance.find().catch((err) => {
+            this.log.error(err);
+            return [] as NodePyATVDevice[];
+        });
         const appleTVs = scanResults.filter((d) => d.modelName?.includes('Apple TV') && d.os === 'TvOS');
 
         // loop over the discovered devices and register each one if it has not already been registered
