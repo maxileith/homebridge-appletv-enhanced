@@ -61,11 +61,12 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
    */
     async discoverDevices() {
         this.log.debug('Platform: Starting device discovery ...');
-
         const scanResults = await CustomPyAtvInstance.find().catch((err) => {
             this.log.error(err);
             return [] as NodePyATVDevice[];
         });
+        this.log.debug('Platform: Finished device discovery.');
+
         const appleTVs = scanResults.filter((d) => d.modelName?.includes('Apple TV') && d.os === 'TvOS');
 
         // loop over the discovered devices and register each one if it has not already been registered
