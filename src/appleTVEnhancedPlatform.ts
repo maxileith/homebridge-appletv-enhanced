@@ -5,6 +5,7 @@ import { AppleTVEnhancedAccessory } from './appleTVEnhancedAccessory';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
 import { AppleTVEnhancedPlatformConfig } from './interfaces';
 import { NodePyATVDevice } from '@sebbo2002/node-pyatv';
+import PythonUpdater from './PythonUpdater';
 
 
 export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
@@ -29,8 +30,11 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
         // Dynamic Platform plugins should only register new accessories after this event was fired,
         // in order to ensure they weren't added to homebridge already. This event can also be used
         // to start discovery of new accessories.
-        this.api.on('didFinishLaunching', () => {
+        this.api.on('didFinishLaunching', async () => {
             this.log.debug('Platform: Executed didFinishLaunching callback');
+
+            // make sure the Python environment is ready
+            await new PythonUpdater(log, this.api.user.storagePath()).allInOne();
 
             // run the method to discover / register your devices as accessories
             this.log.debug(`Platform: Setting the storage path to ${this.api.user.storagePath()}`);
