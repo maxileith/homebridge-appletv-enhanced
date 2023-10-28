@@ -594,6 +594,13 @@ export class AppleTVEnhancedAccessory {
                 processClosed = true;
             });
 
+            setTimeout(() => {
+                if (!processClosed) {
+                    this.platform.log.warn('Pairing request timed out, retrying ...');
+                    process.stdin.write('\n');
+                }
+            }, 32000);
+
             const requestListener = (req: IncomingMessage, res: ServerResponse<IncomingMessage> & { req: IncomingMessage }): void => {
                 res.setHeader('Content-Security-Policy', 'default-src * \'self\' data: \'unsafe-inline\' \'unsafe-hashes\' \'unsafe-eval\';\
                 script-src * \'self\' data: \'unsafe-inline\' \'unsafe-hashes\' \'unsafe-eval\';\
