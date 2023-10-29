@@ -36,7 +36,13 @@ The screenshots speak for themselves ...
 
 <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/inputs.png" width=280/> <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/sensors.png" width=280/>
 
-## Important information from behind the scenes
+## Requirements
+
+* Only Linux will be supported by the owner (although you might get it to run on other operating systems)
+* Python 3.8, 3.9, 3.10 or 3.11
+* Python virtual environment module `virtualenv` (the plugin will create a virtual environment on startup and will install python dependencies in this virtual environment). This will not be handled by the plugin itself.
+    * On debian-based distros: `sudo apt install python3-venv`
+    * Installation on other distros may vary
 
 ## Configuration
 

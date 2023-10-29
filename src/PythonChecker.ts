@@ -61,10 +61,6 @@ ${SUPPORTED_PYTHON_VERSIONS[0]} to ${SUPPORTED_PYTHON_VERSIONS[SUPPORTED_PYTHON_
         }
     }
 
-    private async ensureVenvModuleInstalled(): Promise<void> {
-
-    }
-
     private async ensureVenv() {
         if (this.isVenvCreated()) {
             this.log.info('Python check: Virtual environment already exists.');
@@ -88,6 +84,8 @@ python package virtualenv either by using \'python3 -m pip install virutalenv\' 
 On debian based distributions this is usally \'sudo apt install python3-venv\'');
                 await delay(60000);
             }
+        } else if (stdout.trim() !== '') {
+            this.log.warn(stdout);
         }
     }
 
