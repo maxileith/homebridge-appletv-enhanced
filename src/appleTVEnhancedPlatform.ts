@@ -5,7 +5,7 @@ import { AppleTVEnhancedAccessory } from './appleTVEnhancedAccessory';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
 import { AppleTVEnhancedPlatformConfig } from './interfaces';
 import { NodePyATVDevice } from '@sebbo2002/node-pyatv';
-import PythonUpdater from './PythonUpdater';
+import PythonChecker from './PythonChecker';
 
 
 export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
@@ -34,7 +34,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             this.log.debug('Platform: Executed didFinishLaunching callback');
 
             // make sure the Python environment is ready
-            await new PythonUpdater(log, this.api.user.storagePath()).allInOne();
+            await new PythonChecker(log, this.api.user.storagePath()).allInOne();
 
             // run the method to discover / register your devices as accessories
             this.log.debug(`Platform: Setting the storage path to ${this.api.user.storagePath()}`);

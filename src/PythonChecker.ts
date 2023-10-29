@@ -4,13 +4,19 @@ import fs from 'fs';
 import { SpawnOptionsWithoutStdio, spawn } from 'child_process';
 import { delay } from './utils';
 
-class PythonUpdater {
+const SUPPORTED_PYTHON_VERSIONS = [
+    'Python 3.8',
+    'Python 3.9',
+    'Python 3.10',
+    'Python 3.11',
+];
+
+class PythonChecker {
 
     private readonly log: Logger;
 
     private readonly pluginDirPath: string;
     private readonly venvPath: string;
-    private readonly venvPythonPath: string;
     private readonly venvPipPath: string;
     private readonly requirementsPath: string = path.join(__dirname, 'requirements.txt');
 
@@ -18,65 +24,93 @@ class PythonUpdater {
         this.log = logger;
         this.pluginDirPath = path.join(storagePath, 'appletv-enhanced');
         this.venvPath = path.join(this.pluginDirPath, '.venv');
-        this.venvPythonPath = path.join(this.venvPath, 'bin', 'python3');
         this.venvPipPath = path.join(this.venvPath, 'bin', 'pip3');
     }
 
     public async allInOne(): Promise<void> {
-        this.log.info('Python checkup: Starting python checkup.');
+        this.log.info('Python check: Starting python check.');
         this.ensurePluginDir();
+        await this.ensurePythonVersion();
         await this.ensureVenv();
         await this.ensurePipUpToDate();
         await this.ensureRequirementsSatisfied();
-        this.log.info('Python checkup: Finished');
+        this.log.info('Python check: Finished');
     }
 
     private ensurePluginDir(): void {
         if (!fs.existsSync(this.pluginDirPath)) {
+            this.log.info('Python check: creating plugin dir ...');
             fs.mkdirSync(this.pluginDirPath);
-            this.log.info('Python checkup: plugin dir created.');
         } else {
-            this.log.debug('Python checkup: plugin dir exists.');
+            this.log.info('Python check: plugin dir exists.');
         }
+    }
+
+    private async ensurePythonVersion() {
+        let [version] = await this.runCommand('python3', ['--version'], undefined, true);
+        version = version.trim();
+        if (SUPPORTED_PYTHON_VERSIONS.findIndex((e) => version.includes(e)) === -1) {
+            // eslint-disable-next-line no-constant-condition
+            while (true) {
+                this.log.error(`Python check: ${version} is installed. However, only \
+${SUPPORTED_PYTHON_VERSIONS[0]} to ${SUPPORTED_PYTHON_VERSIONS[SUPPORTED_PYTHON_VERSIONS.length - 1]} is supported.`);
+                await delay(60000);
+            }
+        } else {
+            this.log.info(`Python check: ${version} is installed and supported by the plugin.`);
+        }
+    }
+
+    private async ensureVenvModuleInstalled(): Promise<void> {
+
     }
 
     private async ensureVenv() {
         if (this.isVenvCreated()) {
-            this.log.debug('Python checkup: Virtual environment already exists.');
+            this.log.info('Python check: Virtual environment already exists.');
         } else {
-            this.log.info('Python checkup: Virtual python environment is not present. Creating now ...');
+            this.log.info('Python check: Virtual python environment is not present. Creating now ...');
             await this.createVenv();
         }
     }
 
     private isVenvCreated(): boolean {
-        return fs.existsSync(this.venvPythonPath);
+        return fs.existsSync(this.venvPipPath);
     }
 
     private async createVenv(): Promise<void> {
-        await this.runCommand('python3', ['-m', 'venv', this.venvPath, '--clear']);
+        const [stdout] = await this.runCommand('python3', ['-m', 'venv', this.venvPath, '--clear'], undefined, true);
+        if (stdout.includes('not created successfully')) {
+            // eslint-disable-next-line no-constant-condition
+            while (true) {
+                this.log.error('Python check: virtualenv python module is not installed. You need to install the \
+python package virtualenv either by using \'python3 -m pip install virutalenv\' or installing it via system packages. \
+On debian based distributions this is usally \'sudo apt install python3-venv\'');
+                await delay(60000);
+            }
+        }
     }
 
     private async ensureRequirementsSatisfied(): Promise<void> {
         if (await this.areRequirementsSatisfied()) {
-            this.log.debug('Python checkup: Python requirements are satisfied.');
+            this.log.info('Python check: Python requirements are satisfied.');
         } else {
-            this.log.info('Python checkup: Python requirements are not satisfied. Installing them now.');
+            this.log.info('Python check: Python requirements are not satisfied. Installing them now.');
             await this.installRequirements();
         }
     }
 
     private async ensurePipUpToDate(): Promise<void> {
         if (await this.isPipUpToDate()) {
-            this.log.debug('Python checkup: Pip is up-to-date');
+            this.log.info('Python check: Pip is up-to-date');
         } else {
-            this.log.info('Python checkup: Pip is outdated. Updating now ...');
+            this.log.info('Python check: Pip is outdated. Updating now ...');
             await this.updatePip();
         }
     }
 
     private async isPipUpToDate(): Promise<boolean> {
-        const [, stderr] = await this.runCommand(this.venvPipPath, ['list', '--outdated'], undefined, true);
+        const [, stderr] = await this.runCommand(this.venvPipPath, ['list', '--outdated'], undefined, true, true);
         return !stderr.includes('A new release of pip is available');
     }
 
@@ -98,7 +132,8 @@ class PythonUpdater {
         command: string,
         args?: readonly string[] | undefined,
         options?: SpawnOptionsWithoutStdio | undefined,
-        hideOutput: boolean = false,
+        hideStdout: boolean = false,
+        hideStderr: boolean = false,
     ): Promise<[string, string]> {
         let running = true;
         let stdout: string = '';
@@ -108,14 +143,14 @@ class PythonUpdater {
         p.stdout.setEncoding('utf8');
         p.stdout.on('data', (data: string) => {
             stdout += data;
-            if (!hideOutput) {
+            if (!hideStdout) {
                 this.log.info(data.replaceAll('\n', ''));
             }
         });
         p.stderr.setEncoding('utf8');
         p.stderr.on('data', (data: string) => {
             stderr += data;
-            if (!hideOutput) {
+            if (!hideStderr) {
                 this.log.error(data.replaceAll('\n', ''));
             }
         });
@@ -131,4 +166,4 @@ class PythonUpdater {
     }
 }
 
-export default PythonUpdater;
+export default PythonChecker;
