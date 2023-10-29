@@ -58,11 +58,11 @@
         "standard-version": "^9.5.0",
         "ts-node": "^10.9.1",
         "typescript": "^5.2.2",
-        "rimraf": "^5.0.5"
+        "rimraf": "^5.0.5",
+        "@types/md5": "^2.3.4"
     },
     "dependencies": {
         "@sebbo2002/node-pyatv": "^7.0.3",
-        "@types/md5": "^2.3.4",
         "md5": "^2.3.0"
     },
     "homepage": "https://github.com/maxileith/homebridge-appletv-enhanced#readme",
