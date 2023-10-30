@@ -89,15 +89,6 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
         }
     }
 
-    private async ensureRequirementsSatisfied(): Promise<void> {
-        if (await this.areRequirementsSatisfied()) {
-            this.log.info('Python check: Python requirements are satisfied.');
-        } else {
-            this.log.info('Python check: Python requirements are not satisfied. Installing them now.');
-            await this.installRequirements();
-        }
-    }
-
     private async ensurePipUpToDate(): Promise<void> {
         if (await this.isPipUpToDate()) {
             this.log.info('Python check: Pip is up-to-date');
@@ -116,10 +107,35 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
         await this.runCommand(this.venvPipPath, ['install', '--upgrade', 'pip']);
     }
 
+    private async ensureRequirementsSatisfied(): Promise<void> {
+        if (await this.areRequirementsSatisfied()) {
+            this.log.info('Python check: Python requirements are satisfied.');
+        } else {
+            this.log.info('Python check: Python requirements are not satisfied. Installing them now.');
+            await this.installRequirements();
+        }
+    }
+
     private async areRequirementsSatisfied(): Promise<boolean> {
-        const [freeze] = await this.runCommand(this.venvPipPath, ['freeze'], undefined, true);
-        const requirements = fs.readFileSync(this.requirementsPath).toString();
-        return freeze.trim().replaceAll('-', '_') === requirements.trim().replaceAll('-', '_');
+        const [freezeStdout] = await this.runCommand(this.venvPipPath, ['freeze'], undefined, true);
+        const freeze = this.freezeStringToObject(freezeStdout);
+        const requirements = this.freezeStringToObject(fs.readFileSync(this.requirementsPath).toString());
+        for (const pkg in requirements) {
+            if (freeze[pkg] !== requirements[pkg]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private freezeStringToObject(value: string): {[k: string]: string} {
+        const lines = value.trim().split('\n');
+        const packages: {[k: string]: string} = {};
+        for (const line of lines) {
+            const [pkg, version] = line.split('==');
+            packages[pkg.replaceAll('_', '-')] = version;
+        }
+        return packages;
     }
 
     private async installRequirements(): Promise<void> {
