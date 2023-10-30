@@ -108,8 +108,8 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
     }
 
     private async isPipUpToDate(): Promise<boolean> {
-        const [, stderr] = await this.runCommand(this.venvPipPath, ['list', '--outdated'], undefined, true, true);
-        return !stderr.includes('pip ');
+        const [stdout, stderr] = await this.runCommand(this.venvPipPath, ['list', '--outdated'], undefined, true);
+        return !stdout.includes('pip ') && !stderr.includes('A new release of pip is available');
     }
 
     private async updatePip(): Promise<void> {
