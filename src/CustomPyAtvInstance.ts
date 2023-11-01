@@ -1,11 +1,16 @@
 import * as nodePyatv from '@sebbo2002/node-pyatv';
 import { Logger } from 'homebridge';
 import path from 'path';
+import { AlternatePyATVDeviceOptions } from './interfaces';
 
+
+interface ICache {
+    [k: string]: nodePyatv.NodePyATVDevice;
+}
 
 class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
 
-    private static cachedDevices: nodePyatv.NodePyATVDevice[] = [];
+    private static cachedDevices: ICache = {};
 
     private static atvscriptPath: string | undefined = undefined;
     private static atvremotePath: string | undefined = undefined;
@@ -20,17 +25,31 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
 
     public static async find(options?: nodePyatv.NodePyATVFindAndInstanceOptions): Promise<nodePyatv.NodePyATVDevice[]> {
         return nodePyatv.NodePyATVInstance.find(this.extendOptions(options)).then(async (results) => {
-            this.cachedDevices = results;
+            for (const result of results) {
+                this.cachedDevices[result.id!] = result;
+            }
             return results;
         });
     }
 
-    public static device(options: nodePyatv.NodePyATVDeviceOptions): nodePyatv.NodePyATVDevice {
-        return super.device(this.extendOptions(options as nodePyatv.NodePyATVDeviceOptions));
-    }
-
-    public static deviceById(id: string): nodePyatv.NodePyATVDevice {
-        return this.cachedDevices.find((d) => d.id === id) as nodePyatv.NodePyATVDevice;
+    public static deviceAdvanced(options: nodePyatv.NodePyATVDeviceOptions | AlternatePyATVDeviceOptions): nodePyatv.NodePyATVDevice | undefined {
+        if (options.id) {
+            const cachedDevice = this.cachedDevices[options.id];
+            if (cachedDevice === undefined) {
+                return undefined;
+            }
+            return super.device(this.extendOptions({
+                ...options,
+                host: cachedDevice.host,
+                name: cachedDevice.name,
+                id: cachedDevice.id,
+                model: cachedDevice.model,
+                modelName: cachedDevice.modelName,
+                version: cachedDevice.version,
+                os: cachedDevice.os,
+            }));
+        }
+        return super.device(this.extendOptions<nodePyatv.NodePyATVDeviceOptions>(options as nodePyatv.NodePyATVDeviceOptions));
     }
 
     public static setStoragePath(storagePath: string, logger?: Logger): void {

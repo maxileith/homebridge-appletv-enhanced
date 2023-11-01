@@ -46,3 +46,9 @@ export interface AppleTVEnhancedPlatformConfig extends PlatformConfig {
     mediaTypes?: TNodePyATVMediaType;
     deviceStates?: TNodePyATVDeviceState;
 }
+
+export interface AlternatePyATVDeviceOptions {
+    id: string;
+    airplayCredentials?: string;
+    companionCredentials?: string;
+}

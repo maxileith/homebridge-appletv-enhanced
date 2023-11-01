@@ -1,4 +1,5 @@
 .venv
+.nvmrc
 
 # Ignore source code
 src

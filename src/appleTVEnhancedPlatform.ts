@@ -42,7 +42,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
 
             this.log.info('Platform: Starting device discovery ...');
             this.discoverDevices();
-            setInterval(() => this.discoverDevices(), 60000);
+            setInterval(() => this.discoverDevices(), 30000);
         });
     }
 
@@ -69,13 +69,12 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             this.log.error(err);
             return [] as NodePyATVDevice[];
         });
-        this.log.debug('Platform: Finished device discovery.');
 
         const appleTVs = scanResults.filter((d) => d.modelName?.includes('Apple TV') && d.os === 'TvOS');
 
         // loop over the discovered devices and register each one if it has not already been registered
         for (const appleTV of appleTVs) {
-            this.log.debug(`Platform: Found Apple TV ${appleTV.name} (${appleTV.id}).`);
+            this.log.debug(`Platform: Found Apple TV ${appleTV.name} (${appleTV.id} / ${appleTV.host}).`);
 
             if (this.config.blacklist && this.config.blacklist.includes(appleTV.id as string)) {
                 this.log.debug(`Platform: Apple TV ${appleTV.name} (${appleTV.id}) is on the blacklist. Skipping.`);
@@ -113,6 +112,8 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
                 this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
             })();
         }
+
+        this.log.debug('Platform: Finished device discovery.');
     }
 
 

@@ -51,20 +51,22 @@ export class AppleTVEnhancedAccessory {
     private turningOn: boolean = false;
     private lastOnEvent: number = 0;
 
+    private credentials: string | undefined = undefined;
+
     private log: AccessoryLogger;
 
     constructor(
         private readonly platform: AppleTVEnhancedPlatform,
         private readonly accessory: PlatformAccessory,
     ) {
-        this.device = CustomPyAtvInstance.deviceById(this.accessory.context.id as string);
+        this.device = CustomPyAtvInstance.deviceAdvanced({ id: this.accessory.context.id as string })!;
 
         this.log = new AccessoryLogger(this.platform.log, this.device.name, this.device.id!);
 
         const credentials = this.getCredentials();
-        if (credentials === '') {
+        if (!credentials) {
             this.pair(this.device.host, this.device.name).then((c) => {
-                this.saveCredentials(c);
+                this.setCredentials(c);
                 this.startUp(c);
                 this.log.warn('Paring was successful. Add it to your home in the Home app: com.apple.home://launch');
             });
@@ -74,16 +76,11 @@ export class AppleTVEnhancedAccessory {
     }
 
     private async startUp(credentials: string): Promise<void> {
-        this.device = CustomPyAtvInstance.device({
-            host: this.device.host,
-            name: this.device.name,
-            id: this.device.id,
-            model: this.device.model,
-            modelName: this.device.modelName,
-            version: this.device.version,
+        this.device = CustomPyAtvInstance.deviceAdvanced({
+            id: this.device.id!,
             airplayCredentials: credentials,
             companionCredentials: credentials,
-        });
+        })!;
 
         this.accessory.category = this.platform.api.hap.Categories.TV_SET_TOP_BOX;
 
@@ -130,12 +127,13 @@ export class AppleTVEnhancedAccessory {
         this.createMediaTypeSensors();
 
         // create event listeners to keep everything up-to-date
-        this.createListeners();
+        await this.createListeners();
 
+        this.log.info('Finished initializing');
         this.booted = true;
     }
 
-    private createListeners(): void {
+    private async createListeners(): Promise<void> {
         this.log.debug('recreating listeners');
 
         const filterErrorHandler = (event: NodePyATVDeviceEvent | Error, listener: (event: NodePyATVDeviceEvent) => void): void => {
@@ -149,16 +147,37 @@ export class AppleTVEnhancedAccessory {
             }
         };
 
-        this.device.on('update:powerState', (e) => filterErrorHandler(e, this.handleActiveUpdate.bind(this)));
-        // this.device.on('update:appId', (e) => filterErrorHandler(e, this.handleInputUpdate.bind(this)));
-        this.device.on('update:deviceState', (e) => filterErrorHandler(e, this.handleDeviceStateUpdate.bind(this)));
-        this.device.on('update:mediaType', (e) => filterErrorHandler(e, this.handleMediaTypeUpdate.bind(this)));
+        const powerStateListener = (e: Error | NodePyATVDeviceEvent) => filterErrorHandler(e, this.handleActiveUpdate.bind(this));
+        // const appIdListener = (e: Error | NodePyATVDeviceEvent) => filterErrorHandler(e, this.handleInputUpdate.bind(this));
+        const deviceStateListener = (e: Error | NodePyATVDeviceEvent) => filterErrorHandler(e, this.handleDeviceStateUpdate.bind(this));
+        const mediaTypeListener = (e: Error | NodePyATVDeviceEvent) => filterErrorHandler(e, this.handleMediaTypeUpdate.bind(this));
 
-        this.device.on('error', (e) => {
+        this.device.on('update:powerState', powerStateListener);
+        // this.device.on('update:appId', appIdListener);
+        this.device.on('update:deviceState', deviceStateListener);
+        this.device.on('update:mediaType', mediaTypeListener);
+
+        this.device.once('error', ((e: Error | NodePyATVDeviceEvent) => {
             this.log.debug(e as unknown as string);
             this.offline = true;
             this.log.warn('Lost connection. Trying to reconnect ...');
-        });
+
+            this.device.removeListener('update:powerState', powerStateListener);
+            // this.device.removeListener('update:appId', appIdListener);
+            this.device.removeListener('update:deviceState', deviceStateListener);
+            this.device.removeListener('update:mediaType', mediaTypeListener);
+
+            const credentials = this.getCredentials();
+            this.device = CustomPyAtvInstance.deviceAdvanced({
+                id: this.device.id!,
+                airplayCredentials: credentials,
+                companionCredentials: credentials,
+            }) || this.device;
+            this.log.debug(`New internal device: ${this.device}`);
+
+            this.createListeners();
+
+        }).bind(this));
     }
 
     private createMediaTypeSensors(): void {
@@ -168,7 +187,7 @@ export class AppleTVEnhancedAccessory {
             if (this.platform.config.mediaTypes && !this.platform.config.mediaTypes.includes(mediaType)) {
                 continue;
             }
-            this.log.info(`Adding media type ${mediaType} as a motion sensor.`);
+            this.log.debug(`Adding media type ${mediaType} as a motion sensor.`);
             const s = this.accessory.getService(mediaType) || this.accessory.addService(this.platform.Service.MotionSensor, mediaType, mediaType)
                 .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
                 .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(mediaType))
@@ -219,7 +238,7 @@ export class AppleTVEnhancedAccessory {
             if (this.platform.config.deviceStates && !this.platform.config.deviceStates.includes(deviceState)) {
                 continue;
             }
-            this.log.info(`Adding device state ${deviceState} as a motion sensor.`);
+            this.log.debug(`Adding device state ${deviceState} as a motion sensor.`);
             const s = this.accessory.getService(deviceState) || this.accessory.addService(this.platform.Service.MotionSensor, deviceState, deviceState)
                 .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
                 .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(deviceState))
@@ -309,7 +328,7 @@ export class AppleTVEnhancedAccessory {
                     identifier: this.appIdToNumber(app.id),
                 };
             }
-            this.log.info(`Adding ${appConfigs[app.id].configuredName} (${app.id}) as an input.`);
+            this.log.debug(`Adding ${appConfigs[app.id].configuredName} (${app.id}) as an input.`);
             const s = this.accessory.getService(app.name) || this.accessory.addService(this.platform.Service.InputSource, app.name, app.id)
                 .setCharacteristic(this.platform.Characteristic.ConfiguredName, appConfigs[app.id].configuredName)
                 .setCharacteristic(this.platform.Characteristic.InputSourceType, this.platform.Characteristic.InputSourceType.APPLICATION)
@@ -449,7 +468,7 @@ export class AppleTVEnhancedAccessory {
 
     private async handleActiveSet(state: CharacteristicValue): Promise<void> {
         const WAIT_MAX_FOR_STATES = 30; // seconds
-        const STEPS = 250; // milliseconds
+        const STEPS = 500; // milliseconds
 
         if (state === this.platform.Characteristic.Active.ACTIVE && !this.turningOn) {
             this.turningOn = true;
@@ -615,16 +634,19 @@ export class AppleTVEnhancedAccessory {
         return filePath;
     }
 
-    private getCredentials(): string {
-        const path = this.getPath('credentials.txt', '');
-        const credentials = fs.readFileSync(path, 'utf8').trim();
-        this.log.debug(`Loaded credentials: ${credentials}`);
-        return credentials;
+    private getCredentials(): string | undefined {
+        if (!this.credentials) {
+            const path = this.getPath('credentials.txt', '');
+            const fileContent = fs.readFileSync(path, 'utf8').trim();
+            this.credentials = fileContent === '' ? undefined : fileContent;
+            this.log.debug(`Loaded credentials: ${this.credentials}`);
+        }
+        return this.credentials;
     }
 
-    private saveCredentials(credentials: string): void {
+    private setCredentials(value: string): void {
         const path = this.getPath('credentials.txt', '');
-        fs.writeFileSync(path, credentials, { encoding:'utf8', flag:'w' });
+        fs.writeFileSync(path, value, { encoding:'utf8', flag:'w' });
     }
 
     private async pair(ip: string, appleTVName: string): Promise<string> {
