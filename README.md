@@ -20,6 +20,15 @@ This plugin automatically discovers Apple TV devices in the local network and ex
 -   For each device state (idle, playing, loading, seeking, paused, stopped) the plugin will create a motion sensor (device states can be hidden or shown by changing the configuration).
 -   If you do not want all Apple TVs to be exposed, it is possible to blacklist them by providing the MAC-Address.
 
+## Requirements
+
+-   Only Linux will be supported by the owner (although you might get it to run on other operating systems)
+-   Python 3.8, 3.9, 3.10 or 3.11
+-   Python virtual environment module `virtualenv`. (the plugin will create a virtual environment on startup and will install python dependencies in this virtual environment)
+    -   The python module `virtualenv` has to be installed manually. This won't be handled by the plugin itself.
+        -   On debian-based distros: `sudo apt install python3-venv`
+        -   Installation on other distros may vary
+
 ## Pairing
 
 After installing and starting the plugin devices will automatically be discovered. Look out for warning messages (yellow) in the log. You will be asked to pair your Apple TV. In order to do that, just the link displayed in the log message, e.g. http://192.168.0.16:42015/. On this page you can enter the 4-digit PIN displayed on your Apple TV to pair it.
@@ -35,15 +44,6 @@ If you enter the PIN wrong or let the pairing request timeout too often, you wil
 The screenshots speak for themselves ...
 
 <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/inputs.png" width=280/> <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/sensors.png" width=280/>
-
-## Requirements
-
--   Only Linux will be supported by the owner (although you might get it to run on other operating systems)
--   Python 3.8, 3.9, 3.10 or 3.11
--   Python virtual environment module `virtualenv`. (the plugin will create a virtual environment on startup and will install python dependencies in this virtual environment)
-    -   The python module `virtualenv` has to be installed manually. This won't be handled by the plugin itself.
-        -   On debian-based distros: `sudo apt install python3-venv`
-        -   Installation on other distros may vary
 
 ## Configuration
 
