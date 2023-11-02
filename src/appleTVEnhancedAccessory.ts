@@ -202,7 +202,7 @@ export class AppleTVEnhancedAccessory {
                         return;
                     }
                     this.log.info(`Changing configured name of media type sensor ${mediaType} from ${oldConfiguredName} to ${value}.`);
-                    this.setMediaTypeConfig(mediaType, value as string);
+                    this.setMediaTypeConfig(mediaType, value.toString());
                 });
             s.getCharacteristic(this.platform.Characteristic.MotionDetected)
                 .onGet(async () => {
@@ -253,7 +253,7 @@ export class AppleTVEnhancedAccessory {
                         return;
                     }
                     this.log.info(`Changing configured name of device state sensor ${deviceState} from ${oldConfiguredName} to ${value}.`);
-                    this.setDeviceStateConfig(deviceState, value as string);
+                    this.setDeviceStateConfig(deviceState, value.toString());
                 });
             s.getCharacteristic(this.platform.Characteristic.MotionDetected)
                 .onGet(async () => {
@@ -347,7 +347,7 @@ export class AppleTVEnhancedAccessory {
                         return;
                     }
                     this.log.info(`Changing configured name of ${app.id} from ${appConfigs[app.id].configuredName} to ${value}.`);
-                    appConfigs[app.id].configuredName = value as string;
+                    appConfigs[app.id].configuredName = value.toString();
                     this.setAppConfigs(appConfigs);
                 })
                 .onGet(async () => {
@@ -547,7 +547,7 @@ export class AppleTVEnhancedAccessory {
             return;
         }
         this.log.info(`Changed Configured Name from ${oldConfiguredName} to ${state}`);
-        this.setCommonConfig('configuredName', state as string);
+        this.setCommonConfig('configuredName', state.toString());
         this.log.setPrefix(`${state} (${this.device.id})`);
     }
 
