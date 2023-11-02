@@ -6,9 +6,12 @@ import CustomPyAtvInstance from './CustomPyAtvInstance';
 import { AppleTVEnhancedPlatformConfig } from './interfaces';
 import { NodePyATVDevice } from '@sebbo2002/node-pyatv';
 import PythonChecker from './PythonChecker';
+import PrefixLogger from './PrefixLogger';
 
 
 export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
+    private readonly log: PrefixLogger;
+
     public readonly Service: typeof Service;
     public readonly Characteristic: typeof Characteristic;
 
@@ -17,10 +20,12 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
     private publishedUUIDs: string[] = [];
 
     constructor(
-        public readonly log: Logger,
+        public readonly ogLog: Logger,
         public readonly config: AppleTVEnhancedPlatformConfig,
         public readonly api: API,
     ) {
+        this.log = new PrefixLogger(this.ogLog, 'Platform');
+
         this.Service = this.api.hap.Service;
         this.Characteristic = this.api.hap.Characteristic;
 
@@ -31,16 +36,16 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
         // in order to ensure they weren't added to homebridge already. This event can also be used
         // to start discovery of new accessories.
         this.api.on('didFinishLaunching', async () => {
-            this.log.debug('Platform: Executed didFinishLaunching callback');
+            this.log.debug('Executed didFinishLaunching callback');
 
             // make sure the Python environment is ready
-            await new PythonChecker(log, this.api.user.storagePath()).allInOne();
+            await new PythonChecker(this.ogLog, this.api.user.storagePath()).allInOne();
 
             // run the method to discover / register your devices as accessories
-            this.log.debug(`Platform: Setting the storage path to ${this.api.user.storagePath()}`);
-            CustomPyAtvInstance.setStoragePath(this.api.user.storagePath(), this.log);
+            this.log.debug(`Setting the storage path to ${this.api.user.storagePath()}`);
+            CustomPyAtvInstance.setStoragePath(this.api.user.storagePath(), this.ogLog);
 
-            this.log.info('Platform: Starting device discovery ...');
+            this.log.info('Starting device discovery ...');
             this.discoverDevices();
             setInterval(() => this.discoverDevices(), 30000);
         });
@@ -52,7 +57,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
    */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     configureAccessory(accessory: PlatformAccessory) {
-        this.log.info(`Platform: Loading accessory from cache: ${accessory.displayName}`);
+        this.log.info(`Loading accessory from cache: ${accessory.displayName}`);
 
         // // add the restored accessory to the accessories cache so we can track if it has already been registered
         this.accessories.push(accessory);
@@ -64,7 +69,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
    * must not be registered again to prevent "duplicate UUID" errors.
    */
     async discoverDevices() {
-        this.log.debug('Platform: Starting device discovery ...');
+        this.log.debug('Starting device discovery ...');
         const scanResults = await CustomPyAtvInstance.find().catch((err) => {
             this.log.error(err);
             return [] as NodePyATVDevice[];
@@ -78,25 +83,25 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
 
         // loop over the discovered devices and register each one if it has not already been registered
         for (const appleTV of appleTVs) {
-            this.log.debug(`Platform: Found Apple TV ${appleTV.name} (${appleTV.id} / ${appleTV.host}).`);
+            this.log.debug(`Found Apple TV ${appleTV.name} (${appleTV.id} / ${appleTV.host}).`);
 
-            if (this.config.blacklist && this.config.blacklist.includes(appleTV.id as string)) {
-                this.log.debug(`Platform: Apple TV ${appleTV.name} (${appleTV.id}) is on the blacklist. Skipping.`);
+            if (this.config.blacklist && this.config.blacklist.includes(appleTV.id!)) {
+                this.log.debug(`Apple TV ${appleTV.name} (${appleTV.id}) is on the blacklist. Skipping.`);
                 continue;
             }
 
             // generate a unique id for the accessory this should be generated from
             // something globally unique, but constant, for example, the device serial
             // number or MAC address
-            const uuid = this.api.hap.uuid.generate(appleTV.id as string);
+            const uuid = this.api.hap.uuid.generate(appleTV.id!);
             if (this.publishedUUIDs.includes(uuid)) {
-                this.log.debug(`Platform: Apple TV ${appleTV.name} (${appleTV.id}) with UUID ${uuid} already exists. Skipping.`);
+                this.log.debug(`Apple TV ${appleTV.name} (${appleTV.id}) with UUID ${uuid} already exists. Skipping.`);
                 continue;
             }
             this.publishedUUIDs.push(uuid);
 
             // the accessory does not yet exist, so we need to create it
-            this.log.info(`Platform: Adding Apple TV ${appleTV.name} (${appleTV.id})`);
+            this.log.info(`Adding Apple TV ${appleTV.name} (${appleTV.id})`);
 
             // create a new accessory
             const accessory = new this.api.platformAccessory(`Apple TV ${appleTV.name}`, uuid);
@@ -108,16 +113,16 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             // create the accessory handler for the newly create accessory
             // this is imported from `platformAccessory.ts`
             (async () => {
-                this.log.debug(`Platform: Waiting for Apple TV ${appleTV.name} (${appleTV.id}) to boot ...`);
+                this.log.debug(`Waiting for Apple TV ${appleTV.name} (${appleTV.id}) to boot ...`);
                 await (new AppleTVEnhancedAccessory(this, accessory)).untilBooted();
 
                 // link the accessory to your platform
-                this.log.debug(`Platform: Apple TV ${appleTV.name} (${appleTV.id}) finished booting. Publishing the accessory now.`);
+                this.log.debug(`Apple TV ${appleTV.name} (${appleTV.id}) finished booting. Publishing the accessory now.`);
                 this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
             })();
         }
 
-        this.log.debug('Platform: Finished device discovery.');
+        this.log.debug('Finished device discovery.');
     }
 
 

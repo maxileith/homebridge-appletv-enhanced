@@ -11,7 +11,7 @@ import CustomPyAtvInstance from './CustomPyAtvInstance';
 import { capitalizeFirstLetter, delay, getLocalIP, trimSpecialCharacters } from './utils';
 import { IAppConfigs, ICommonConfig, IInputs, IMediaConfigs, IStateConfigs, NodePyATVApp } from './interfaces';
 import { TNodePyATVDeviceState, TNodePyATVMediaType } from './types';
-import AccessoryLogger from './AccessoryLogger';
+import PrefixLogger from './PrefixLogger';
 
 
 const HIDE_BY_DEFAULT_APPS = [
@@ -53,7 +53,7 @@ export class AppleTVEnhancedAccessory {
 
     private credentials: string | undefined = undefined;
 
-    private log: AccessoryLogger;
+    private readonly log: PrefixLogger;
 
     constructor(
         private readonly platform: AppleTVEnhancedPlatform,
@@ -61,7 +61,7 @@ export class AppleTVEnhancedAccessory {
     ) {
         this.device = CustomPyAtvInstance.deviceAdvanced({ id: this.accessory.context.id as string })!;
 
-        this.log = new AccessoryLogger(this.platform.log, this.device.name, this.device.id!);
+        this.log = new PrefixLogger(this.platform.ogLog, `${this.device.name} (${this.device.id})`);
 
         const credentials = this.getCredentials();
         if (!credentials) {
@@ -118,7 +118,7 @@ export class AppleTVEnhancedAccessory {
         this.service.getCharacteristic(this.platform.Characteristic.RemoteKey)
             .onSet(this.handleRemoteKeySet.bind(this));
 
-        this.log.setAppleTVName(configuredName);
+        this.log.setPrefix(`${configuredName} (${this.device.id})`);
 
         // create input and sensor services
         const apps = await this.device.listApps();
@@ -127,13 +127,13 @@ export class AppleTVEnhancedAccessory {
         this.createMediaTypeSensors();
 
         // create event listeners to keep everything up-to-date
-        await this.createListeners();
+        this.createListeners();
 
         this.log.info('Finished initializing');
         this.booted = true;
     }
 
-    private async createListeners(): Promise<void> {
+    private createListeners(): void {
         this.log.debug('recreating listeners');
 
         const filterErrorHandler = (event: NodePyATVDeviceEvent | Error, listener: (event: NodePyATVDeviceEvent) => void): void => {
@@ -548,7 +548,7 @@ export class AppleTVEnhancedAccessory {
         }
         this.log.info(`Changed Configured Name from ${oldConfiguredName} to ${state}`);
         this.setCommonConfig('configuredName', state as string);
-        this.log.setAppleTVName(state as string);
+        this.log.setPrefix(`${state} (${this.device.id})`);
     }
 
     private async handleSleepDiscoveryModeGet(): Promise<Nullable<CharacteristicValue>> {

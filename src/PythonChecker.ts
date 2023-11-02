@@ -3,69 +3,79 @@ import path from 'path';
 import fs from 'fs';
 import { SpawnOptionsWithoutStdio, spawn } from 'child_process';
 import { delay } from './utils';
+import PrefixLogger from './PrefixLogger';
 
 const SUPPORTED_PYTHON_VERSIONS = [
-    'Python 3.8',
-    'Python 3.9',
-    'Python 3.10',
-    'Python 3.11',
+    '3.8',
+    '3.9',
+    '3.10',
+    '3.11',
 ];
 
 class PythonChecker {
 
-    private readonly log: Logger;
+    private readonly log: PrefixLogger;
 
     private readonly pluginDirPath: string;
     private readonly venvPath: string;
     private readonly venvPipPath: string;
+    private readonly venvConfigPath: string;
     private readonly requirementsPath: string = path.join(__dirname, 'requirements.txt');
 
     constructor(logger: Logger, storagePath: string) {
-        this.log = logger;
+        this.log = new PrefixLogger(logger, 'Python check');
+
         this.pluginDirPath = path.join(storagePath, 'appletv-enhanced');
         this.venvPath = path.join(this.pluginDirPath, '.venv');
         this.venvPipPath = path.join(this.venvPath, 'bin', 'pip3');
+        this.venvConfigPath = path.join(this.venvPath, 'pyvenv.cfg');
     }
 
     public async allInOne(): Promise<void> {
-        this.log.info('Python check: Starting python check.');
+        this.log.info('Starting python check.');
         this.ensurePluginDir();
         await this.ensurePythonVersion();
-        await this.ensureVenv();
-        await this.ensurePipUpToDate();
-        await this.ensureRequirementsSatisfied();
-        this.log.info('Python check: Finished');
+        await this.ensureVenvCreated();
+        await this.ensureVenvPipUpToDate();
+        await this.ensureVenvRequirementsSatisfied();
+        this.log.info('Finished');
     }
 
     private ensurePluginDir(): void {
         if (!fs.existsSync(this.pluginDirPath)) {
-            this.log.info('Python check: creating plugin dir ...');
+            this.log.warn('creating plugin dir ...');
             fs.mkdirSync(this.pluginDirPath);
         } else {
-            this.log.info('Python check: plugin dir exists.');
+            this.log.info('plugin dir exists.');
         }
     }
 
     private async ensurePythonVersion() {
-        let [version] = await this.runCommand('python3', ['--version'], undefined, true);
-        version = version.trim();
+        const version = await this.getSystemPythonVersion();
         if (SUPPORTED_PYTHON_VERSIONS.findIndex((e) => version.includes(e)) === -1) {
             // eslint-disable-next-line no-constant-condition
             while (true) {
-                this.log.error(`Python check: ${version} is installed. However, only \
+                this.log.error(`${version} is installed. However, only Python \
 ${SUPPORTED_PYTHON_VERSIONS[0]} to ${SUPPORTED_PYTHON_VERSIONS[SUPPORTED_PYTHON_VERSIONS.length - 1]} is supported.`);
-                await delay(60000);
+                await delay(120000);
             }
         } else {
-            this.log.info(`Python check: ${version} is installed and supported by the plugin.`);
+            this.log.info(`Python ${version} is installed and supported by the plugin.`);
         }
     }
 
-    private async ensureVenv() {
+    private async ensureVenvCreated() {
         if (this.isVenvCreated()) {
-            this.log.info('Python check: Virtual environment already exists.');
+            this.log.info('Virtual environment already exists.');
+            const [venvVersionIsSystemVersion, systemVersion, venvVersion] = await this.isVenvPythonSystemPython();
+            if (venvVersionIsSystemVersion) {
+                this.log.info(`Venv is using current system python version (${systemVersion}).`);
+            } else {
+                this.log.warn(`Venv (${venvVersion}) is not using current system python version (${systemVersion}). Recreating the virtual environment now ...`);
+                await this.createVenv();
+            }
         } else {
-            this.log.info('Python check: Virtual python environment is not present. Creating now ...');
+            this.log.warn('Virtual python environment is not present. Creating now ...');
             await this.createVenv();
         }
     }
@@ -74,12 +84,19 @@ ${SUPPORTED_PYTHON_VERSIONS[0]} to ${SUPPORTED_PYTHON_VERSIONS[SUPPORTED_PYTHON_
         return fs.existsSync(this.venvPipPath);
     }
 
+    private async isVenvPythonSystemPython(): Promise<[boolean, string, string]> {
+        const fileContent = fs.readFileSync(this.venvConfigPath).toString().replaceAll(' ', '');
+        const venvVersion = fileContent.split('version=')[1].split('\n')[0];
+        const systemVersion = await this.getSystemPythonVersion();
+        return [venvVersion === systemVersion, systemVersion, venvVersion];
+    }
+
     private async createVenv(): Promise<void> {
         const [stdout] = await this.runCommand('python3', ['-m', 'venv', this.venvPath, '--clear'], undefined, true);
         if (stdout.includes('not created successfully')) {
             // eslint-disable-next-line no-constant-condition
             while (true) {
-                this.log.error('Python check: virtualenv python module is not installed. You need to install the \
+                this.log.error('virtualenv python module is not installed. You need to install the \
 python package virtualenv either by using \'python3 -m pip install virutalenv\' or installing it via system packages. \
 On debian based distributions this is usally \'sudo apt install python3-venv\'');
                 await delay(60000);
@@ -89,11 +106,11 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
         }
     }
 
-    private async ensurePipUpToDate(): Promise<void> {
+    private async ensureVenvPipUpToDate(): Promise<void> {
         if (await this.isPipUpToDate()) {
-            this.log.info('Python check: Pip is up-to-date');
+            this.log.info('Pip is up-to-date');
         } else {
-            this.log.info('Python check: Pip is outdated. Updating now ...');
+            this.log.info('Pip is outdated. Updating now ...');
             await this.updatePip();
         }
     }
@@ -107,11 +124,11 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
         await this.runCommand(this.venvPipPath, ['install', '--upgrade', 'pip']);
     }
 
-    private async ensureRequirementsSatisfied(): Promise<void> {
+    private async ensureVenvRequirementsSatisfied(): Promise<void> {
         if (await this.areRequirementsSatisfied()) {
-            this.log.info('Python check: Python requirements are satisfied.');
+            this.log.info('Python requirements are satisfied.');
         } else {
-            this.log.info('Python check: Python requirements are not satisfied. Installing them now.');
+            this.log.info('Python requirements are not satisfied. Installing them now.');
             await this.installRequirements();
         }
     }
@@ -140,6 +157,11 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
 
     private async installRequirements(): Promise<void> {
         await this.runCommand(this.venvPipPath, ['install', '-r', this.requirementsPath]);
+    }
+
+    private async getSystemPythonVersion(): Promise<string> {
+        const [version] = await this.runCommand('python3', ['--version'], undefined, true);
+        return version.trim().replace('Python ', '');
     }
 
     private async runCommand(

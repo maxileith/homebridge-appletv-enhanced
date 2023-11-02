@@ -2,6 +2,7 @@ import * as nodePyatv from '@sebbo2002/node-pyatv';
 import { Logger } from 'homebridge';
 import path from 'path';
 import { AlternatePyATVDeviceOptions } from './interfaces';
+import PrefixLogger from './PrefixLogger';
 
 
 interface ICache {
@@ -56,8 +57,9 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
         this.atvscriptPath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvscript');
         this.atvremotePath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvremote');
         if (logger) {
-            logger.debug(`PyATVInstance: Set atvscript path to "${this.atvscriptPath}".`);
-            logger.debug(`PyATVInstance: Set atvremote path to "${this.atvremotePath}".`);
+            const log = new PrefixLogger(logger, 'CustomPyATVInstance');
+            log.debug(`Set atvscript path to "${this.atvscriptPath}".`);
+            log.debug(`Set atvremote path to "${this.atvremotePath}".`);
         }
     }
 
