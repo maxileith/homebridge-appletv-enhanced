@@ -67,8 +67,18 @@
         "md5": "^2.3.0"
     },
     "homepage": "https://github.com/maxileith/homebridge-appletv-enhanced#readme",
-    "funding": {
-        "type": "paypal",
-        "url": "https://www.paypal.me/maxileith/EUR"
-    }
+    "funding": [
+        {
+            "type": "paypal",
+            "url": "https://www.paypal.me/maxileith/EUR"
+        },
+        {
+            "type": "github",
+            "url": "https://github.com/sponsors/maxileith"
+        },
+        {
+            "type": "buymeacoffee",
+            "url": "https://www.buymeacoffee.com/maxileith"
+        }
+    ]
 }
