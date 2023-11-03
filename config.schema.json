@@ -27,7 +27,7 @@
             "deviceStates": {
                 "title": "Device States",
                 "type": "array",
-                "default": ["playing", "paused", "stopped"],
+                "default": ["playing", "paused"],
                 "items": {
                     "title": "Device State",
                     "type": "string",
@@ -38,6 +38,40 @@
                         "seeking",
                         "paused",
                         "stopped"
+                    ]
+                }
+            },
+            "remoteKeysAsSwitch": {
+                "title": "Remote Keys as Switch",
+                "type": "array",
+                "default": [],
+                "items": {
+                    "title": "Key",
+                    "type": "string",
+                    "enum": [
+                        "down",
+                        "home",
+                        "homeHold",
+                        "left",
+                        "menu",
+                        "next",
+                        "pause",
+                        "play",
+                        "playPause",
+                        "previous",
+                        "right",
+                        "select",
+                        "skipBackward",
+                        "skipForward",
+                        "stop",
+                        "suspend",
+                        "topMenu",
+                        "up",
+                        "volumeDown",
+                        "volumeUp",
+                        "wakeup",
+                        "turnOff",
+                        "turnOn"
                     ]
                 }
             },

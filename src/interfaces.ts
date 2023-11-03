@@ -1,5 +1,5 @@
 import { PlatformConfig, Service } from 'homebridge';
-import { TNodePyATVDeviceState, TNodePyATVMediaType } from './types';
+import { TNodePyATVDeviceState, TNodePyATVKeys, TNodePyATVMediaType } from './types';
 
 export interface NodePyATVApp {
     id: string;
@@ -41,10 +41,15 @@ export interface IStateConfigs {
     [k: string]: string;
 }
 
+export interface IRemoteKeysAsSwitchConfigs {
+    [k: string]: string;
+}
+
 export interface AppleTVEnhancedPlatformConfig extends PlatformConfig {
     blacklist?: string[];
-    mediaTypes?: TNodePyATVMediaType;
-    deviceStates?: TNodePyATVDeviceState;
+    mediaTypes?: TNodePyATVMediaType[];
+    deviceStates?: TNodePyATVDeviceState[];
+    remoteKeysAsSwitch?: TNodePyATVKeys[];
 }
 
 export interface AlternatePyATVDeviceOptions {

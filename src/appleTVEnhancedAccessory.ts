@@ -3,14 +3,13 @@ import http, { IncomingMessage, ServerResponse } from 'http';
 import { Service, PlatformAccessory, CharacteristicValue, Nullable, PrimitiveTypes } from 'homebridge';
 
 import { AppleTVEnhancedPlatform } from './appleTVEnhancedPlatform';
-import { NodePyATVDevice, NodePyATVDeviceEvent, NodePyATVDeviceState, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
+import { NodePyATVDevice, NodePyATVDeviceEvent, NodePyATVDeviceState, NodePyATVKeys, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
 import md5 from 'md5';
 import { spawn } from 'child_process';
 import path from 'path';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
-import { capitalizeFirstLetter, delay, getLocalIP, trimSpecialCharacters } from './utils';
-import { IAppConfigs, ICommonConfig, IInputs, IMediaConfigs, IStateConfigs, NodePyATVApp } from './interfaces';
-import { TNodePyATVDeviceState, TNodePyATVMediaType } from './types';
+import { capitalizeFirstLetter, delay, removeSpecialCharacters, getLocalIP, trimSpecialCharacters, camelCaseToTitleCase } from './utils';
+import { IAppConfigs, ICommonConfig, IInputs, IMediaConfigs, IRemoteKeysAsSwitchConfigs, IStateConfigs, NodePyATVApp } from './interfaces';
 import PrefixLogger from './PrefixLogger';
 
 
@@ -45,6 +44,7 @@ export class AppleTVEnhancedAccessory {
 
     private stateConfigs: IStateConfigs | undefined = undefined;
     private mediaConfigs: IMediaConfigs | undefined = undefined;
+    private remoteKeyAsSwitchConfigs: IRemoteKeysAsSwitchConfigs | undefined = undefined;
 
     private booted: boolean = false;
     private offline: boolean = false;
@@ -89,10 +89,10 @@ export class AppleTVEnhancedAccessory {
             .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Apple Inc.')
             .setCharacteristic(this.platform.Characteristic.Model, this.device.modelName!)
             .setCharacteristic(this.platform.Characteristic.SerialNumber, this.device.id!)
-            .setCharacteristic(this.platform.Characteristic.Name, trimSpecialCharacters(this.device.name))
+            .setCharacteristic(this.platform.Characteristic.Name, removeSpecialCharacters(this.device.name))
             .setCharacteristic(this.platform.Characteristic.FirmwareRevision, this.device.version!);
 
-        const configuredName: string = this.getCommonConfig().configuredName || trimSpecialCharacters(this.accessory.displayName);
+        const configuredName: string = this.getCommonConfig().configuredName || removeSpecialCharacters(this.accessory.displayName);
 
         // create the service
         this.service = this.accessory.getService(this.platform.Service.Television) || this.accessory.addService(this.platform.Service.Television);
@@ -125,6 +125,7 @@ export class AppleTVEnhancedAccessory {
         this.createInputs(apps);
         this.createDeviceStateSensors();
         this.createMediaTypeSensors();
+        this.createRemoteKeysAsSwitches();
 
         // create event listeners to keep everything up-to-date
         this.createListeners();
@@ -181,7 +182,7 @@ export class AppleTVEnhancedAccessory {
     }
 
     private createMediaTypeSensors(): void {
-        const mediaTypes = Object.keys(NodePyATVMediaType) as TNodePyATVMediaType[];
+        const mediaTypes = Object.keys(NodePyATVMediaType) as NodePyATVMediaType[];
         for (let i = 0; i < mediaTypes.length; i++) {
             const mediaType = mediaTypes[i];
             if (this.platform.config.mediaTypes && !this.platform.config.mediaTypes.includes(mediaType)) {
@@ -191,9 +192,9 @@ export class AppleTVEnhancedAccessory {
             const s = this.accessory.getService(mediaType) || this.accessory.addService(this.platform.Service.MotionSensor, mediaType, mediaType)
                 .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
                 .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(mediaType))
-                .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getMediaConfig()[mediaType] || capitalizeFirstLetter(mediaType));
+                .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getMediaConfigs()[mediaType] || capitalizeFirstLetter(mediaType));
             s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
-                .onSet(async (value) => {
+                .onSet(async (value: CharacteristicValue) => {
                     if (value === '') {
                         return;
                     }
@@ -216,6 +217,49 @@ export class AppleTVEnhancedAccessory {
         }
     }
 
+    private createRemoteKeysAsSwitches(): void {
+        const remoteKeys = Object.keys(NodePyATVKeys) as NodePyATVKeys[];
+        for (let i = 0; i < remoteKeys.length; i++) {
+            const remoteKey = remoteKeys[i];
+            if (this.platform.config.remoteKeysAsSwitch === undefined || !this.platform.config.remoteKeysAsSwitch.includes(remoteKey)) {
+                continue;
+            }
+            this.log.debug(`Adding remote key ${remoteKey} as a switch.`);
+            const s = this.accessory.getService(remoteKey) || this.accessory.addService(this.platform.Service.Switch, remoteKey, remoteKey)
+                .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(remoteKey))
+                .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getRemoteKeyAsSwitchConfigs()[remoteKey] || camelCaseToTitleCase(remoteKey))
+                .setCharacteristic(this.platform.Characteristic.On, false);
+            s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
+                .onSet(async (value: CharacteristicValue) => {
+                    if (value === '') {
+                        return;
+                    }
+                    const oldConfiguredName = s.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+                    if (oldConfiguredName === value) {
+                        return;
+                    }
+                    this.log.info(`Changing configured name of remote key switch ${remoteKey} from ${oldConfiguredName} to ${value}.`);
+                    this.setRemoteKeyAsSwitchConfig(remoteKey, value.toString());
+                });
+            s.getCharacteristic(this.platform.Characteristic.On)
+                .onSet(async (value: CharacteristicValue) => {
+                    if (value) {
+                        this.log.info(`remote ${remoteKey}`);
+                        this.device.pressKey(remoteKey);
+                        await delay(1000);
+                        s.setCharacteristic(this.platform.Characteristic.On, false);
+                    }
+                })
+                .onGet(async () => {
+                    if (this.offline) {
+                        throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+                    }
+                    return false;
+                });
+            this.service!.addLinkedService(s);
+        }
+    }
+
     private async handleMediaTypeUpdate(event: NodePyATVDeviceEvent): Promise<void> {
         if (event.oldValue !== null && this.mediaTypeServices[event.oldValue]) {
             const s = this.mediaTypeServices[event.oldValue];
@@ -232,7 +276,7 @@ export class AppleTVEnhancedAccessory {
     }
 
     private createDeviceStateSensors(): void {
-        const deviceStates = Object.keys(NodePyATVDeviceState) as TNodePyATVDeviceState[];
+        const deviceStates = Object.keys(NodePyATVDeviceState) as NodePyATVDeviceState[];
         for (let i = 0; i < deviceStates.length; i++) {
             const deviceState = deviceStates[i];
             if (this.platform.config.deviceStates && !this.platform.config.deviceStates.includes(deviceState)) {
@@ -242,7 +286,7 @@ export class AppleTVEnhancedAccessory {
             const s = this.accessory.getService(deviceState) || this.accessory.addService(this.platform.Service.MotionSensor, deviceState, deviceState)
                 .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
                 .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(deviceState))
-                .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getDeviceStateConfig()[deviceState] || capitalizeFirstLetter(deviceState));
+                .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getDeviceStateConfigs()[deviceState] || capitalizeFirstLetter(deviceState));
             s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
                 .onSet(async (value) => {
                     if (value === '') {
@@ -425,7 +469,7 @@ export class AppleTVEnhancedAccessory {
         fs.writeFileSync(jsonPath, JSON.stringify(this.commonConfig, null, 4), { encoding:'utf8', flag:'w' });
     }
 
-    private getMediaConfig(): IMediaConfigs {
+    private getMediaConfigs(): IMediaConfigs {
         if (this.mediaConfigs === undefined) {
             const jsonPath = this.getPath('mediaTypes.json');
             this.mediaConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IMediaConfigs;
@@ -442,7 +486,7 @@ export class AppleTVEnhancedAccessory {
         fs.writeFileSync(jsonPath, JSON.stringify(this.mediaConfigs, null, 4), { encoding:'utf8', flag:'w' });
     }
 
-    private getDeviceStateConfig(): IStateConfigs {
+    private getDeviceStateConfigs(): IStateConfigs {
         if (this.stateConfigs === undefined) {
             const jsonPath = this.getPath('deviceStates.json');
             this.stateConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IStateConfigs;
@@ -457,6 +501,23 @@ export class AppleTVEnhancedAccessory {
         this.stateConfigs[key] = value;
         const jsonPath = this.getPath('deviceStates.json');
         fs.writeFileSync(jsonPath, JSON.stringify(this.stateConfigs, null, 4), { encoding:'utf8', flag:'w' });
+    }
+
+    private getRemoteKeyAsSwitchConfigs(): IRemoteKeysAsSwitchConfigs {
+        if (this.remoteKeyAsSwitchConfigs === undefined) {
+            const jsonPath = this.getPath('remoteKeySwitches.json');
+            this.remoteKeyAsSwitchConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IRemoteKeysAsSwitchConfigs;
+        }
+        return this.remoteKeyAsSwitchConfigs;
+    }
+
+    private setRemoteKeyAsSwitchConfig(key: string, value: string): void {
+        if (this.remoteKeyAsSwitchConfigs === undefined) {
+            this.remoteKeyAsSwitchConfigs = {};
+        }
+        this.remoteKeyAsSwitchConfigs[key] = value;
+        const jsonPath = this.getPath('remoteKeySwitches.json');
+        fs.writeFileSync(jsonPath, JSON.stringify(this.remoteKeyAsSwitchConfigs, null, 4), { encoding:'utf8', flag:'w' });
     }
 
     private async handleActiveGet(): Promise<Nullable<CharacteristicValue>> {

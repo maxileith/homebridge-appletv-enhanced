@@ -16,8 +16,12 @@ This plugin automatically discovers Apple TV devices in the local network and ex
 -   Pairing process without the need to access the command line like with other plugins.
 -   Change the current App by selecting an input in HomeKit.
     -   The plugin is developed in a way that makes it possible to rename, hide or show inputs in HomeKit natively ... and safes it.
--   For each media type (music, video, tv and unknown) the plugin will create a motion sensor (media types can be hidden or shown by changing the configuration).
--   For each device state (idle, playing, loading, seeking, paused, stopped) the plugin will create a motion sensor (device states can be hidden or shown by changing the configuration).
+-   The automation triggers that you are probably here for ...
+    -   Since every Apple TV is exposed as a Set-Top Box, you can create a trigger on the power state to execute automations when turning on or off.
+    -   For each media type (music, video, tv and unknown) the plugin will create a motion sensor (media types can be hidden or shown by changing the configuration).
+    -   For each device state (idle, playing, loading, seeking, paused, stopped) the plugin will create a motion sensor (device states can be hidden or shown by changing the configuration).
+-   A fully functional remote in the remote app of your iPhone or iPad.
+    -   Remote keys can also be exposed as switches.
 -   If you do not want all Apple TVs to be exposed, it is possible to blacklist them by providing the MAC-Address.
 
 ## Requirements

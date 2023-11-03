@@ -31,3 +31,12 @@ export function trimSpecialCharacters(value: string): string {
     }
     return value;
 }
+
+export function removeSpecialCharacters(str: string): string {
+    return str.replace(/[^a-zA-Z0-9 ]/g, '').trim();
+}
+
+export function camelCaseToTitleCase(str: string): string {
+    const result = str.replace(/([A-Z])/g, ' $1');
+    return result.charAt(0).toUpperCase() + result.slice(1);
+}
