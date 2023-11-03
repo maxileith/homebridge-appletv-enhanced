@@ -15,17 +15,20 @@
                 "description": "The name of the plugin, e.g. shown in the logs."
             },
             "mediaTypes": {
-                "title": "Media Types",
+                "title": "Media Types as Motion Sensors",
+                "description": "Media types for which a motion sensor is created that triggers when the according media type is present on the Apple TV",
                 "type": "array",
                 "default": ["music", "video"],
                 "items": {
                     "title": "Media Type",
                     "type": "string",
                     "enum": ["music", "video", "tv", "unknown"]
-                }
+                },
+                "required": false
             },
             "deviceStates": {
-                "title": "Device States",
+                "title": "Device States as Motion Sensors",
+                "description": "Device states for which a motion sensor is created that triggers when the according device state is present on the Apple TV",
                 "type": "array",
                 "default": ["playing", "paused"],
                 "items": {
@@ -39,10 +42,12 @@
                         "paused",
                         "stopped"
                     ]
-                }
+                },
+                "required": false
             },
             "remoteKeysAsSwitch": {
-                "title": "Remote Keys as Switch",
+                "title": "Remote Keys as Switches",
+                "description": "Remote keys which will be exposed as switches to HomeKit, e.g. to use the remote keys in automations.",
                 "type": "array",
                 "default": [],
                 "items": {
@@ -73,16 +78,19 @@
                         "turnOff",
                         "turnOn"
                     ]
-                }
+                },
+                "required": false
             },
             "blacklist": {
                 "title": "Blacklist",
+                "description": "Apple TVs that should not be added as a device. You can get the MAC-Address from the logs.",
                 "type": "array",
                 "default": [],
                 "items": {
                     "title": "MAC Address",
                     "type": "string"
-                }
+                },
+                "required": false
             }
         }
     },
