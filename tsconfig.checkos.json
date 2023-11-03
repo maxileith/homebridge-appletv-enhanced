@@ -11,6 +11,5 @@
         "esModuleInterop": true,
         "noImplicitAny": false
     },
-    "include": ["src/"],
-    "exclude": ["**/*.spec.ts"]
+    "include": ["src/checkOS.ts"]
 }
