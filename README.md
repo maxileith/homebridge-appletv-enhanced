@@ -71,6 +71,31 @@ To configure manually, add the following to the `platforms` section of Homebridg
         "paused",
         "stopped"
     ],
+    "remoteKeysAsSwitch": [
+        "down",
+        "home",
+        "homeHold",
+        "left",
+        "menu",
+        "next",
+        "pause",
+        "play",
+        "playPause",
+        "previous",
+        "right",
+        "select",
+        "skipBackward",
+        "skipForward",
+        "stop",
+        "suspend",
+        "topMenu",
+        "up",
+        "volumeDown",
+        "volumeUp",
+        "wakeup",
+        "turnOff",
+        "turnOn"
+    ],
     "blacklist": ["AA:BB:CC:DD:EE:FF"]
 }
 ```
