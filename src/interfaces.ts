@@ -12,7 +12,6 @@ export interface IInput {
     service: Service;
 }
 
-
 export interface IInputs {
     [k: string]: IInput;
 }

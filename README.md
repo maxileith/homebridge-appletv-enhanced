@@ -74,3 +74,7 @@ To configure manually, add the following to the `platforms` section of Homebridg
     "blacklist": ["AA:BB:CC:DD:EE:FF"]
 }
 ```
+
+## Known Issues
+
+-   Apple TVs report a MAC-Address that is different from the MAC-Address that you will see in the network settings of your Apple TV when scanning for devices. Therefore, when blacklisting Apple TVs use the MAC-Address from the logs.
