@@ -185,7 +185,7 @@ export class AppleTVEnhancedAccessory {
         const mediaTypes = Object.keys(NodePyATVMediaType) as NodePyATVMediaType[];
         for (let i = 0; i < mediaTypes.length; i++) {
             const mediaType = mediaTypes[i];
-            if (this.platform.config.mediaTypes && !this.platform.config.mediaTypes.includes(mediaType)) {
+            if (this.platform.config.mediaTypes !== undefined && !this.platform.config.mediaTypes.includes(mediaType)) {
                 continue;
             }
             this.log.debug(`Adding media type ${mediaType} as a motion sensor.`);
@@ -221,7 +221,7 @@ export class AppleTVEnhancedAccessory {
         const remoteKeys = Object.keys(NodePyATVKeys) as NodePyATVKeys[];
         for (let i = 0; i < remoteKeys.length; i++) {
             const remoteKey = remoteKeys[i];
-            if (this.platform.config.remoteKeysAsSwitch === undefined || !this.platform.config.remoteKeysAsSwitch.includes(remoteKey)) {
+            if (this.platform.config.remoteKeysAsSwitch !== undefined && !this.platform.config.remoteKeysAsSwitch.includes(remoteKey)) {
                 continue;
             }
             this.log.debug(`Adding remote key ${remoteKey} as a switch.`);
@@ -279,7 +279,7 @@ export class AppleTVEnhancedAccessory {
         const deviceStates = Object.keys(NodePyATVDeviceState) as NodePyATVDeviceState[];
         for (let i = 0; i < deviceStates.length; i++) {
             const deviceState = deviceStates[i];
-            if (this.platform.config.deviceStates && !this.platform.config.deviceStates.includes(deviceState)) {
+            if (this.platform.config.deviceStates !== undefined && !this.platform.config.deviceStates.includes(deviceState)) {
                 continue;
             }
             this.log.debug(`Adding device state ${deviceState} as a motion sensor.`);

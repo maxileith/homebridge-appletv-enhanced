@@ -24,7 +24,7 @@
                     "type": "string",
                     "enum": ["music", "video", "tv", "unknown"]
                 },
-                "required": false
+                "required": true
             },
             "deviceStates": {
                 "title": "Device States as Motion Sensors",
@@ -43,7 +43,7 @@
                         "stopped"
                     ]
                 },
-                "required": false
+                "required": true
             },
             "remoteKeysAsSwitch": {
                 "title": "Remote Keys as Switches",
@@ -79,7 +79,7 @@
                         "turnOn"
                     ]
                 },
-                "required": false
+                "required": true
             },
             "blacklist": {
                 "title": "Blacklist",
@@ -90,7 +90,7 @@
                     "title": "MAC Address",
                     "type": "string"
                 },
-                "required": false
+                "required": true
             }
         }
     },
