@@ -33,6 +33,7 @@ This plugin automatically discovers Apple TV devices in the local network and ex
         -   On debian-based distros: `sudo apt install python3-venv`
         -   Installation on other distros may vary
 -   Apple TV Models A1625, A1842, A2169, A2737, A2843 are supported (all 4K ones and the latest HD one)
+-   The access of Speakers & TVs should by either set to "Everybody" or "Anybody On the Sam Network" in the Home app
 
 ## Pairing
 
