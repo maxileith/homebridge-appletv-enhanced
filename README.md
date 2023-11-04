@@ -37,13 +37,22 @@ This plugin automatically discovers Apple TV devices in the local network and ex
 
 ## Pairing
 
-After installing and starting the plugin devices will automatically be discovered. Look out for warning messages (yellow) in the log. You will be asked to pair your Apple TV. In order to do that, just the link displayed in the log message, e.g. http://192.168.0.16:42015/. On this page you can enter the 4-digit PIN displayed on your Apple TV to pair it.
+1.  Install the plugin.
+2.  (optional) Enable the plugin to run as a child bridge. The benefit here is that the plugin is more isolated from other plugins, e.g. in case of a plugin crash, only the plugin will crash and not the whole homebridge.
+3.  Restart the homebridge.
+4.  (optional) If the plugin is running as a child bridge, the child bridge will now be exposed. You can add it to your Home App if you want to. However, there is no real benefit to it since this bridge will not expose any devices (Apple TVs will be exposed as their own bridges).
+5.  The plugin will start the discovery of Apple TVs in your local network.
+6.  For every discovered Apple TV you have to do the following steps:
+    1. In the logs there will be a message thats says `You need to pair your Apple TV before the plugin can connect to it. Enter the PIN that is currently displayed on the device here: http://192.168.0.12:42015/` where the link http://192.168.0.12:42015 is different in your log and distinct for one Apple TV if you are connecting multiple.
+    2. Open the link. A pairing page will open (see first image below).
+    3. In the meantime there should already be a pairing code displayed on your Apple TV. Enter the 4-digit code into the pairing page.
+    4. If the pairing page says that transmitting thr PIN was successful (see second image below), pairing was probably successful (Logs: `Paring was successful. Add it to your home in the Home app: com.apple.home://launch`). To be sure, take a look into the logs, you may have entered the PIN wrong too often or let the pairing request time out too many times (Logs: `Too many attempts. Waiting for x seconds before retrying.`). If you are requested to enter a PIN again (see first image below) you have most probably entered the wrong PIN ... the plugin will attempt a new pairing attempt. Enter the new PIN displayed on the Apple TV again.
+    5. Done ... do this with all your Apple TVs.
+7. You have paired all Apple TVs (with the plugin, not with Apple Home yet).
+8. Every Apple TV is exposed as a Set-Top Box and is its own bridge. Therefore, we need to add every Apple TV seperatly to Apple Home. In order to do that, open the Home app, go to add devices > more options, then type in the pairing code from the logs (Logs: `Please add [Apple TV Wohnzimmer (2)] manually in
+Home app. Setup Code: xxxx-xxxx` this is not the code that you have seen on the Apple TV display).
 
 <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/enterPIN.jpg" width=280/> <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/pinTransmitted.jpg" width=280/>
-
-After you have entered the PIN, you need to check the logs if pairing was successful. If you entered a wrong PIN or the pairing request expired, a new attempt will be initiated. Take a look into the logs, there you will find the link to the new pairing page.
-
-If you enter the PIN wrong or let the pairing request timeout too often, you will need to wait to start a new pairing attempt.
 
 ## Capabilities
 
