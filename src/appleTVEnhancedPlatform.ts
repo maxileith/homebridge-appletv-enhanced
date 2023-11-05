@@ -78,10 +78,14 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             return;
         }
 
-
         const appleTVs = scanResults.filter((d) =>
-            d.modelName?.includes('Apple TV') &&
-            d.os === 'TvOS',
+            // compatible model identifiers according to https://pyatv.dev/api/const/#pyatv.const.DeviceModel
+            d.model === 'Gen4' ||
+            d.model === 'Gen4K' ||
+            d.model === 'AppleTVGen4' || // future proof since they will be renamed in pyatv
+            d.model === 'AppleTVGen4K' ||  // future proof since they will be renamed in pyatv
+            d.model === 'AppleTV4KGen2' ||
+            d.model === 'AppleTV4KGen3',
         );
 
         // loop over the discovered devices and register each one if it has not already been registered
