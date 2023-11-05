@@ -65,7 +65,7 @@ export class AppleTVEnhancedAccessory {
 
         const credentials = this.getCredentials();
         if (!credentials) {
-            this.pair(this.device.host, this.device.name).then((c) => {
+            this.pair(this.device.host, this.accessory.context.id, this.device.name).then((c) => {
                 this.setCredentials(c);
                 this.startUp(c);
                 this.log.warn('Paring was successful. Add it to your home in the Home app: com.apple.home://launch');
@@ -710,7 +710,7 @@ export class AppleTVEnhancedAccessory {
         fs.writeFileSync(path, value, { encoding:'utf8', flag:'w' });
     }
 
-    private async pair(ip: string, appleTVName: string): Promise<string> {
+    private async pair(ip: string, mac: string, appleTVName: string): Promise<string> {
         this.log.debug('Got empty credentials, initiating pairing process.');
 
         const ipSplitted = ip.split('.');
@@ -730,7 +730,7 @@ export class AppleTVEnhancedAccessory {
             let backOffSeconds = 0;
             let processClosed = false;
 
-            const process = spawn(CustomPyAtvInstance.getAtvremotePath(), ['-s', ip, '--protocol', 'companion', 'pair']);
+            const process = spawn(CustomPyAtvInstance.getAtvremotePath(), ['--id', mac, '--protocol', 'companion', 'pair']);
             process.stderr.setEncoding('utf8');
             process.stderr.on('data', (data: string) => {
                 this.log.error('stderr: ' + data);
