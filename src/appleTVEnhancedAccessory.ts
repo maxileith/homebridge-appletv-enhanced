@@ -63,25 +63,41 @@ export class AppleTVEnhancedAccessory {
 
         this.log = new PrefixLogger(this.platform.ogLog, `${this.device.name} (${this.device.id})`);
 
-        const credentials = this.getCredentials();
-        if (!credentials) {
+        const pairingRequired = () => {
             this.pair(this.device.host, this.accessory.context.id, this.device.name).then((c) => {
                 this.setCredentials(c);
-                this.startUp(c);
+                this.device = CustomPyAtvInstance.deviceAdvanced({
+                    id: this.device.id!,
+                    airplayCredentials: c,
+                    companionCredentials: c,
+                })!;
+                this.startUp();
                 this.log.warn('Paring was successful. Add it to your home in the Home app: com.apple.home://launch');
             });
+        };
+
+        const credentials = this.getCredentials();
+        if (!credentials) {
+            pairingRequired();
         } else {
-            this.startUp(credentials);
+            this.device = CustomPyAtvInstance.deviceAdvanced({
+                id: this.device.id!,
+                airplayCredentials: credentials,
+                companionCredentials: credentials,
+            })!;
+            this.credentialsValid().then((valid) => {
+                if (valid) {
+                    this.log.info('Credentials are still valid. Continuing ...');
+                    this.startUp();
+                } else {
+                    this.log.warn('Credentials are no longer valid. Need to repair ...');
+                    pairingRequired();
+                }
+            });
         }
     }
 
-    private async startUp(credentials: string): Promise<void> {
-        this.device = CustomPyAtvInstance.deviceAdvanced({
-            id: this.device.id!,
-            airplayCredentials: credentials,
-            companionCredentials: credentials,
-        })!;
-
+    private async startUp(): Promise<void> {
         this.accessory.category = this.platform.api.hap.Categories.TV_SET_TOP_BOX;
 
         // set accessory information
@@ -824,5 +840,17 @@ export class AppleTVEnhancedAccessory {
             await delay(100);
         }
         this.log.debug('Reporting as booted.');
+    }
+
+    private async credentialsValid(): Promise<boolean> {
+        return this.device.listApps()
+            .then(() => true)
+            .catch((error: unknown) => {
+                if (error instanceof Error && error.message.includes('pyatv.exceptions.ProtocolError: Command _systemInfo failed')) {
+                    this.log.debug(error.message);
+                    return false;
+                }
+                throw error;
+            });
     }
 }

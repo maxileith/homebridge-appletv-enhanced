@@ -7,6 +7,9 @@ import { AppleTVEnhancedPlatformConfig } from './interfaces';
 import { NodePyATVDevice } from '@sebbo2002/node-pyatv';
 import PythonChecker from './PythonChecker';
 import PrefixLogger from './PrefixLogger';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 
 export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
@@ -25,6 +28,8 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
         public readonly api: API,
     ) {
         this.log = new PrefixLogger(this.ogLog, 'Platform');
+
+        this.deletePyatvConf();
 
         this.Service = this.api.hap.Service;
         this.Characteristic = this.api.hap.Characteristic;
@@ -137,5 +142,11 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
         this.log.debug('Finished device discovery.');
     }
 
-
+    private deletePyatvConf(): void {
+        const pyatvConfPath = path.join(os.homedir(), '.pyatv.conf');
+        if (fs.existsSync(pyatvConfPath)) {
+            this.log.debug(`removing ${pyatvConfPath}`);
+            fs.rmSync(pyatvConfPath);
+        }
+    }
 }
