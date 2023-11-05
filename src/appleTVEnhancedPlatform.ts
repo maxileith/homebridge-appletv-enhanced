@@ -76,7 +76,6 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
         });
 
         const appleTVs = scanResults.filter((d) =>
-            /^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$/.test(d.id!) &&
             d.modelName?.includes('Apple TV') &&
             d.os === 'TvOS',
         );
@@ -84,6 +83,11 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
         // loop over the discovered devices and register each one if it has not already been registered
         for (const appleTV of appleTVs) {
             this.log.debug(`Found Apple TV ${appleTV.name} (${appleTV.id} / ${appleTV.host}).`);
+
+            if (/^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$/.test(appleTV.id!) === false) {
+                this.log.debug(`Identifier ${appleTV.id} is not a MAC-Address. ${appleTV.name} (${appleTV.host}) is therefore skipped.`);
+                continue;
+            }
 
             if (this.config.blacklist && this.config.blacklist.includes(appleTV.id!)) {
                 this.log.debug(`Apple TV ${appleTV.name} (${appleTV.id}) is on the blacklist. Skipping.`);
