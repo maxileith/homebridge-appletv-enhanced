@@ -38,7 +38,8 @@
     "files": [
         "LICENSE",
         "dist",
-        "config.schema.json"
+        "config.schema.json",
+        "LICENSES_OF_DEPENDENCIES"
     ],
     "publishConfig": {
         "access": "public"
