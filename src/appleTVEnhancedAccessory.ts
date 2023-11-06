@@ -33,7 +33,7 @@ const DEFAULT_APP_RENAME = {
     'com.apple.TVMusic': 'Apple Music',
 };
 
-const MAX_SERVICES = 100;
+const MAX_SERVICES = 99;
 
 /**
  * Platform Accessory
@@ -430,7 +430,7 @@ export class AppleTVEnhancedAccessory {
             const s = this.accessory.getService(app.name) || this.addServiceSave(this.platform.Service.InputSource, app.name, app.id);
 
             if (s === undefined) {
-                this.log.warn(`\nThe maximum of ${MAX_SERVICES} on a single accessory is reached. The following services have been added:
+                this.log.warn(`\nThe maximum of ${MAX_SERVICES} services on a single accessory is reached. The following services have been added:
 - The television service (Apple TV) itself
 - ${Object.keys(this.deviceStateServices).length} motion sensors for device states 
 - ${Object.keys(this.mediaTypeServices).length} motion sensors for media types 
@@ -616,7 +616,6 @@ It might be a good idea to uninstall unused apps.`);
         if (state === this.platform.Characteristic.Active.ACTIVE && !this.turningOn) {
             this.turningOn = true;
             this.lastActiveSet = Date.now();
-            this.log.info('Turning on');
             this.rocketRemote?.turnOn();
             for (let i = STEPS; i <= WAIT_MAX_FOR_STATES * 1000; i += STEPS) {
                 const { mediaType, deviceState } = await this.device.getState();
@@ -637,7 +636,6 @@ It might be a good idea to uninstall unused apps.`);
             }
             this.turningOn = false;
         } else if (state === this.platform.Characteristic.Active.INACTIVE && this.lastActiveSet + 7500 < Date.now()) {
-            this.log.info('Turning off');
             this.rocketRemote?.turnOff();
         }
     }
@@ -935,7 +933,7 @@ It might be a good idea to uninstall unused apps.`);
     }
 
     private addServiceSave<S extends typeof Service>(serviceConstructor: S, ...constructorArgs: ConstructorArgs<S>): Service | undefined {
-        if (this.accessory.services.length >= MAX_SERVICES) {
+        if (this.accessory.services.length === MAX_SERVICES) {
             return undefined;
         }
         this.log.debug(`Total services ${this.accessory.services.length} (${MAX_SERVICES - this.accessory.services.length} remaining)`);
