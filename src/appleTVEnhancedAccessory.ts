@@ -775,6 +775,7 @@ It might be a good idea to uninstall unused apps.`);
     }
 
     private setCredentials(value: string): void {
+        this.credentials = value;
         const path = this.getPath('credentials.txt', '');
         fs.writeFileSync(path, value, { encoding:'utf8', flag:'w' });
     }
@@ -896,15 +897,20 @@ It might be a good idea to uninstall unused apps.`);
     }
 
     private async credentialsValid(): Promise<boolean> {
-        return this.device.listApps()
-            .then(() => true)
-            .catch((error: unknown) => {
+        for (let i = 0; i < 5; i++) {
+            this.log.info('verifying credentials ...');
+            try {
+                await this.device.listApps();
+                return true;
+            } catch (error: unknown) {
                 if (error instanceof Error && error.message.includes('pyatv.exceptions.ProtocolError: Command _systemInfo failed')) {
                     this.log.debug(error.message);
-                    return false;
+                } else {
+                    throw error;
                 }
-                throw error;
-            });
+            }
+        }
+        return false;
     }
 
     // https://github.com/homebridge/HAP-NodeJS/issues/644#issue-409099368
