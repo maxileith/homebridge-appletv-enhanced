@@ -1,6 +1,6 @@
 import fs from 'fs';
 import http, { IncomingMessage, ServerResponse } from 'http';
-import { Service, PlatformAccessory, CharacteristicValue, Nullable, PrimitiveTypes } from 'homebridge';
+import { Service, PlatformAccessory, CharacteristicValue, Nullable, PrimitiveTypes, ConstructorArgs } from 'homebridge';
 
 import { AppleTVEnhancedPlatform } from './appleTVEnhancedPlatform';
 import { NodePyATVDevice, NodePyATVDeviceEvent, NodePyATVDeviceState, NodePyATVKeys, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
@@ -32,6 +32,8 @@ const DEFAULT_APP_RENAME = {
     'com.apple.TVMusic': 'Apple Music',
 };
 
+const MAX_SERVICES = 100;
+
 /**
  * Platform Accessory
  * An instance of this class is created for each accessory your platform registers
@@ -56,6 +58,7 @@ export class AppleTVEnhancedAccessory {
     private turningOn: boolean = false;
     private lastActiveSet: number = 0;
     private isFirstActiveSet: boolean = true;
+    private totalServices: number = 0;
 
     private credentials: string | undefined = undefined;
 
@@ -143,11 +146,11 @@ export class AppleTVEnhancedAccessory {
         this.log.setPrefix(`${configuredName} (${this.device.id})`);
 
         // create input and sensor services
-        const apps = await this.device.listApps();
-        this.createInputs(apps);
         this.createDeviceStateSensors();
         this.createMediaTypeSensors();
         this.createRemoteKeysAsSwitches();
+        const apps = await this.device.listApps();
+        this.createInputs(apps);
 
         // create event listeners to keep everything up-to-date
         this.createListeners();
@@ -211,7 +214,7 @@ export class AppleTVEnhancedAccessory {
                 continue;
             }
             this.log.debug(`Adding media type ${mediaType} as a motion sensor.`);
-            const s = this.accessory.getService(mediaType) || this.accessory.addService(this.platform.Service.MotionSensor, mediaType, mediaType)
+            const s = this.accessory.getService(mediaType) || this.addServiceSave(this.platform.Service.MotionSensor, mediaType, mediaType)!
                 .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
                 .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(mediaType))
                 .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getMediaConfigs()[mediaType] || capitalizeFirstLetter(mediaType));
@@ -247,7 +250,7 @@ export class AppleTVEnhancedAccessory {
                 continue;
             }
             this.log.debug(`Adding remote key ${remoteKey} as a switch.`);
-            const s = this.accessory.getService(remoteKey) || this.accessory.addService(this.platform.Service.Switch, remoteKey, remoteKey)
+            const s = this.accessory.getService(remoteKey) || this.addServiceSave(this.platform.Service.Switch, remoteKey, remoteKey)!
                 .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(remoteKey))
                 .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getRemoteKeyAsSwitchConfigs()[remoteKey] || camelCaseToTitleCase(remoteKey))
                 .setCharacteristic(this.platform.Characteristic.On, false);
@@ -305,7 +308,7 @@ export class AppleTVEnhancedAccessory {
                 continue;
             }
             this.log.debug(`Adding device state ${deviceState} as a motion sensor.`);
-            const s = this.accessory.getService(deviceState) || this.accessory.addService(this.platform.Service.MotionSensor, deviceState, deviceState)
+            const s = this.accessory.getService(deviceState) || this.addServiceSave(this.platform.Service.MotionSensor, deviceState, deviceState)!
                 .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
                 .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(deviceState))
                 .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getDeviceStateConfigs()[deviceState] || capitalizeFirstLetter(deviceState));
@@ -398,10 +401,21 @@ export class AppleTVEnhancedAccessory {
 
         apps.sort((a, b) => appConfigs[a.id].configuredName > appConfigs[b.id].configuredName ? 1 : -1);
 
-        apps.forEach((app) => {
+        let addedApps: number = 0;
+        apps.every((app) => {
             this.log.debug(`Adding ${appConfigs[app.id].configuredName} (${app.id}) as an input.`);
-            const s = this.accessory.getService(app.name) || this.accessory.addService(this.platform.Service.InputSource, app.name, app.id)
-                .setCharacteristic(this.platform.Characteristic.ConfiguredName, appConfigs[app.id].configuredName)
+            const s = this.accessory.getService(app.name) || this.addServiceSave(this.platform.Service.InputSource, app.name, app.id);
+
+            if (s === undefined) {
+                this.log.warn(`The maximum of ${MAX_SERVICES} on a single accessory is reached. The following services have been added:\
+- ${Object.keys(this.deviceStateServices).length} motion sensors for device states
+- ${Object.keys(this.mediaTypeServices).length} motion sensors for media types
+- 1 remote
+- ${addedApps} apps have been added (${apps.length - addedApps} apps could not be added)`);
+                return false;
+            }
+
+            s.setCharacteristic(this.platform.Characteristic.ConfiguredName, appConfigs[app.id].configuredName)
                 .setCharacteristic(this.platform.Characteristic.InputSourceType, this.platform.Characteristic.InputSourceType.APPLICATION)
                 .setCharacteristic(this.platform.Characteristic.IsConfigured, appConfigs[app.id].isConfigured)
                 .setCharacteristic(this.platform.Characteristic.Name, app.name)
@@ -442,6 +456,10 @@ export class AppleTVEnhancedAccessory {
                 pyatvApp: app,
                 service: s,
             };
+
+            addedApps++;
+
+            return true;
         });
         this.setAppConfigs(appConfigs);
 
@@ -896,5 +914,14 @@ export class AppleTVEnhancedAccessory {
             ]);
         });
         return identifiersTLV.toString('base64');
+    }
+
+    private addServiceSave<S extends typeof Service>(serviceConstructor: S, ...constructorArgs: ConstructorArgs<S>): Service | undefined {
+        if (this.totalServices >= MAX_SERVICES) {
+            return undefined;
+        }
+        this.totalServices++;
+        this.log.debug(`Total services ${this.totalServices} (${MAX_SERVICES - this.totalServices} remaining)`);
+        return this.accessory.addService(serviceConstructor, ...constructorArgs);
     }
 }
