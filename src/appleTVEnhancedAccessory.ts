@@ -3,7 +3,7 @@ import http, { IncomingMessage, ServerResponse } from 'http';
 import { Service, PlatformAccessory, CharacteristicValue, Nullable, PrimitiveTypes, ConstructorArgs } from 'homebridge';
 
 import { AppleTVEnhancedPlatform } from './appleTVEnhancedPlatform';
-import { NodePyATVDevice, NodePyATVDeviceEvent, NodePyATVDeviceState, NodePyATVKeys, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
+import { NodePyATVDevice, NodePyATVDeviceEvent, NodePyATVDeviceState, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
 import md5 from 'md5';
 import { spawn } from 'child_process';
 import path from 'path';
@@ -11,7 +11,8 @@ import CustomPyAtvInstance from './CustomPyAtvInstance';
 import { capitalizeFirstLetter, delay, removeSpecialCharacters, getLocalIP, trimSpecialCharacters, camelCaseToTitleCase } from './utils';
 import { IAppConfigs, ICommonConfig, IInputs, IMediaConfigs, IRemoteKeysAsSwitchConfigs, IStateConfigs, NodePyATVApp } from './interfaces';
 import PrefixLogger from './PrefixLogger';
-import { DisplayOrderTypes } from './enums';
+import { DisplayOrderTypes, RemoteControlCommands } from './enums';
+import RocketRemote from './RocketRemote';
 
 
 const HIDE_BY_DEFAULT_APPS = [
@@ -46,6 +47,7 @@ export class AppleTVEnhancedAccessory {
     private deviceStateServices: { [k: string]: Service } = {};
     private mediaTypeServices: { [k: string]: Service } = {};
     private remoteKeyServices: { [k: string]: Service } = {};
+    private rocketRemote: RocketRemote | undefined = undefined;
 
     private appConfigs: IAppConfigs | undefined = undefined;
     private commonConfig: ICommonConfig | undefined = undefined;
@@ -156,6 +158,9 @@ export class AppleTVEnhancedAccessory {
         // create event listeners to keep everything up-to-date
         this.createListeners();
 
+        // create remote
+        this.createRemote();
+
         this.log.info('Finished initializing');
         this.booted = true;
     }
@@ -207,6 +212,23 @@ export class AppleTVEnhancedAccessory {
         }).bind(this));
     }
 
+    private createRemote(): void {
+        this.log.debug('recreating rocket remote');
+
+        this.rocketRemote = new RocketRemote(
+            this.device.id!,
+            CustomPyAtvInstance.getAtvremotePath(),
+            this.getCredentials()!,
+            this.getCredentials()!,
+            this.log,
+        );
+
+        this.rocketRemote.onClose((async () => {
+            await delay(5000);
+            this.createRemote();
+        }).bind(this));
+    }
+
     private createMediaTypeSensors(): void {
         const mediaTypes = Object.keys(NodePyATVMediaType) as NodePyATVMediaType[];
         for (let i = 0; i < mediaTypes.length; i++) {
@@ -244,7 +266,7 @@ export class AppleTVEnhancedAccessory {
     }
 
     private createRemoteKeysAsSwitches(): void {
-        const remoteKeys = Object.keys(NodePyATVKeys) as NodePyATVKeys[];
+        const remoteKeys = Object.values(RemoteControlCommands) as RemoteControlCommands[];
         for (let i = 0; i < remoteKeys.length; i++) {
             const remoteKey = remoteKeys[i];
             if (this.platform.config.remoteKeysAsSwitch !== undefined && !this.platform.config.remoteKeysAsSwitch.includes(remoteKey)) {
@@ -271,7 +293,7 @@ export class AppleTVEnhancedAccessory {
                 .onSet(async (value: CharacteristicValue) => {
                     if (value) {
                         this.log.info(`remote ${remoteKey}`);
-                        this.device.pressKey(remoteKey);
+                        this.rocketRemote?.sendCommand(remoteKey);
                         await delay(1000);
                         s.setCharacteristic(this.platform.Characteristic.On, false);
                     }
@@ -679,56 +701,43 @@ It might be a good idea to uninstall unused apps.`);
     private async handleRemoteKeySet(state: CharacteristicValue): Promise<void> {
         switch (state) {
         case this.platform.Characteristic.RemoteKey.REWIND:
-            this.log.info('remote rewind');
-            this.device.skipBackward();
+            this.rocketRemote?.skipBackward();
             break;
         case this.platform.Characteristic.RemoteKey.FAST_FORWARD:
-            this.log.info('remote fast forward');
-            this.device.skipForward();
+            this.rocketRemote?.skipForward();
             break;
         case this.platform.Characteristic.RemoteKey.NEXT_TRACK:
-            this.log.info('remote next rack');
-            this.device.next();
+            this.rocketRemote?.next();
             break;
         case this.platform.Characteristic.RemoteKey.PREVIOUS_TRACK:
-            this.log.info('remote previous track');
-            this.device.previous();
+            this.rocketRemote?.previous();
             break;
         case this.platform.Characteristic.RemoteKey.ARROW_UP:
-            this.log.info('remote arrow up');
-            this.device.up();
+            this.rocketRemote?.up();
             break;
         case this.platform.Characteristic.RemoteKey.ARROW_DOWN:
-            this.log.info('remote arrow down');
-            this.device.down();
+            this.rocketRemote?.down();
             break;
         case this.platform.Characteristic.RemoteKey.ARROW_LEFT:
-            this.log.info('remote arrow left');
-            this.device.left();
+            this.rocketRemote?.left();
             break;
         case this.platform.Characteristic.RemoteKey.ARROW_RIGHT:
-            this.log.info('remote arrow right');
-            this.device.right();
+            this.rocketRemote?.right();
             break;
         case this.platform.Characteristic.RemoteKey.SELECT:
-            this.log.info('remote select');
-            this.device.select();
+            this.rocketRemote?.select();
             break;
         case this.platform.Characteristic.RemoteKey.BACK:
-            this.log.info('remote back');
-            this.device.menu();
+            this.rocketRemote?.menu();
             break;
         case this.platform.Characteristic.RemoteKey.EXIT:
-            this.log.info('remote exit');
-            this.device.home();
+            this.rocketRemote?.home();
             break;
         case this.platform.Characteristic.RemoteKey.PLAY_PAUSE:
-            this.log.info('remote play/pause');
-            this.device.playPause();
+            this.rocketRemote?.playPause();
             break;
         case this.platform.Characteristic.RemoteKey.INFORMATION:
-            this.log.info('remote information');
-            this.device.topMenu();
+            this.rocketRemote?.topMenu();
             break;
         }
     }

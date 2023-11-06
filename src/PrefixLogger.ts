@@ -3,14 +3,10 @@ import { Logger } from 'homebridge';
 
 class PrefixLogger {
 
-    private readonly log: Logger;
-
-    private prefix: string;
-
-    public constructor(logger: Logger, prefix: string) {
-        this.log = logger;
-        this.prefix = prefix;
-    }
+    public constructor(
+        private readonly log: Logger | PrefixLogger,
+        private prefix: string,
+    ) { }
 
     public debug(message: string, ...parameters: any[]): void {
         this.log.debug(this.extendMessage(message), ...parameters);

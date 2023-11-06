@@ -4,7 +4,7 @@ export function capitalizeFirstLetter(value: string): string {
     return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-export const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+export const delay = (ms: number) => new Promise<void>(res => setTimeout(res, ms));
 
 export function getLocalIP(): string {
     const interfaces = networkInterfaces();
