@@ -22,7 +22,7 @@
                 "items": {
                     "title": "Media Type",
                     "type": "string",
-                    "enum": ["music", "video", "tv", "unknown"]
+                    "enum": ["music", "tv", "unknown", "video"]
                 },
                 "required": true
             },
@@ -36,10 +36,10 @@
                     "type": "string",
                     "enum": [
                         "idle",
-                        "playing",
                         "loading",
-                        "seeking",
                         "paused",
+                        "playing",
+                        "seeking",
                         "stopped"
                     ]
                 },
@@ -71,12 +71,12 @@
                         "stop",
                         "suspend",
                         "topMenu",
+                        "turnOff",
+                        "turnOn",
                         "up",
                         "volumeDown",
                         "volumeUp",
-                        "wakeup",
-                        "turnOff",
-                        "turnOn"
+                        "wakeup"
                     ]
                 },
                 "required": true
