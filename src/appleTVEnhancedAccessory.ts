@@ -54,7 +54,8 @@ export class AppleTVEnhancedAccessory {
     private booted: boolean = false;
     private offline: boolean = false;
     private turningOn: boolean = false;
-    private lastOnEvent: number = 0;
+    private lastActiveSet: number = 0;
+    private isFirstActiveSet: boolean = true;
 
     private credentials: string | undefined = undefined;
 
@@ -559,12 +560,19 @@ export class AppleTVEnhancedAccessory {
     }
 
     private async handleActiveSet(state: CharacteristicValue): Promise<void> {
+        // prevent turning on the Apple TV when starting up the plugin when HomePods are selected as audio output
+        if (this.isFirstActiveSet) {
+            this.log.debug('Not setting the active state since this is the initial update');
+            this.isFirstActiveSet = false;
+            return;
+        }
+
         const WAIT_MAX_FOR_STATES = 30; // seconds
         const STEPS = 500; // milliseconds
 
         if (state === this.platform.Characteristic.Active.ACTIVE && !this.turningOn) {
             this.turningOn = true;
-            this.lastOnEvent = Date.now();
+            this.lastActiveSet = Date.now();
             this.log.info('Turning on');
             this.device?.turnOn();
             for (let i = STEPS; i <= WAIT_MAX_FOR_STATES * 1000; i += STEPS) {
@@ -585,7 +593,7 @@ export class AppleTVEnhancedAccessory {
                 break;
             }
             this.turningOn = false;
-        } else if (state === this.platform.Characteristic.Active.INACTIVE && this.lastOnEvent + 7500 < Date.now()) {
+        } else if (state === this.platform.Characteristic.Active.INACTIVE && this.lastActiveSet + 7500 < Date.now()) {
             this.log.info('Turning off');
             this.device?.turnOff();
         }
@@ -599,7 +607,7 @@ export class AppleTVEnhancedAccessory {
             return;
         }
         const value = event.value === 'on' ? this.platform.Characteristic.Active.ACTIVE : this.platform.Characteristic.Active.INACTIVE;
-        if (value === this.platform.Characteristic.Active.INACTIVE && this.lastOnEvent + 7500 > Date.now()) {
+        if (value === this.platform.Characteristic.Active.INACTIVE && this.lastActiveSet + 7500 > Date.now()) {
             return;
         }
         this.log.info(`New Active State: ${event.value}`);
