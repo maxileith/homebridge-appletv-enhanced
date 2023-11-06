@@ -466,7 +466,7 @@ It might be a good idea to uninstall unused apps.`);
         });
         this.setAppConfigs(appConfigs);
 
-        const appOrderIdentifiers: number[] = apps.map((e) => appConfigs[e.id].identifier);
+        const appOrderIdentifiers: number[] = apps.slice(0, addedApps).map((e) => appConfigs[e.id].identifier);
         const tlv8 = this.appIdentifiersOrderToTLV8(appOrderIdentifiers);
         this.log.debug(`Input display order: ${tlv8}`);
         this.service!.setCharacteristic(this.platform.Characteristic.DisplayOrder, tlv8);
