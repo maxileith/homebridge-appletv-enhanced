@@ -122,7 +122,7 @@ export class AppleTVEnhancedAccessory {
         const configuredName: string = this.getCommonConfig().configuredName || removeSpecialCharacters(this.accessory.displayName);
 
         // create the service
-        this.service = this.accessory.getService(this.platform.Service.Television) || this.accessory.addService(this.platform.Service.Television);
+        this.service = this.accessory.getService(this.platform.Service.Television) || this.addServiceSave(this.platform.Service.Television)!;
         this.service
             .setCharacteristic(this.platform.Characteristic.Active, this.platform.Characteristic.Active.INACTIVE)
             .setCharacteristic(this.platform.Characteristic.ActiveIdentifier, this.getCommonConfig().activeIdentifier || this.appIdToNumber('com.apple.TVSettings'))

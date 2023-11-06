@@ -19,6 +19,7 @@ class PythonChecker {
     private readonly pluginDirPath: string;
     private readonly venvPath: string;
     private readonly venvPipPath: string;
+    private readonly venvPythonPath: string;
     private readonly venvConfigPath: string;
     private readonly requirementsPath: string = path.join(__dirname, 'requirements.txt');
 
@@ -27,6 +28,7 @@ class PythonChecker {
 
         this.pluginDirPath = path.join(storagePath, 'appletv-enhanced');
         this.venvPath = path.join(this.pluginDirPath, '.venv');
+        this.venvPythonPath = path.join(this.venvPath, 'bin', 'python3');
         this.venvPipPath = path.join(this.venvPath, 'bin', 'pip3');
         this.venvConfigPath = path.join(this.venvPath, 'pyvenv.cfg');
     }
@@ -81,7 +83,9 @@ ${SUPPORTED_PYTHON_VERSIONS[0]} to ${SUPPORTED_PYTHON_VERSIONS[SUPPORTED_PYTHON_
     }
 
     private isVenvCreated(): boolean {
-        return fs.existsSync(this.venvPipPath);
+        return fs.existsSync(this.venvPipPath) &&
+            fs.existsSync(this.venvConfigPath) &&
+            fs.existsSync(this.venvPythonPath);
     }
 
     private async isVenvPythonSystemPython(): Promise<[boolean, string, string]> {
@@ -93,7 +97,7 @@ ${SUPPORTED_PYTHON_VERSIONS[0]} to ${SUPPORTED_PYTHON_VERSIONS[SUPPORTED_PYTHON_
 
     private async createVenv(): Promise<void> {
         const [stdout] = await this.runCommand('python3', ['-m', 'venv', this.venvPath, '--clear'], undefined, true);
-        if (stdout.includes('not created successfully')) {
+        if (stdout.includes('not created successfully') || !this.isVenvCreated()) {
             // eslint-disable-next-line no-constant-condition
             while (true) {
                 this.log.error('virtualenv python module is not installed. You need to install the \
