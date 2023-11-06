@@ -407,11 +407,12 @@ export class AppleTVEnhancedAccessory {
             const s = this.accessory.getService(app.name) || this.addServiceSave(this.platform.Service.InputSource, app.name, app.id);
 
             if (s === undefined) {
-                this.log.warn(`The maximum of ${MAX_SERVICES} on a single accessory is reached. The following services have been added:\
-- ${Object.keys(this.deviceStateServices).length} motion sensors for device states
-- ${Object.keys(this.mediaTypeServices).length} motion sensors for media types
-- 1 remote
-- ${addedApps} apps have been added (${apps.length - addedApps} apps could not be added)`);
+                this.log.warn(`\nThe maximum of ${MAX_SERVICES} on a single accessory is reached. The following services have been added:
+- ${Object.keys(this.deviceStateServices).length} motion sensors for device states 
+- ${Object.keys(this.mediaTypeServices).length} motion sensors for media types 
+- 1 remote 
+- ${addedApps} apps have been added (${apps.length - addedApps} apps could not be added)
+It might be a good idea to uninstall unused apps.`);
                 return false;
             }
 
