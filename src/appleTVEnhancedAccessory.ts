@@ -27,6 +27,10 @@ const HIDE_BY_DEFAULT_APPS = [
     'com.apple.facetime',
 ];
 
+const DEFAULT_APP_RENAME = {
+    'com.apple.TVWatchList': 'Apple TV',
+    'com.apple.TVMusic': 'Apple Music',
+};
 
 /**
  * Platform Accessory
@@ -382,7 +386,7 @@ export class AppleTVEnhancedAccessory {
         apps.forEach((app) => {
             if (!Object.keys(appConfigs).includes(app.id)) {
                 appConfigs[app.id] = {
-                    configuredName: app.id === 'com.apple.TVWatchList' ? 'Apple TV' : trimSpecialCharacters(app.name),
+                    configuredName: DEFAULT_APP_RENAME[app.id] || trimSpecialCharacters(app.name),
                     isConfigured: this.platform.Characteristic.IsConfigured.CONFIGURED,
                     visibilityState: HIDE_BY_DEFAULT_APPS.includes(app.id)
                         ? this.platform.Characteristic.CurrentVisibilityState.HIDDEN
