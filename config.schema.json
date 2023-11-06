@@ -71,6 +71,8 @@
                         "skip_backward",
                         "skip_forward",
                         "stop",
+                        "turn_off",
+                        "turn_on",
                         "top_menu",
                         "up"
                     ]

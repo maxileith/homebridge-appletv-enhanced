@@ -617,7 +617,7 @@ It might be a good idea to uninstall unused apps.`);
             this.turningOn = true;
             this.lastActiveSet = Date.now();
             this.log.info('Turning on');
-            this.device?.turnOn();
+            this.rocketRemote?.turnOn();
             for (let i = STEPS; i <= WAIT_MAX_FOR_STATES * 1000; i += STEPS) {
                 const { mediaType, deviceState } = await this.device.getState();
                 if (deviceState === null || mediaType === null) {
@@ -638,7 +638,7 @@ It might be a good idea to uninstall unused apps.`);
             this.turningOn = false;
         } else if (state === this.platform.Characteristic.Active.INACTIVE && this.lastActiveSet + 7500 < Date.now()) {
             this.log.info('Turning off');
-            this.device?.turnOff();
+            this.rocketRemote?.turnOff();
         }
     }
 

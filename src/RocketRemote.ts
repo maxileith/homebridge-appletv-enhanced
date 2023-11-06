@@ -116,6 +116,14 @@ class RocketRemote {
         this.sendCommand(RemoteControlCommands.STOP);
     }
 
+    public turnOff(): void {
+        this.sendCommand(RemoteControlCommands.TURN_OFF);
+    }
+
+    public turnOn(): void {
+        this.sendCommand(RemoteControlCommands.TURN_ON);
+    }
+
     public topMenu(): void {
         this.sendCommand(RemoteControlCommands.TOP_MENU);
     }

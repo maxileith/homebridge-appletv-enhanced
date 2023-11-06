@@ -21,6 +21,8 @@ export enum RemoteControlCommands {
     SKIP_BACKWARD = 'skip_backward',
     SKIP_FORWARD = 'skip_forward',
     STOP = 'stop',
+    TURN_OFF = 'turn_off',
+    TURN_ON = 'turn_on',
     TOP_MENU = 'top_menu',
     UP = 'up',
 }
