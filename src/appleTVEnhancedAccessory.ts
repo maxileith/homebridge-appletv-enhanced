@@ -61,7 +61,6 @@ export class AppleTVEnhancedAccessory {
     private turningOn: boolean = false;
     private lastActiveSet: number = 0;
     private isFirstActiveSet: boolean = true;
-    private totalServices: number = 0;
 
     private credentials: string | undefined = undefined;
 
@@ -432,6 +431,7 @@ export class AppleTVEnhancedAccessory {
 
             if (s === undefined) {
                 this.log.warn(`\nThe maximum of ${MAX_SERVICES} on a single accessory is reached. The following services have been added:
+- The television service (Apple TV) itself
 - ${Object.keys(this.deviceStateServices).length} motion sensors for device states 
 - ${Object.keys(this.mediaTypeServices).length} motion sensors for media types 
 - ${Object.keys(this.remoteKeyServices).length} switches for remote keys 
@@ -929,11 +929,10 @@ It might be a good idea to uninstall unused apps.`);
     }
 
     private addServiceSave<S extends typeof Service>(serviceConstructor: S, ...constructorArgs: ConstructorArgs<S>): Service | undefined {
-        if (this.totalServices >= MAX_SERVICES) {
+        if (this.accessory.services.length >= MAX_SERVICES) {
             return undefined;
         }
-        this.totalServices++;
-        this.log.debug(`Total services ${this.totalServices} (${MAX_SERVICES - this.totalServices} remaining)`);
+        this.log.debug(`Total services ${this.accessory.services.length} (${MAX_SERVICES - this.accessory.services.length} remaining)`);
         return this.accessory.addService(serviceConstructor, ...constructorArgs);
     }
 }
