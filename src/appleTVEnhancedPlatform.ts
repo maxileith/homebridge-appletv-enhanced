@@ -10,6 +10,7 @@ import PrefixLogger from './PrefixLogger';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import checkOs from './checkOS';
 
 
 export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
@@ -44,6 +45,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             this.log.debug('Executed didFinishLaunching callback');
 
             // make sure the Python environment is ready
+            checkOs((m) => this.ogLog.info(m), (m) => this.ogLog.warn(m));
             await new PythonChecker(this.ogLog, this.api.user.storagePath()).allInOne();
 
             // run the method to discover / register your devices as accessories

@@ -7,11 +7,9 @@
     "author": "Maximilian Leith",
     "scripts": {
         "lint": "eslint src/**.ts --max-warnings=0",
-        "watch": "rimraf -I ./dist && npm run buildOsCheck && npm install && npm run build && npm link && nodemon",
+        "watch": "rimraf -I ./dist && npm install && npm run build && npm link && nodemon",
         "build": "rimraf -I ./dist && tsc && mkdir dist/html && cp src/html/* dist/html/ && cp ./LICENSE ./dist/LICENSE && cp ./LICENSES_OF_DEPENDENCIES ./dist/LICENSES_OF_DEPENDENCIES && cp ./requirements.txt ./dist/requirements.txt",
-        "prepublishOnly": "npm install && npm run lint && npm run build",
-        "preinstall": "node dist/checkOS.js",
-        "buildOsCheck": "tsc -p tsconfig.checkos.json"
+        "prepublishOnly": "npm install && npm run lint && npm run build"
     },
     "engines": {
         "homebridge": "^1.7.0",

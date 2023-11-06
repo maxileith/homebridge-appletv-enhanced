@@ -11,6 +11,7 @@ import CustomPyAtvInstance from './CustomPyAtvInstance';
 import { capitalizeFirstLetter, delay, removeSpecialCharacters, getLocalIP, trimSpecialCharacters, camelCaseToTitleCase } from './utils';
 import { IAppConfigs, ICommonConfig, IInputs, IMediaConfigs, IRemoteKeysAsSwitchConfigs, IStateConfigs, NodePyATVApp } from './interfaces';
 import PrefixLogger from './PrefixLogger';
+import { DisplayOrderTypes } from './enums';
 
 
 const HIDE_BY_DEFAULT_APPS = [
@@ -25,11 +26,6 @@ const HIDE_BY_DEFAULT_APPS = [
     'com.apple.TVMovies',
     'com.apple.facetime',
 ];
-
-const DisplayOrderTypes = {
-    ARRAY_ELEMENT_START: 0x01,
-    ARRAY_ELEMENT_END: 0x00,
-};
 
 
 /**
