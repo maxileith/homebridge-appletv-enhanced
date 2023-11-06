@@ -26,6 +26,11 @@ const HIDE_BY_DEFAULT_APPS = [
     'com.apple.facetime',
 ];
 
+const DisplayOrderTypes = {
+    ARRAY_ELEMENT_START: 0x01,
+    ARRAY_ELEMENT_END: 0x00,
+};
+
 
 /**
  * Platform Accessory
@@ -438,6 +443,11 @@ export class AppleTVEnhancedAccessory {
             };
         });
         this.setAppConfigs(appConfigs);
+
+        const appOrderIdentifiers: number[] = apps.map((e) => appConfigs[e.id].identifier);
+        const tlv8 = this.appIdentifiersOrderToTLV8(appOrderIdentifiers);
+        this.log.debug(`Input display order: ${tlv8}`);
+        this.service!.setCharacteristic(this.platform.Characteristic.DisplayOrder, tlv8);
     }
 
     private async handleInputUpdate(event: NodePyATVDeviceEvent): Promise<void> {
@@ -857,5 +867,26 @@ export class AppleTVEnhancedAccessory {
                 }
                 throw error;
             });
+    }
+
+    // https://github.com/homebridge/HAP-NodeJS/issues/644#issue-409099368
+    private appIdentifiersOrderToTLV8(listOfIdentifiers: number[]): string {
+        let identifiersTLV: Buffer = Buffer.alloc(0);
+        listOfIdentifiers.forEach((identifier: number, index: number) => {
+            if (index !== 0) {
+                identifiersTLV= Buffer.concat([
+                    identifiersTLV,
+                    this.platform.api.hap.encode(DisplayOrderTypes.ARRAY_ELEMENT_END, Buffer.alloc(0)),
+                ]);
+            }
+
+            const element: Buffer = Buffer.alloc(4);
+            element.writeUInt32LE(identifier, 0);
+            identifiersTLV = Buffer.concat([
+                identifiersTLV,
+                this.platform.api.hap.encode(DisplayOrderTypes.ARRAY_ELEMENT_START, element),
+            ]);
+        });
+        return identifiersTLV.toString('base64');
     }
 }
