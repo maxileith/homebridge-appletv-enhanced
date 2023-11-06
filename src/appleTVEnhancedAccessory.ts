@@ -388,6 +388,11 @@ export class AppleTVEnhancedAccessory {
                     identifier: this.appIdToNumber(app.id),
                 };
             }
+        });
+
+        apps.sort((a, b) => appConfigs[a.id].configuredName > appConfigs[b.id].configuredName ? 1 : -1);
+
+        apps.forEach((app) => {
             this.log.debug(`Adding ${appConfigs[app.id].configuredName} (${app.id}) as an input.`);
             const s = this.accessory.getService(app.name) || this.accessory.addService(this.platform.Service.InputSource, app.name, app.id)
                 .setCharacteristic(this.platform.Characteristic.ConfiguredName, appConfigs[app.id].configuredName)
