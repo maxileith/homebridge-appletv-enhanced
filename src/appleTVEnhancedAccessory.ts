@@ -45,6 +45,7 @@ export class AppleTVEnhancedAccessory {
     private inputs: IInputs = {};
     private deviceStateServices: { [k: string]: Service } = {};
     private mediaTypeServices: { [k: string]: Service } = {};
+    private remoteKeyServices: { [k: string]: Service } = {};
 
     private appConfigs: IAppConfigs | undefined = undefined;
     private commonConfig: ICommonConfig | undefined = undefined;
@@ -282,6 +283,7 @@ export class AppleTVEnhancedAccessory {
                     return false;
                 });
             this.service!.addLinkedService(s);
+            this.remoteKeyServices[remoteKey] = s;
         }
     }
 
@@ -410,7 +412,7 @@ export class AppleTVEnhancedAccessory {
                 this.log.warn(`\nThe maximum of ${MAX_SERVICES} on a single accessory is reached. The following services have been added:
 - ${Object.keys(this.deviceStateServices).length} motion sensors for device states 
 - ${Object.keys(this.mediaTypeServices).length} motion sensors for media types 
-- 1 remote 
+- ${Object.keys(this.remoteKeyServices).length} switches for remote keys 
 - ${addedApps} apps have been added (${apps.length - addedApps} apps could not be added)
 It might be a good idea to uninstall unused apps.`);
                 return false;
