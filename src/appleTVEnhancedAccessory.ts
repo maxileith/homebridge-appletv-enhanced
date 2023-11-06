@@ -671,7 +671,7 @@ It might be a good idea to uninstall unused apps.`);
             this.setCommonConfig('activeIdentifier', state as number);
             const app = this.inputs[appId];
             this.log.info(`Launching App: ${app.pyatvApp.name}`);
-            app.pyatvApp.launch();
+            this.rocketRemote?.openApp(appId);
         }
     }
 

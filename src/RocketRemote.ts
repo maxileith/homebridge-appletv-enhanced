@@ -43,6 +43,11 @@ class RocketRemote {
         }, 15000);
     }
 
+    public openApp(id: string): void {
+        this.log.info(`open app ${id}`);
+        this.process?.stdin.write(`launch_app=${id}\n`);
+    }
+
     public sendCommand(cmd: RemoteControlCommands): void {
         this.log.info(cmd);
         this.process?.stdin.write(`${cmd}\n`);
