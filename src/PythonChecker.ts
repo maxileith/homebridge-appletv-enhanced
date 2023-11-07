@@ -191,7 +191,11 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
         p.stderr.on('data', (data: string) => {
             stderr += data;
             if (!hideStderr) {
-                this.log.error(data.replaceAll('\n', ''));
+                if (data.startsWith('WARNING')) {
+                    this.log.warn(data.replaceAll('\n', ''));
+                } else {
+                    this.log.error(data);
+                }
             }
         });
         p.on('close', () => {

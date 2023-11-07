@@ -174,11 +174,13 @@ class RocketRemote {
 
     public avadaKedavra(): void {
         this.log.info('Avada Kedavra');
+        const avadaKedavraSequence = generateAvadaKedavraSequence();
+        this.log.debug(`Avada Kedavra sequence: ${avadaKedavraSequence.toString()}`);
         const ak = spawn(this.atvremotePath, [
             '--id', this.mac,
             '--companion-credentials', this.companionCredentials,
             '--airplay-credentials', this.airplayCredentials,
-            ... generateAvadaKedavraSequence(),
+            ... avadaKedavraSequence,
         ]);
         ak.stdout.setEncoding('utf8');
         ak.stderr.setEncoding('utf8');

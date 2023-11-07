@@ -20,9 +20,10 @@ This plugin automatically discovers Apple TV devices in the local network and ex
     -   Since every Apple TV is exposed as a Set-Top Box, you can create a trigger on the power state to execute automations when turning on or off.
     -   For each media type (music, video, tv and unknown) the plugin will create a motion sensor (media types can be hidden or shown by changing the configuration).
     -   For each device state (idle, playing, loading, seeking, paused, stopped) the plugin will create a motion sensor (device states can be hidden or shown by changing the configuration).
--   A fully functional remote in the remote app of your iPhone or iPad.
+-   A fully functional and super fast remote in the remote app of your iPhone or iPad.
     -   Remote keys can also be exposed as switches.
 -   If you do not want all Apple TVs to be exposed, it is possible to blacklist them by providing the MAC-Address.
+-   "Avada Kedavra" which is exposed as an input to close all apps.
 
 ## Requirements
 
@@ -54,7 +55,7 @@ Home app. Setup Code: xxxx-xxxx` this is not the code that you have seen on the 
 
 <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/enterPIN.jpg" width=280/> <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/pinTransmitted.jpg" width=280/>
 
-## Capabilities
+## Screenshots
 
 The screenshots speak for themselves ...
 
