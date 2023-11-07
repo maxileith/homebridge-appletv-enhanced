@@ -35,6 +35,8 @@ const DEFAULT_APP_RENAME = {
 
 const MAX_SERVICES = 100;
 
+const AVADA_KEDAVRA_IDENTIFIER = 42;
+
 /**
  * Platform Accessory
  * An instance of this class is created for each accessory your platform registers
@@ -47,6 +49,7 @@ export class AppleTVEnhancedAccessory {
     private deviceStateServices: { [k: string]: Service } = {};
     private mediaTypeServices: { [k: string]: Service } = {};
     private remoteKeyServices: { [k: string]: Service } = {};
+    private avadaKedavraService: Service | undefined = undefined;
     private rocketRemote: RocketRemote | undefined = undefined;
 
     private appConfigs: IAppConfigs | undefined = undefined;
@@ -151,6 +154,7 @@ export class AppleTVEnhancedAccessory {
         this.createDeviceStateSensors();
         this.createMediaTypeSensors();
         this.createRemoteKeysAsSwitches();
+        this.createAvadaKedavra();
         const apps = await this.device.listApps();
         this.createInputs(apps);
 
@@ -406,6 +410,34 @@ export class AppleTVEnhancedAccessory {
         }
     }
 
+    private createAvadaKedavra(): void {
+        const visibilityState: number = this.getCommonConfig().showAvadaKedavra === this.platform.Characteristic.CurrentVisibilityState.HIDDEN
+            ? this.platform.Characteristic.CurrentVisibilityState.HIDDEN
+            : this.platform.Characteristic.CurrentVisibilityState.SHOWN;
+
+        this.log.debug('Adding Avada Kedavra as an input.');
+
+        this.avadaKedavraService = this.accessory.getService('Avada Kedavra') || this.addServiceSave(this.platform.Service.InputSource, 'Avada Kedavra', 'avadaKedavra')!
+            .setCharacteristic(this.platform.Characteristic.ConfiguredName, 'Avada Kedavra')
+            .setCharacteristic(this.platform.Characteristic.InputSourceType, this.platform.Characteristic.InputSourceType.OTHER)
+            .setCharacteristic(this.platform.Characteristic.IsConfigured, this.platform.Characteristic.IsConfigured.CONFIGURED)
+            .setCharacteristic(this.platform.Characteristic.Name, 'Avada Kedavra')
+            .setCharacteristic(this.platform.Characteristic.CurrentVisibilityState, visibilityState)
+            .setCharacteristic(this.platform.Characteristic.InputDeviceType, this.platform.Characteristic.InputDeviceType.OTHER)
+            .setCharacteristic(this.platform.Characteristic.TargetVisibilityState, visibilityState)
+            .setCharacteristic(this.platform.Characteristic.Identifier, AVADA_KEDAVRA_IDENTIFIER);
+
+        this.avadaKedavraService.getCharacteristic(this.platform.Characteristic.TargetVisibilityState)
+            .onSet(async (value) => {
+                const current = this.avadaKedavraService!.getCharacteristic(this.platform.Characteristic.TargetVisibilityState).value;
+                this.log.info(`Changing visibility state of Avada Kedavra from ${current} to ${value}.`);
+                this.avadaKedavraService!.setCharacteristic(this.platform.Characteristic.CurrentVisibilityState, value);
+                this.setCommonConfig('showAvadaKedavra', value as number);
+            });
+
+        this.service?.addLinkedService(this.avadaKedavraService);
+    }
+
     private createInputs(apps: NodePyATVApp[]): void {
         const appConfigs = this.getAppConfigs();
 
@@ -431,12 +463,14 @@ export class AppleTVEnhancedAccessory {
 
             if (s === undefined) {
                 this.log.warn(`\nThe maximum of ${MAX_SERVICES} services on a single accessory is reached. The following services have been added:
-- One service for Accessory Information
-- The television service (Apple TV) itself
+- 1 One service for Accessory Information
+- 1 The television service (Apple TV) itself
 - ${Object.keys(this.deviceStateServices).length} motion sensors for device states 
 - ${Object.keys(this.mediaTypeServices).length} motion sensors for media types 
 - ${Object.keys(this.remoteKeyServices).length} switches for remote keys 
-- ${addedApps} apps have been added (${apps.length - addedApps} apps could not be added)
+- ${Object.keys(this.remoteKeyServices).length} switches for remote keys 
+- 1 Avada Kedavra as an input
+- ${addedApps} apps as inputs have been added (${apps.length - addedApps} apps could not be added)
 It might be a good idea to uninstall unused apps.`);
                 return false;
             }
@@ -490,7 +524,8 @@ It might be a good idea to uninstall unused apps.`);
         this.setAppConfigs(appConfigs);
 
         const appOrderIdentifiers: number[] = apps.slice(0, addedApps).map((e) => appConfigs[e.id].identifier);
-        const tlv8 = this.appIdentifiersOrderToTLV8(appOrderIdentifiers);
+        const appOrderIdentifiersWithAvadaKedavra = [AVADA_KEDAVRA_IDENTIFIER].concat(appOrderIdentifiers);
+        const tlv8 = this.appIdentifiersOrderToTLV8(appOrderIdentifiersWithAvadaKedavra);
         this.log.debug(`Input display order: ${tlv8}`);
         this.service!.setCharacteristic(this.platform.Characteristic.DisplayOrder, tlv8);
     }
@@ -661,6 +696,12 @@ It might be a good idea to uninstall unused apps.`);
     }
 
     private async handleActiveIdentifierSet(state: CharacteristicValue): Promise<void> {
+        if (state === AVADA_KEDAVRA_IDENTIFIER) {
+            this.setCommonConfig('activeIdentifier', state as number);
+            this.rocketRemote?.avadaKedavra();
+            return;
+        }
+
         const appConfigs = this.getAppConfigs();
         let appId: string | undefined = undefined;
         for (const key in appConfigs) {

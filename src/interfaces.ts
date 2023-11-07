@@ -31,6 +31,7 @@ export interface IAppConfigs {
 export interface ICommonConfig {
     configuredName?: string;
     activeIdentifier?: number;
+    showAvadaKedavra?: number;
 }
 
 export interface IMediaConfigs {

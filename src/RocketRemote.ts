@@ -2,10 +2,11 @@ import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { RemoteControlCommands } from './enums';
 import PrefixLogger from './PrefixLogger';
 import { Logger } from 'homebridge';
+import generateAvadaKedavraSequence from './generateAvadaKedavraSequence';
 
 class RocketRemote {
 
-    private process?: ChildProcessWithoutNullStreams = undefined;
+    private process: ChildProcessWithoutNullStreams;
     private readonly log: PrefixLogger;
     private onCloseCallable?: (() => void) = undefined;
     private heartbeatInterval?: NodeJS.Timeout;
@@ -23,10 +24,6 @@ class RocketRemote {
         logger: Logger | PrefixLogger,
     ) {
         this.log = new PrefixLogger(logger, 'Rocket Remote');
-        this.initProcess();
-    }
-
-    private initProcess() {
         this.log.debug('creating');
 
         this.process = spawn(this.atvremotePath, [
@@ -56,7 +53,7 @@ class RocketRemote {
 
     private stderrLog(data: string): void {
         this.log.error(data);
-        this.process?.kill();
+        this.process.kill();
     }
 
     private stdoutLog(data: string): void {
@@ -76,7 +73,7 @@ class RocketRemote {
         } else {
             this.log.info(`pyatv>${cmd}`);
         }
-        this.process?.stdin.write(`${cmd}\n`);
+        this.process.stdin.write(`${cmd}\n`);
         this.lastCommandSend = Date.now();
     }
 
@@ -166,13 +163,27 @@ class RocketRemote {
 
     public onClose(f: () => void): void {
         this.onCloseCallable = f;
-        this.process?.once('close', () => {
-            this.process?.stdout.removeListener('data', this.stdoutListener);
-            this.process?.stderr.removeListener('data', this.stderrListener);
+        this.process.once('close', () => {
+            this.process.stdout.removeListener('data', this.stdoutListener);
+            this.process.stderr.removeListener('data', this.stderrListener);
             clearInterval(this.heartbeatInterval);
             this.log.warn('Lost connection. Trying to reconnect ...');
             this.onCloseCallable && this.onCloseCallable();
         });
+    }
+
+    public avadaKedavra(): void {
+        this.log.info('Avada Kedavra');
+        const ak = spawn(this.atvremotePath, [
+            '--id', this.mac,
+            '--companion-credentials', this.companionCredentials,
+            '--airplay-credentials', this.airplayCredentials,
+            ... generateAvadaKedavraSequence(),
+        ]);
+        ak.stdout.setEncoding('utf8');
+        ak.stderr.setEncoding('utf8');
+        ak.stdout.on('data', this.stdoutListener);
+        ak.stderr.on('data', this.stderrListener);
     }
 }
 
