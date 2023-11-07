@@ -61,6 +61,10 @@ The screenshots speak for themselves ...
 
 <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/inputs.png" width=280/> <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/sensors.png" width=280/>
 
+## Avada Kedavra
+
+<img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/avada-kedavra.gif" width=400/>
+
 ## Configuration
 
 The easiest way to use this plugin is to use [homebridge-config-ui-x](https://www.npmjs.com/package/homebridge-config-ui-x).  
