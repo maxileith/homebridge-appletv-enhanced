@@ -937,7 +937,7 @@ It might be a good idea to uninstall unused apps.`);
         if (this.accessory.services.length + 1 === MAX_SERVICES) {
             return undefined;
         }
-        this.log.debug(`Total services ${this.accessory.services.length} (${MAX_SERVICES - this.accessory.services.length - 1} remaining)`);
+        this.log.debug(`Total services ${this.accessory.services.length + 1} (${MAX_SERVICES - this.accessory.services.length - 1} remaining)`);
         return this.accessory.addService(serviceConstructor, ...constructorArgs);
     }
 }
