@@ -36,7 +36,8 @@ export function removeSpecialCharacters(str: string): string {
     return str.replace(/[^a-zA-Z0-9 ]/g, '').trim();
 }
 
-export function camelCaseToTitleCase(str: string): string {
-    const result = str.replace(/([A-Z])/g, ' $1');
-    return result.charAt(0).toUpperCase() + result.slice(1);
+export function snakeCaseToTitleCase(str: string): string {
+    return str
+        .replace(/^[-_]*(.)/, (_, c) => c.toUpperCase()) // Initial char (after -/_)
+        .replace(/[-_]+(.)/g, (_, c) => ' ' + c.toUpperCase()); // First char after each -/_
 }

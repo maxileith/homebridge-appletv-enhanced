@@ -54,7 +54,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
 
             this.log.info('Starting device discovery ...');
             this.discoverDevices();
-            setInterval(() => this.discoverDevices(), 30000);
+            setInterval(() => this.discoverDevices(), 60000);
         });
     }
 

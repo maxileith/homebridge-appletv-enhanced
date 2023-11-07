@@ -32,15 +32,29 @@ class RocketRemote {
         ]);
         this.process.stdout.setEncoding('utf8');
         this.process.stderr.setEncoding('utf8');
+        this.process.stdout.on('data', this.stdoutLog.bind(this));
+        this.process.stderr.on('data', this.stderrLog.bind(this));
 
         this.initHeartbeat();
     }
 
     private initHeartbeat(): void {
         this.heartbeatInterval = setInterval(() => {
-            this.log.debug('heartbeat');
+            this.log.debug('pyatv>app_list (heartbeat)');
             this.process?.stdin.write('app_list\n');
-        }, 15000);
+        }, 60000);
+    }
+
+    private stderrLog(data: string): void {
+        this.log.error(data);
+        this.process?.kill();
+    }
+
+    private stdoutLog(data: string): void {
+        const toLog = data.replace('pyatv>', '').trim();
+        if (toLog !== '') {
+            this.log.debug(toLog);
+        }
     }
 
     public openApp(id: string): void {
@@ -49,7 +63,7 @@ class RocketRemote {
     }
 
     public sendCommand(cmd: RemoteControlCommands): void {
-        this.log.info(cmd);
+        this.log.info(`pyatv>${cmd}`);
         this.process?.stdin.write(`${cmd}\n`);
     }
 
@@ -140,8 +154,8 @@ class RocketRemote {
     public onClose(f: () => void): void {
         this.onCloseCallable = f;
         this.process?.once('close', () => {
-            this.process?.stdout.removeAllListeners();
-            this.process?.stderr.removeAllListeners();
+            this.process?.stdout.removeListener('data', this.stdoutLog);
+            this.process?.stderr.removeListener('data', this.stderrLog);
             clearInterval(this.heartbeatInterval);
             this.log.warn('Lost connection. Trying to reconnect ...');
             this.onCloseCallable && this.onCloseCallable();

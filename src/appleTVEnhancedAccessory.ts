@@ -8,7 +8,7 @@ import md5 from 'md5';
 import { spawn } from 'child_process';
 import path from 'path';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
-import { capitalizeFirstLetter, delay, removeSpecialCharacters, getLocalIP, trimSpecialCharacters, camelCaseToTitleCase } from './utils';
+import { capitalizeFirstLetter, delay, removeSpecialCharacters, getLocalIP, trimSpecialCharacters, snakeCaseToTitleCase } from './utils';
 import { IAppConfigs, ICommonConfig, IInputs, IMediaConfigs, IRemoteKeysAsSwitchConfigs, IStateConfigs, NodePyATVApp } from './interfaces';
 import PrefixLogger from './PrefixLogger';
 import { DisplayOrderTypes, RemoteControlCommands } from './enums';
@@ -33,7 +33,7 @@ const DEFAULT_APP_RENAME = {
     'com.apple.TVMusic': 'Apple Music',
 };
 
-const MAX_SERVICES = 99;
+const MAX_SERVICES = 100;
 
 /**
  * Platform Accessory
@@ -274,7 +274,7 @@ export class AppleTVEnhancedAccessory {
             this.log.debug(`Adding remote key ${remoteKey} as a switch.`);
             const s = this.accessory.getService(remoteKey) || this.addServiceSave(this.platform.Service.Switch, remoteKey, remoteKey)!
                 .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(remoteKey))
-                .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getRemoteKeyAsSwitchConfigs()[remoteKey] || camelCaseToTitleCase(remoteKey))
+                .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getRemoteKeyAsSwitchConfigs()[remoteKey] || snakeCaseToTitleCase(remoteKey))
                 .setCharacteristic(this.platform.Characteristic.On, false);
             s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
                 .onSet(async (value: CharacteristicValue) => {
@@ -431,6 +431,7 @@ export class AppleTVEnhancedAccessory {
 
             if (s === undefined) {
                 this.log.warn(`\nThe maximum of ${MAX_SERVICES} services on a single accessory is reached. The following services have been added:
+- One service for Accessory Information
 - The television service (Apple TV) itself
 - ${Object.keys(this.deviceStateServices).length} motion sensors for device states 
 - ${Object.keys(this.mediaTypeServices).length} motion sensors for media types 
@@ -933,10 +934,10 @@ It might be a good idea to uninstall unused apps.`);
     }
 
     private addServiceSave<S extends typeof Service>(serviceConstructor: S, ...constructorArgs: ConstructorArgs<S>): Service | undefined {
-        if (this.accessory.services.length === MAX_SERVICES) {
+        if (this.accessory.services.length + 1 === MAX_SERVICES) {
             return undefined;
         }
-        this.log.debug(`Total services ${this.accessory.services.length} (${MAX_SERVICES - this.accessory.services.length} remaining)`);
+        this.log.debug(`Total services ${this.accessory.services.length} (${MAX_SERVICES - this.accessory.services.length - 1} remaining)`);
         return this.accessory.addService(serviceConstructor, ...constructorArgs);
     }
 }
