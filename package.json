@@ -7,8 +7,8 @@
     "author": "Maximilian Leith",
     "scripts": {
         "lint": "eslint src/**.ts --max-warnings=0",
-        "watch": "rimraf -I ./dist && npm install && npm run build && npm link && nodemon",
-        "build": "rimraf -I ./dist && tsc && mkdir dist/html && cp src/html/* dist/html/ && cp ./LICENSE ./dist/LICENSE && cp ./LICENSES_OF_DEPENDENCIES ./dist/LICENSES_OF_DEPENDENCIES && cp ./requirements.txt ./dist/requirements.txt",
+        "watch": "npm install && npm run build && npm link && nodemon",
+        "build": "rimraf -I ./dist && tsc",
         "prepublishOnly": "npm install && npm run lint && npm run build"
     },
     "engines": {
@@ -37,7 +37,9 @@
         "LICENSE",
         "dist",
         "config.schema.json",
-        "LICENSES_OF_DEPENDENCIES"
+        "LICENSES_OF_DEPENDENCIES",
+        "requirements.txt",
+        "dist/html/*"
     ],
     "publishConfig": {
         "access": "public"

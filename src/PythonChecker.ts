@@ -21,7 +21,7 @@ class PythonChecker {
     private readonly venvPipPath: string;
     private readonly venvPythonPath: string;
     private readonly venvConfigPath: string;
-    private readonly requirementsPath: string = path.join(__dirname, 'requirements.txt');
+    private readonly requirementsPath: string = path.join(__dirname, '..', 'requirements.txt');
 
     constructor(logger: Logger, storagePath: string) {
         this.log = new PrefixLogger(logger, 'Python check');
