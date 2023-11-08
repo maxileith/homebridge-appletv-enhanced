@@ -172,9 +172,9 @@ class RocketRemote {
         });
     }
 
-    public avadaKedavra(): void {
+    public avadaKedavra(numberOfApps: number): void {
         this.log.info('Avada Kedavra');
-        const avadaKedavraSequence = generateAvadaKedavraSequence();
+        const avadaKedavraSequence = generateAvadaKedavraSequence(numberOfApps);
         this.log.debug(`Avada Kedavra sequence: ${avadaKedavraSequence.toString()}`);
         const ak = spawn(this.atvremotePath, [
             '--id', this.mac,

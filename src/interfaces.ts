@@ -51,6 +51,7 @@ export interface AppleTVEnhancedPlatformConfig extends PlatformConfig {
     mediaTypes?: TNodePyATVMediaType[];
     deviceStates?: TNodePyATVDeviceState[];
     remoteKeysAsSwitch?: RemoteControlCommands[];
+    avadaKedavraAppAmount?: number;
 }
 
 export interface AlternatePyATVDeviceOptions {

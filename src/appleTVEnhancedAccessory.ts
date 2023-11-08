@@ -698,7 +698,7 @@ It might be a good idea to uninstall unused apps.`);
     private async handleActiveIdentifierSet(state: CharacteristicValue): Promise<void> {
         if (state === AVADA_KEDAVRA_IDENTIFIER) {
             this.setCommonConfig('activeIdentifier', state as number);
-            this.rocketRemote?.avadaKedavra();
+            this.rocketRemote?.avadaKedavra(this.platform.config.avadaKedavraAppAmount || 15);
             return;
         }
 

@@ -79,6 +79,14 @@
                 },
                 "required": true
             },
+            "avadaKedavraAppAmount": {
+                "title": "Avada Kedavra App Amount",
+                "description": "How many apps should be closed when selecting the Avada Kedavra Input? Avada Kedavra works by sending a sequence of remote control inputs to the Apple TV. The plugin therefore acts blindly and does not receive any feedback when all apps are closed. So if a high number is selected, the plugin presses the remote control until theoretically x apps are closed, although in reality all apps are already closed.",
+                "type": "integer",
+                "default": 15,
+                "placeholder": 15,
+                "required": true
+            },
             "blacklist": {
                 "title": "Blacklist",
                 "description": "Apple TVs that should not be added as a device. You can get the MAC-Address from the logs.",
