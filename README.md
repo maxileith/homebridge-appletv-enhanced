@@ -103,6 +103,8 @@ To configure manually, add the following to the `platforms` section of Homebridg
         "skip_backward",
         "skip_forward",
         "stop",
+        "turn_off",
+        "turn_on",
         "top_menu",
         "up"
     ],
