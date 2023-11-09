@@ -512,10 +512,7 @@ It might be a good idea to uninstall unused apps.`);
                     this.setAppConfigs(appConfigs);
                 });
             this.service!.addLinkedService(s);
-            this.inputs[app.id] = {
-                pyatvApp: app,
-                service: s,
-            };
+            this.inputs[app.id] = s;
 
             addedApps++;
 
@@ -711,8 +708,6 @@ It might be a good idea to uninstall unused apps.`);
         }
         if (appId !== undefined) {
             this.setCommonConfig('activeIdentifier', state as number);
-            const app = this.inputs[appId];
-            this.log.info(`Launching App: ${app.pyatvApp.name}`);
             this.rocketRemote?.openApp(appId);
         }
     }

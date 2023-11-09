@@ -8,13 +8,8 @@ export interface NodePyATVApp {
     launch: () => Promise<void>;
 }
 
-export interface IInput {
-    pyatvApp: NodePyATVApp;
-    service: Service;
-}
-
 export interface IInputs {
-    [k: string]: IInput;
+    [k: string]: Service;
 }
 
 export interface IAppConfig {
