@@ -127,6 +127,13 @@
                         "required": true
                     }
                 }
+            },
+            "forceVenvRecreate": {
+                "title": "Force Venv Recreation",
+                "description": "Set this to force to recreate the virtual python environment with the next restart of the plugin. Remember to set this option to false after the virtual environment has been recreated.",
+                "type": "boolean",
+                "default": false,
+                "required": true
             }
         }
     },

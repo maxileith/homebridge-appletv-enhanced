@@ -33,11 +33,11 @@ class PythonChecker {
         this.venvConfigPath = path.join(this.venvPath, 'pyvenv.cfg');
     }
 
-    public async allInOne(): Promise<void> {
+    public async allInOne(forceVenvRecreate: boolean = false): Promise<void> {
         this.log.info('Starting python check.');
         this.ensurePluginDir();
         await this.ensurePythonVersion();
-        await this.ensureVenvCreated();
+        await this.ensureVenvCreated(forceVenvRecreate);
         await this.ensureVenvPipUpToDate();
         await this.ensureVenvRequirementsSatisfied();
         this.log.info('Finished');
@@ -66,8 +66,8 @@ ${SUPPORTED_PYTHON_VERSIONS[0]} to ${SUPPORTED_PYTHON_VERSIONS[SUPPORTED_PYTHON_
         }
     }
 
-    private async ensureVenvCreated() {
-        if (this.isVenvCreated()) {
+    private async ensureVenvCreated(forceVenvRecreate: boolean) {
+        if (forceVenvRecreate === false && this.isVenvCreated()) {
             this.log.info('Virtual environment already exists.');
             const [venvVersionIsSystemVersion, systemVersion, venvVersion] = await this.isVenvPythonSystemPython();
             if (venvVersionIsSystemVersion) {
@@ -77,7 +77,11 @@ ${SUPPORTED_PYTHON_VERSIONS[0]} to ${SUPPORTED_PYTHON_VERSIONS[SUPPORTED_PYTHON_
                 await this.createVenv();
             }
         } else {
-            this.log.warn('Virtual python environment is not present. Creating now ...');
+            if (forceVenvRecreate) {
+                this.log.warn('Forcing the python virtual environment to be recreated ...');
+            } else {
+                this.log.warn('Virtual python environment is not present. Creating now ...');
+            }
             await this.createVenv();
         }
     }
@@ -114,7 +118,7 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
         if (await this.isPipUpToDate()) {
             this.log.info('Pip is up-to-date');
         } else {
-            this.log.info('Pip is outdated. Updating now ...');
+            this.log.warn('Pip is outdated. Updating now ...');
             await this.updatePip();
         }
     }
@@ -132,7 +136,7 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
         if (await this.areRequirementsSatisfied()) {
             this.log.info('Python requirements are satisfied.');
         } else {
-            this.log.info('Python requirements are not satisfied. Installing them now.');
+            this.log.warn('Python requirements are not satisfied. Installing them now.');
             await this.installRequirements();
         }
     }

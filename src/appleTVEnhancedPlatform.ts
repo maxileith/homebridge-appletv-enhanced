@@ -46,10 +46,10 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
 
             // make sure the Python environment is ready
             checkOs((m) => this.ogLog.info(m), (m) => this.ogLog.warn(m));
-            await new PythonChecker(this.ogLog, this.api.user.storagePath()).allInOne();
+            await new PythonChecker(this.ogLog, this.api.user.storagePath()).allInOne(this.config.forceVenvRecreate);
 
             // run the method to discover / register your devices as accessories
-            this.log.debug(`Setting the storage path to ${this.api.user.storagePath()}`);
+            this.log.debug(`Setting the storage path of the PyATV instance to ${this.api.user.storagePath()}`);
             CustomPyAtvInstance.setStoragePath(this.api.user.storagePath(), this.ogLog);
 
             if (

@@ -51,6 +51,7 @@ export interface AppleTVEnhancedPlatformConfig extends PlatformConfig {
         unicast?: string[];
         blacklist?: string[];
     };
+    forceVenvRecreate?: boolean;
 }
 
 export interface AlternatePyATVDeviceOptions {
