@@ -108,7 +108,12 @@ To configure manually, add the following to the `platforms` section of Homebridg
         "top_menu",
         "up"
     ],
-    "blacklist": ["AA:BB:CC:DD:EE:FF"]
+    "avadaKedavraAppAmount": 15,
+    "discover": {
+        "multicast": true,
+        "unicast": ["192.168.0.15"],
+        "blacklist": ["AA:BB:CC:DD:EE:FF", "192.168.0.42"]
+    }
 }
 ```
 
