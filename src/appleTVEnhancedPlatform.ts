@@ -52,6 +52,15 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             this.log.debug(`Setting the storage path to ${this.api.user.storagePath()}`);
             CustomPyAtvInstance.setStoragePath(this.api.user.storagePath(), this.ogLog);
 
+            if (
+                this.config.discover !== undefined &&
+                this.config.discover.multicast === false &&
+                (this.config.discover.unicast === undefined || this.config.discover.unicast.length === 0)
+            ) {
+                this.log.error('Neither multicast nor unicast discovery is enabled.');
+                return;
+            }
+
             this.log.info('Starting device discovery ...');
             this.discoverDevices();
             setInterval(() => this.discoverDevices(), 60000);
@@ -77,12 +86,34 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
    */
     async discoverDevices() {
         this.log.debug('Starting device discovery ...');
-        let scanResults: NodePyATVDevice[];
-        try {
-            scanResults = await CustomPyAtvInstance.find();
-        } catch (err: unknown) {
-            this.log.error(err as string);
-            return;
+        let scanResults: NodePyATVDevice[] = [];
+
+        // multicast discovery
+        if (
+            this.config.discover === undefined ||
+            this.config.discover.multicast === undefined ||
+            this.config.discover.multicast === true
+        ) {
+            try {
+                scanResults = [ ...scanResults, ...await CustomPyAtvInstance.find()];
+                this.log.debug('finished multicast device discovery');
+            } catch (err: unknown) {
+                this.log.error(err as string);
+            }
+        }
+
+        // unicast discovery
+        if (
+            this.config.discover &&
+            this.config.discover.unicast &&
+            this.config.discover.unicast.length !== 0
+        ) {
+            try {
+                scanResults = [ ...scanResults, ...await CustomPyAtvInstance.find({hosts: this.config.discover?.unicast})];
+                this.log.debug('finished unicast device discovery');
+            } catch (err: unknown) {
+                this.log.error(err as string);
+            }
         }
 
         const appleTVs = scanResults.filter((d) =>

@@ -85,7 +85,9 @@
                 "type": "integer",
                 "default": 15,
                 "placeholder": 15,
-                "required": true
+                "required": true,
+                "minimum": 5,
+                "maximum": 35
             },
             "blacklist": {
                 "title": "Blacklist",
@@ -94,9 +96,37 @@
                 "default": [],
                 "items": {
                     "title": "MAC Address",
-                    "type": "string"
+                    "type": "string",
+                    "placeholder": "AA:BB:CC:DD:EE:FF"
                 },
                 "required": true
+            },
+            "discover": {
+                "title": "Discover",
+                "description": "Settings regarding the discovery of Apple TVs.",
+                "type": "object",
+                "required": true,
+                "properties": {
+                    "multicast": {
+                        "title": "Multicast",
+                        "description": "The default and recommended way to discover Apple TVs.",
+                        "type": "boolean",
+                        "default": true,
+                        "required": true
+                    },
+                    "unicast": {
+                        "title": "Unicast",
+                        "description": "Recommended for Apple TV devices that are not discovered by multicast discovery. Add the IPv4 addresses here. Remember that this requires the Apple TV to have a static IP.",
+                        "type": "array",
+                        "default": [],
+                        "items": {
+                            "title": "IPv4 Address",
+                            "type": "string",
+                            "placeholder": "192.168.0.42"
+                        },
+                        "required": true
+                    }
+                }
             }
         }
     },
