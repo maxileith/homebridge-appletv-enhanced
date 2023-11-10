@@ -42,7 +42,6 @@ export interface IRemoteKeysAsSwitchConfigs {
 }
 
 export interface AppleTVEnhancedPlatformConfig extends PlatformConfig {
-    blacklist?: string[];
     mediaTypes?: TNodePyATVMediaType[];
     deviceStates?: TNodePyATVDeviceState[];
     remoteKeysAsSwitch?: RemoteControlCommands[];
@@ -50,6 +49,7 @@ export interface AppleTVEnhancedPlatformConfig extends PlatformConfig {
     discover?: {
         multicast?: boolean;
         unicast?: string[];
+        blacklist?: string[];
     };
 }
 

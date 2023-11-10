@@ -89,18 +89,6 @@
                 "minimum": 5,
                 "maximum": 35
             },
-            "blacklist": {
-                "title": "Blacklist",
-                "description": "Apple TVs that should not be added as a device. You can get the MAC-Address from the logs.",
-                "type": "array",
-                "default": [],
-                "items": {
-                    "title": "MAC Address",
-                    "type": "string",
-                    "placeholder": "AA:BB:CC:DD:EE:FF"
-                },
-                "required": true
-            },
             "discover": {
                 "title": "Discover",
                 "description": "Settings regarding the discovery of Apple TVs.",
@@ -123,6 +111,18 @@
                             "title": "IPv4 Address",
                             "type": "string",
                             "placeholder": "192.168.0.42"
+                        },
+                        "required": true
+                    },
+                    "blacklist": {
+                        "title": "Blacklist",
+                        "description": "Apple TVs that should not be added as a device. You can get the MAC-Address from the logs. When using IPv4 Addresses the regarding Apple TVs need to have a static IP.",
+                        "type": "array",
+                        "default": [],
+                        "items": {
+                            "title": "MAC / IPv4 Address",
+                            "type": "string",
+                            "placeholder": "AA:BB:CC:DD:EE:FF / 192.168.0.42"
                         },
                         "required": true
                     }

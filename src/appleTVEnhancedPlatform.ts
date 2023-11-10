@@ -135,8 +135,12 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
                 continue;
             }
 
-            if (this.config.blacklist && this.config.blacklist.includes(appleTV.id!)) {
-                this.log.debug(`Apple TV ${appleTV.name} (${appleTV.id}) is on the blacklist. Skipping.`);
+            if (
+                this.config.discover &&
+                this.config.discover.blacklist &&
+                (this.config.discover.blacklist.includes(appleTV.id!) || this.config.discover.blacklist.includes(appleTV.host))
+            ) {
+                this.log.debug(`Apple TV ${appleTV.name} (${appleTV.id} / ${appleTV.host}) is on the blacklist. Skipping.`);
                 continue;
             }
 
