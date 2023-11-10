@@ -58,7 +58,9 @@ class RocketRemote {
 
     private stdoutLog(data: string): void {
         const toLog = data.replace('pyatv>', '').trim();
-        if (toLog !== '') {
+        if (toLog.toUpperCase().includes('ERROR')) {
+            this.stderrLog(toLog);
+        } else if (toLog !== '') {
             this.log.debug(toLog);
         }
     }
