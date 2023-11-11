@@ -835,7 +835,13 @@ It might be a good idea to uninstall unused apps.`);
             let backOffSeconds = 0;
             let processClosed = false;
 
-            const process = spawn(CustomPyAtvInstance.getAtvremotePath(), ['--scan-hosts', ip, '--protocol', 'companion', 'pair']);
+            const process = spawn(CustomPyAtvInstance.getAtvremotePath(), [
+                '--scan-hosts', ip,
+                '--protocol', 'companion',
+                '--remote-name', 'Homebridge Apple TV Enhanced',
+                '--storage', 'none',
+                'pair',
+            ]);
             process.stderr.setEncoding('utf8');
             process.stderr.on('data', (data: string) => {
                 this.log.error('stderr: ' + data);
@@ -843,9 +849,9 @@ It might be a good idea to uninstall unused apps.`);
             });
             process.stdout.setEncoding('utf8');
             process.stdout.on('data', (data: string) => {
-                if (data.toUpperCase().includes("ERROR")) {
+                if (data.toUpperCase().includes('ERROR')) {
                     goOn = true;
-                    this.log.error("stdout: " + data);
+                    this.log.error('stdout: ' + data);
                     return;
                 }
                 this.log.debug('stdout: ' + data);
