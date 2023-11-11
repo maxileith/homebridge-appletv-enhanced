@@ -78,7 +78,7 @@ export class AppleTVEnhancedAccessory {
         this.log = new PrefixLogger(this.platform.ogLog, `${this.device.name} (${this.device.id})`);
 
         const pairingRequired = () => {
-            this.pair(this.device.host, this.accessory.context.id, this.device.name).then((c) => {
+            this.pair(this.device.host, this.device.name).then((c) => {
                 this.setCredentials(c);
                 this.device = CustomPyAtvInstance.deviceAdvanced({
                     id: this.device.id!,
@@ -219,7 +219,7 @@ export class AppleTVEnhancedAccessory {
         this.log.debug('recreating rocket remote');
 
         this.rocketRemote = new RocketRemote(
-            this.device.id!,
+            this.device.host,
             CustomPyAtvInstance.getAtvremotePath(),
             this.getCredentials()!,
             this.getCredentials()!,
@@ -815,7 +815,7 @@ It might be a good idea to uninstall unused apps.`);
         fs.writeFileSync(path, value, { encoding:'utf8', flag:'w' });
     }
 
-    private async pair(ip: string, mac: string, appleTVName: string): Promise<string> {
+    private async pair(ip: string, appleTVName: string): Promise<string> {
         this.log.debug('Got empty credentials, initiating pairing process.');
 
         const ipSplitted = ip.split('.');
@@ -835,7 +835,7 @@ It might be a good idea to uninstall unused apps.`);
             let backOffSeconds = 0;
             let processClosed = false;
 
-            const process = spawn(CustomPyAtvInstance.getAtvremotePath(), ['--id', mac, '--protocol', 'companion', 'pair']);
+            const process = spawn(CustomPyAtvInstance.getAtvremotePath(), ['--scan-hosts', ip, '--protocol', 'companion', 'pair']);
             process.stderr.setEncoding('utf8');
             process.stderr.on('data', (data: string) => {
                 this.log.error('stderr: ' + data);
@@ -843,16 +843,17 @@ It might be a good idea to uninstall unused apps.`);
             });
             process.stdout.setEncoding('utf8');
             process.stdout.on('data', (data: string) => {
+                if (data.toUpperCase().includes("ERROR")) {
+                    goOn = true;
+                    this.log.error("stdout: " + data);
+                    return;
+                }
                 this.log.debug('stdout: ' + data);
                 if (data.includes('Enter PIN on screen:')) {
                     return;
                 }
                 if (data.includes('BackOff=')) {
                     backOffSeconds = parseInt(data.substring(data.search('BackOff=') + 8).split('s', 2)[0]) + 5;
-                    goOn = true;
-                    return;
-                }
-                if (data.toUpperCase().includes('ERROR')) {
                     goOn = true;
                     return;
                 }

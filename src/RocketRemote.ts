@@ -17,7 +17,7 @@ class RocketRemote {
     private lastCommandSend: number = 0;
 
     constructor(
-        private readonly mac: string,
+        private readonly ip: string,
         private readonly atvremotePath: string,
         private readonly airplayCredentials: string,
         private readonly companionCredentials: string,
@@ -27,7 +27,7 @@ class RocketRemote {
         this.log.debug('creating');
 
         this.process = spawn(this.atvremotePath, [
-            '--id', this.mac,
+            '--scan-hosts', this.ip,
             '--companion-credentials', this.companionCredentials,
             '--airplay-credentials', this.airplayCredentials,
             'cli',
@@ -179,7 +179,7 @@ class RocketRemote {
         const avadaKedavraSequence = generateAvadaKedavraSequence(numberOfApps);
         this.log.debug(`Avada Kedavra sequence: ${avadaKedavraSequence.toString()}`);
         const ak = spawn(this.atvremotePath, [
-            '--id', this.mac,
+            '--scan-hosts', this.ip,
             '--companion-credentials', this.companionCredentials,
             '--airplay-credentials', this.airplayCredentials,
             ... avadaKedavraSequence,
