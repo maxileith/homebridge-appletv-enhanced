@@ -463,14 +463,14 @@ export class AppleTVEnhancedAccessory {
 
             if (s === undefined) {
                 this.log.warn(`\nThe maximum of ${MAX_SERVICES} services on a single accessory is reached. The following services have been added:
-- 1 One service for Accessory Information
-- 1 The television service (Apple TV) itself
-- ${Object.keys(this.deviceStateServices).length} motion sensors for device states 
-- ${Object.keys(this.mediaTypeServices).length} motion sensors for media types 
-- ${Object.keys(this.remoteKeyServices).length} switches for remote keys 
-- ${Object.keys(this.remoteKeyServices).length} switches for remote keys 
-- 1 Avada Kedavra as an input
-- ${addedApps} apps as inputs have been added (${apps.length - addedApps} apps could not be added)
+- 01 One service for Accessory Information
+- 01 The television service (Apple TV) itself
+- ${Object.keys(this.deviceStateServices).length.toString().padStart(2, '0')} motion sensors for device states
+- ${Object.keys(this.mediaTypeServices).length.toString().padStart(2, '0')} motion sensors for media types
+- ${Object.keys(this.remoteKeyServices).length.toString().padStart(2, '0')} switches for remote keys
+- ${Object.keys(this.remoteKeyServices).length.toString().padStart(2, '0')} switches for remote keys
+- 01 Avada Kedavra as an input
+- ${addedApps.toString().padStart(2, '0')} apps as inputs have been added (${apps.length - addedApps} apps could not be added)
 It might be a good idea to uninstall unused apps.`);
                 return false;
             }
