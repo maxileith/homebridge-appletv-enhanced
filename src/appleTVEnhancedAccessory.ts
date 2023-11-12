@@ -2,20 +2,20 @@ import fs from 'fs';
 import http, { type IncomingMessage, type ServerResponse } from 'http';
 import type { Service, PlatformAccessory, CharacteristicValue, Nullable, PrimitiveTypes, ConstructorArgs } from 'homebridge';
 import type { AppleTVEnhancedPlatform } from './appleTVEnhancedPlatform';
-import { type NodePyATVDevice, type NodePyATVDeviceEvent, NodePyATVDeviceState, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
+import { type NodePyATVDevice, type NodePyATVDeviceEvent, NodePyATVDeviceState, NodePyATVMediaType, type NodePyATVEventValueType } from '@sebbo2002/node-pyatv';
 import md5 from 'md5';
-import { spawn } from 'child_process';
+import { type ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import path from 'path';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
 import { capitalizeFirstLetter, delay, removeSpecialCharacters, getLocalIP, trimSpecialCharacters, snakeCaseToTitleCase } from './utils';
-import type { IAppConfigs, ICommonConfig, IInputs, NodePyATVApp } from './interfaces';
+import type { IAppConfig, IAppConfigs, ICommonConfig, IInputs, NodePyATVApp } from './interfaces';
 import PrefixLogger from './PrefixLogger';
 import { DisplayOrderTypes, RocketRemoteKey } from './enums';
 import type { TDeviceStateConfigs, TMediaConfigs, TRemoteKeysAsSwitchConfigs } from './types';
 import RocketRemote from './RocketRemote';
 
 
-const HIDE_BY_DEFAULT_APPS = [
+const HIDE_BY_DEFAULT_APPS: string[] = [
     'com.apple.podcasts',
     'com.apple.TVAppStore',
     'com.apple.TVSearch',
@@ -28,14 +28,14 @@ const HIDE_BY_DEFAULT_APPS = [
     'com.apple.facetime',
 ];
 
-const DEFAULT_APP_RENAME = {
+const DEFAULT_APP_RENAME: Record<string, string> = {
     'com.apple.TVWatchList': 'Apple TV',
     'com.apple.TVMusic': 'Apple Music',
 };
 
-const MAX_SERVICES = 100;
+const MAX_SERVICES: number = 100;
 
-const AVADA_KEDAVRA_IDENTIFIER = 42;
+const AVADA_KEDAVRA_IDENTIFIER: number = 42;
 
 /**
  * Platform Accessory
@@ -90,7 +90,7 @@ export class AppleTVEnhancedAccessory {
             });
         };
 
-        const credentials = this.getCredentials();
+        const credentials: string | undefined = this.getCredentials();
         if (credentials === undefined) {
             pairingRequired();
         } else {
@@ -162,7 +162,7 @@ export class AppleTVEnhancedAccessory {
         this.createMediaTypeSensors();
         this.createRemoteKeysAsSwitches();
         this.createAvadaKedavra();
-        const apps = await this.device.listApps();
+        const apps: NodePyATVApp[] = await this.device.listApps();
         this.createInputs(apps);
 
         // create event listeners to keep everything up-to-date
@@ -209,7 +209,7 @@ export class AppleTVEnhancedAccessory {
             this.device.removeListener('update:deviceState', deviceStateListener);
             this.device.removeListener('update:mediaType', mediaTypeListener);
 
-            const credentials = this.getCredentials();
+            const credentials: string | undefined = this.getCredentials();
             this.device = CustomPyAtvInstance.deviceAdvanced({
                 id: this.device.id!,
                 airplayCredentials: credentials,
@@ -240,13 +240,13 @@ export class AppleTVEnhancedAccessory {
     }
 
     private createMediaTypeSensors(): void {
-        const mediaTypes = Object.keys(NodePyATVMediaType) as NodePyATVMediaType[];
+        const mediaTypes: NodePyATVMediaType[] = Object.keys(NodePyATVMediaType) as NodePyATVMediaType[];
         for (const mediaType of mediaTypes) {
             if (this.platform.config.mediaTypes !== undefined && !this.platform.config.mediaTypes.includes(mediaType)) {
                 continue;
             }
             this.log.debug(`Adding media type ${mediaType} as a motion sensor.`);
-            const s = this.accessory.getService(mediaType) || this.addServiceSave(this.platform.Service.MotionSensor, mediaType, mediaType)!
+            const s: Service = this.accessory.getService(mediaType) || this.addServiceSave(this.platform.Service.MotionSensor, mediaType, mediaType)!
                 .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
                 .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(mediaType))
                 .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getMediaConfigs()[mediaType] || capitalizeFirstLetter(mediaType));
@@ -255,7 +255,7 @@ export class AppleTVEnhancedAccessory {
                     if (value === '') {
                         return;
                     }
-                    const oldConfiguredName = s.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+                    const oldConfiguredName: Nullable<CharacteristicValue> = s.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
                     if (oldConfiguredName === value) {
                         return;
                     }
@@ -275,13 +275,13 @@ export class AppleTVEnhancedAccessory {
     }
 
     private createRemoteKeysAsSwitches(): void {
-        const remoteKeys = Object.values(RocketRemoteKey) as RocketRemoteKey[];
+        const remoteKeys: RocketRemoteKey[] = Object.values(RocketRemoteKey) as RocketRemoteKey[];
         for (const remoteKey of remoteKeys) {
             if (this.platform.config.remoteKeysAsSwitch !== undefined && !this.platform.config.remoteKeysAsSwitch.includes(remoteKey)) {
                 continue;
             }
             this.log.debug(`Adding remote key ${remoteKey} as a switch.`);
-            const s = this.accessory.getService(remoteKey) || this.addServiceSave(this.platform.Service.Switch, remoteKey, remoteKey)!
+            const s: Service = this.accessory.getService(remoteKey) || this.addServiceSave(this.platform.Service.Switch, remoteKey, remoteKey)!
                 .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(remoteKey))
                 .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getRemoteKeyAsSwitchConfigs()[remoteKey] || snakeCaseToTitleCase(remoteKey))
                 .setCharacteristic(this.platform.Characteristic.On, false);
@@ -290,7 +290,7 @@ export class AppleTVEnhancedAccessory {
                     if (value === '') {
                         return;
                     }
-                    const oldConfiguredName = s.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+                    const oldConfiguredName: Nullable<CharacteristicValue> = s.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
                     if (oldConfiguredName === value) {
                         return;
                     }
@@ -319,7 +319,7 @@ export class AppleTVEnhancedAccessory {
 
     private async handleMediaTypeUpdate(event: NodePyATVDeviceEvent): Promise<void> {
         if (event.oldValue !== null && this.mediaTypeServices[event.oldValue]) {
-            const s = this.mediaTypeServices[event.oldValue];
+            const s: Service = this.mediaTypeServices[event.oldValue];
             s.setCharacteristic(this.platform.Characteristic.MotionDetected, false);
         }
         if (this.service?.getCharacteristic(this.platform.Characteristic.Active).value === this.platform.Characteristic.Active.INACTIVE) {
@@ -327,19 +327,19 @@ export class AppleTVEnhancedAccessory {
         }
         this.log.info(`New Media Type State: ${event.value}`);
         if (event.value !== null && this.mediaTypeServices[event.value]) {
-            const s = this.mediaTypeServices[event.value];
+            const s: Service = this.mediaTypeServices[event.value];
             s.setCharacteristic(this.platform.Characteristic.MotionDetected, true);
         }
     }
 
     private createDeviceStateSensors(): void {
-        const deviceStates = Object.keys(NodePyATVDeviceState) as NodePyATVDeviceState[];
+        const deviceStates: NodePyATVDeviceState[] = Object.keys(NodePyATVDeviceState) as NodePyATVDeviceState[];
         for (const deviceState of deviceStates) {
             if (this.platform.config.deviceStates !== undefined && !this.platform.config.deviceStates.includes(deviceState)) {
                 continue;
             }
             this.log.debug(`Adding device state ${deviceState} as a motion sensor.`);
-            const s = this.accessory.getService(deviceState) || this.addServiceSave(this.platform.Service.MotionSensor, deviceState, deviceState)!
+            const s: Service = this.accessory.getService(deviceState) || this.addServiceSave(this.platform.Service.MotionSensor, deviceState, deviceState)!
                 .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
                 .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(deviceState))
                 .setCharacteristic(this.platform.Characteristic.ConfiguredName, this.getDeviceStateConfigs()[deviceState] || capitalizeFirstLetter(deviceState));
@@ -348,7 +348,7 @@ export class AppleTVEnhancedAccessory {
                     if (value === '') {
                         return;
                     }
-                    const oldConfiguredName = s.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+                    const oldConfiguredName: Nullable<CharacteristicValue> = s.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
                     if (oldConfiguredName === value) {
                         return;
                     }
@@ -369,7 +369,7 @@ export class AppleTVEnhancedAccessory {
 
     private async handleDeviceStateUpdate(event: NodePyATVDeviceEvent): Promise<void> {
         if (event.oldValue !== null && this.deviceStateServices[event.oldValue] !== undefined) {
-            const s = this.deviceStateServices[event.oldValue];
+            const s: Service = this.deviceStateServices[event.oldValue];
             s.setCharacteristic(this.platform.Characteristic.MotionDetected, false);
         }
         if (this.service?.getCharacteristic(this.platform.Characteristic.Active).value === this.platform.Characteristic.Active.INACTIVE) {
@@ -377,7 +377,7 @@ export class AppleTVEnhancedAccessory {
         }
         this.log.info(`New Device State: ${event.value}`);
         if (event.value !== null && this.deviceStateServices[event.value] !== undefined) {
-            const s = this.deviceStateServices[event.value];
+            const s: Service = this.deviceStateServices[event.value];
             s.setCharacteristic(this.platform.Characteristic.MotionDetected, true);
         }
         switch (event.value) {
@@ -435,7 +435,7 @@ export class AppleTVEnhancedAccessory {
 
         this.avadaKedavraService.getCharacteristic(this.platform.Characteristic.TargetVisibilityState)
             .onSet(async (value) => {
-                const current = this.avadaKedavraService!.getCharacteristic(this.platform.Characteristic.TargetVisibilityState).value;
+                const current: Nullable<CharacteristicValue> = this.avadaKedavraService!.getCharacteristic(this.platform.Characteristic.TargetVisibilityState).value;
                 this.log.info(`Changing visibility state of Avada Kedavra from ${current} to ${value}.`);
                 this.avadaKedavraService!.setCharacteristic(this.platform.Characteristic.CurrentVisibilityState, value);
                 this.setCommonConfig('showAvadaKedavra', value as number);
@@ -445,7 +445,7 @@ export class AppleTVEnhancedAccessory {
     }
 
     private createInputs(apps: NodePyATVApp[]): void {
-        const appConfigs = this.getAppConfigs();
+        const appConfigs: IAppConfigs = this.getAppConfigs();
 
         apps.forEach((app) => {
             if (!Object.keys(appConfigs).includes(app.id)) {
@@ -465,7 +465,7 @@ export class AppleTVEnhancedAccessory {
         let addedApps: number = 0;
         apps.every((app) => {
             this.log.debug(`Adding ${appConfigs[app.id].configuredName} (${app.id}) as an input.`);
-            const s = this.accessory.getService(app.name) || this.addServiceSave(this.platform.Service.InputSource, app.name, app.id);
+            const s: Service | undefined = this.accessory.getService(app.name) || this.addServiceSave(this.platform.Service.InputSource, app.name, app.id);
 
             if (s === undefined) {
                 this.log.warn(`\nThe maximum of ${MAX_SERVICES} services on a single accessory is reached. The following services have been added:
@@ -527,8 +527,8 @@ It might be a good idea to uninstall unused apps.`);
         this.setAppConfigs(appConfigs);
 
         const appOrderIdentifiers: number[] = apps.slice(0, addedApps).map((e) => appConfigs[e.id].identifier);
-        const appOrderIdentifiersWithAvadaKedavra = [AVADA_KEDAVRA_IDENTIFIER].concat(appOrderIdentifiers);
-        const tlv8 = this.appIdentifiersOrderToTLV8(appOrderIdentifiersWithAvadaKedavra);
+        const appOrderIdentifiersWithAvadaKedavra: number[] = [AVADA_KEDAVRA_IDENTIFIER].concat(appOrderIdentifiers);
+        const tlv8: string = this.appIdentifiersOrderToTLV8(appOrderIdentifiersWithAvadaKedavra);
         this.log.debug(`Input display order: ${tlv8}`);
         this.service!.setCharacteristic(this.platform.Characteristic.DisplayOrder, tlv8);
     }
@@ -540,11 +540,11 @@ It might be a good idea to uninstall unused apps.`);
         if (event.value === event.oldValue) {
             return;
         }
-        const appId = event.value;
+        const appId: NodePyATVEventValueType = event.value;
         this.log.info(`Current App: ${appId}`);
-        const appConfig = this.getAppConfigs()[appId];
+        const appConfig: IAppConfig = this.getAppConfigs()[appId];
         if (appConfig) {
-            const appIdentifier = appConfig.identifier;
+            const appIdentifier: number = appConfig.identifier;
             this.setCommonConfig('activeIdentifier', appIdentifier);
             this.service!.setCharacteristic(this.platform.Characteristic.ActiveIdentifier, appIdentifier);
         } else {
@@ -554,7 +554,7 @@ It might be a good idea to uninstall unused apps.`);
 
     private getAppConfigs(): IAppConfigs {
         if (this.appConfigs === undefined) {
-            const jsonPath = this.getPath('apps.json');
+            const jsonPath: string = this.getPath('apps.json');
             this.appConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IAppConfigs;
         }
         return this.appConfigs;
@@ -562,13 +562,13 @@ It might be a good idea to uninstall unused apps.`);
 
     private setAppConfigs(value: IAppConfigs): void {
         this.appConfigs = value;
-        const jsonPath = this.getPath('apps.json');
+        const jsonPath: string = this.getPath('apps.json');
         fs.writeFileSync(jsonPath, JSON.stringify(value, null, 4), { encoding:'utf8', flag:'w' });
     }
 
     private getCommonConfig(): ICommonConfig {
         if (this.commonConfig === undefined) {
-            const jsonPath = this.getPath('common.json');
+            const jsonPath: string = this.getPath('common.json');
             this.commonConfig = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IAppConfigs;
         }
         return this.commonConfig;
@@ -579,13 +579,13 @@ It might be a good idea to uninstall unused apps.`);
             this.commonConfig = {};
         }
         this.commonConfig[key] = value;
-        const jsonPath = this.getPath('common.json');
+        const jsonPath: string = this.getPath('common.json');
         fs.writeFileSync(jsonPath, JSON.stringify(this.commonConfig, null, 4), { encoding:'utf8', flag:'w' });
     }
 
     private getMediaConfigs(): TMediaConfigs {
         if (this.mediaConfigs === undefined) {
-            const jsonPath = this.getPath('mediaTypes.json');
+            const jsonPath: string = this.getPath('mediaTypes.json');
             this.mediaConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TMediaConfigs;
         }
         return this.mediaConfigs;
@@ -596,13 +596,13 @@ It might be a good idea to uninstall unused apps.`);
             this.mediaConfigs = {};
         }
         this.mediaConfigs[key] = value;
-        const jsonPath = this.getPath('mediaTypes.json');
+        const jsonPath: string = this.getPath('mediaTypes.json');
         fs.writeFileSync(jsonPath, JSON.stringify(this.mediaConfigs, null, 4), { encoding:'utf8', flag:'w' });
     }
 
     private getDeviceStateConfigs(): TDeviceStateConfigs {
         if (this.stateConfigs === undefined) {
-            const jsonPath = this.getPath('deviceStates.json');
+            const jsonPath: string = this.getPath('deviceStates.json');
             this.stateConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TDeviceStateConfigs;
         }
         return this.stateConfigs;
@@ -613,13 +613,13 @@ It might be a good idea to uninstall unused apps.`);
             this.stateConfigs = {};
         }
         this.stateConfigs[key] = value;
-        const jsonPath = this.getPath('deviceStates.json');
+        const jsonPath: string = this.getPath('deviceStates.json');
         fs.writeFileSync(jsonPath, JSON.stringify(this.stateConfigs, null, 4), { encoding:'utf8', flag:'w' });
     }
 
     private getRemoteKeyAsSwitchConfigs(): TRemoteKeysAsSwitchConfigs {
         if (this.remoteKeyAsSwitchConfigs === undefined) {
-            const jsonPath = this.getPath('remoteKeySwitches.json');
+            const jsonPath: string = this.getPath('remoteKeySwitches.json');
             this.remoteKeyAsSwitchConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TRemoteKeysAsSwitchConfigs;
         }
         return this.remoteKeyAsSwitchConfigs;
@@ -630,7 +630,7 @@ It might be a good idea to uninstall unused apps.`);
             this.remoteKeyAsSwitchConfigs = {};
         }
         this.remoteKeyAsSwitchConfigs[key] = value;
-        const jsonPath = this.getPath('remoteKeySwitches.json');
+        const jsonPath: string = this.getPath('remoteKeySwitches.json');
         fs.writeFileSync(jsonPath, JSON.stringify(this.remoteKeyAsSwitchConfigs, null, 4), { encoding:'utf8', flag:'w' });
     }
 
@@ -649,14 +649,14 @@ It might be a good idea to uninstall unused apps.`);
             return;
         }
 
-        const WAIT_MAX_FOR_STATES = 30; // seconds
-        const STEPS = 500; // milliseconds
+        const WAIT_MAX_FOR_STATES: number = 30; // seconds
+        const STEPS: number = 500; // milliseconds
 
         if (state === this.platform.Characteristic.Active.ACTIVE && !this.turningOn) {
             this.turningOn = true;
             this.lastActiveSet = Date.now();
             this.rocketRemote?.turnOn();
-            for (let i = STEPS; i <= WAIT_MAX_FOR_STATES * 1000; i += STEPS) {
+            for (let i: number = STEPS; i <= WAIT_MAX_FOR_STATES * 1000; i += STEPS) {
                 const { mediaType, deviceState } = await this.device.getState();
                 if (deviceState === null || mediaType === null) {
                     await delay(STEPS);
@@ -686,7 +686,7 @@ It might be a good idea to uninstall unused apps.`);
         if (event.value === event.oldValue) {
             return;
         }
-        const value = event.value === 'on' ? this.platform.Characteristic.Active.ACTIVE : this.platform.Characteristic.Active.INACTIVE;
+        const value: 0 | 1 = event.value === 'on' ? this.platform.Characteristic.Active.ACTIVE : this.platform.Characteristic.Active.INACTIVE;
         if (value === this.platform.Characteristic.Active.INACTIVE && this.lastActiveSet + 7500 > Date.now()) {
             return;
         }
@@ -705,7 +705,7 @@ It might be a good idea to uninstall unused apps.`);
             return;
         }
 
-        const appConfigs = this.getAppConfigs();
+        const appConfigs: IAppConfigs = this.getAppConfigs();
         let appId: string | undefined = undefined;
         for (const key in appConfigs) {
             if (appConfigs[key].identifier === state) {
@@ -726,7 +726,7 @@ It might be a good idea to uninstall unused apps.`);
         if (state === '') {
             return;
         }
-        const oldConfiguredName = this.service!.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+        const oldConfiguredName: Nullable<CharacteristicValue> = this.service!.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
         if (oldConfiguredName === state) {
             return;
         }
@@ -786,13 +786,13 @@ It might be a good idea to uninstall unused apps.`);
     }
 
     private appIdToNumber(appId: string): number {
-        const hash = new Uint8Array(md5(appId, { asBytes: true }));
-        const view = new DataView(hash.buffer);
+        const hash: Uint8Array = new Uint8Array(md5(appId, { asBytes: true }));
+        const view: DataView = new DataView(hash.buffer);
         return view.getUint32(0);
     }
 
     private getPath(file: string, defaultContent = '{}'): string {
-        let dir = path.join(this.platform.api.user.storagePath(), 'appletv-enhanced');
+        let dir: string = path.join(this.platform.api.user.storagePath(), 'appletv-enhanced');
         if (!fs.existsSync(dir)){
             fs.mkdirSync(dir);
         }
@@ -800,7 +800,7 @@ It might be a good idea to uninstall unused apps.`);
         if (!fs.existsSync(dir)){
             fs.mkdirSync(dir);
         }
-        const filePath = path.join(dir, file);
+        const filePath: string = path.join(dir, file);
         try {
             fs.writeFileSync(filePath, defaultContent, { encoding:'utf8', flag: 'wx' });
         } catch (err) { /* empty */ }
@@ -809,8 +809,8 @@ It might be a good idea to uninstall unused apps.`);
 
     private getCredentials(): string | undefined {
         if (this.credentials === undefined) {
-            const path = this.getPath('credentials.txt', '');
-            const fileContent = fs.readFileSync(path, 'utf8').trim();
+            const path: string = this.getPath('credentials.txt', '');
+            const fileContent: string = fs.readFileSync(path, 'utf8').trim();
             this.credentials = fileContent === '' ? undefined : fileContent;
             this.log.debug(`Loaded credentials: ${this.credentials}`);
         }
@@ -819,31 +819,31 @@ It might be a good idea to uninstall unused apps.`);
 
     private setCredentials(value: string): void {
         this.credentials = value;
-        const path = this.getPath('credentials.txt', '');
+        const path: string = this.getPath('credentials.txt', '');
         fs.writeFileSync(path, value, { encoding:'utf8', flag:'w' });
     }
 
     private async pair(ip: string, appleTVName: string): Promise<string> {
         this.log.debug('Got empty credentials, initiating pairing process.');
 
-        const ipSplitted = ip.split('.');
-        const ipEnd = ipSplitted[ipSplitted.length - 1];
-        const httpPort = 42000 + parseInt(ipEnd);
+        const ipSplitted: string[] = ip.split('.');
+        const ipEnd: string = ipSplitted[ipSplitted.length - 1];
+        const httpPort: number = 42000 + parseInt(ipEnd);
 
-        const htmlInput = fs.readFileSync(path.join(__dirname, 'html', 'input.html'), 'utf8');
-        const htmlAfterPost = fs.readFileSync(path.join(__dirname, 'html', 'afterPost.html'), 'utf8');
+        const htmlInput: string = fs.readFileSync(path.join(__dirname, 'html', 'input.html'), 'utf8');
+        const htmlAfterPost: string = fs.readFileSync(path.join(__dirname, 'html', 'afterPost.html'), 'utf8');
 
-        let goOn = false;
-        let success = false;
+        let goOn: boolean = false;
+        let success: boolean = false;
 
-        const localIP = getLocalIP();
-        let credentials = '';
+        const localIP: string = getLocalIP();
+        let credentials: string = '';
 
         while (!success) {
-            let backOffSeconds = 0;
-            let processClosed = false;
+            let backOffSeconds: number = 0;
+            let processClosed: boolean = false;
 
-            const process = spawn(CustomPyAtvInstance.getAtvremotePath(), [
+            const process: ChildProcessWithoutNullStreams = spawn(CustomPyAtvInstance.getAtvremotePath(), [
                 '--scan-hosts', ip,
                 '--protocol', 'companion',
                 '--remote-name', 'Homebridge Apple TV Enhanced',
@@ -872,7 +872,7 @@ It might be a good idea to uninstall unused apps.`);
                     return;
                 }
                 if (data.includes('You may now use these credentials: ')) {
-                    const split = data.split(': ');
+                    const split: string[] = data.split(': ');
                     credentials = split[1].trim();
                     this.log.debug(`Extracted credentials: ${split[1]}`);
                     goOn = true;
@@ -902,20 +902,20 @@ It might be a good idea to uninstall unused apps.`);
                 if (req.method === 'GET') {
                     res.end(htmlInput);
                 } else {
-                    let reqBody = '';
+                    let reqBody: string = '';
                     req.on('data', (chunk) => {
                         reqBody += chunk;
                     });
                     req.on('end', () => {
-                        const [a, b, c, d] = reqBody.split('&').map((e) => e.charAt(2));
-                        const pin = `${a}${b}${c}${d}`;
+                        const [a, b, c, d]: string[] = reqBody.split('&').map((e) => e.charAt(2));
+                        const pin: string = `${a}${b}${c}${d}`;
                         this.log.info(`Got PIN ${pin} for Apple TV ${appleTVName}.`);
                         process.stdin.write(`${pin}\n`);
                         res.end(htmlAfterPost);
                     });
                 }
             };
-            const server = http.createServer(requestListener);
+            const server: http.Server = http.createServer(requestListener);
             server.listen(httpPort, '0.0.0.0', () => {
                 // eslint-disable-next-line max-len
                 this.log.warn(`You need to pair your Apple TV before the plugin can connect to it. Enter the PIN that is currently displayed on the device here: http://${localIP}:${httpPort}/`);
@@ -940,7 +940,7 @@ It might be a good idea to uninstall unused apps.`);
     }
 
     private async credentialsValid(): Promise<boolean> {
-        for (let i = 0; i < 5; i++) {
+        for (let i: number = 0; i < 5; i++) {
             this.log.info('verifying credentials ...');
             try {
                 await this.device.listApps();

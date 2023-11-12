@@ -110,7 +110,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             }
         }
 
-        const appleTVs = scanResults.filter((d) =>
+        const appleTVs: NodePyATVDevice[] = scanResults.filter((d) =>
             // compatible model identifiers according to https://pyatv.dev/api/const/#pyatv.const.DeviceModel
             d.model === 'Gen4' ||
             d.model === 'Gen4K' ||
@@ -141,7 +141,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             // generate a unique id for the accessory this should be generated from
             // something globally unique, but constant, for example, the device serial
             // number or MAC address
-            const uuid = this.api.hap.uuid.generate(appleTV.id!);
+            const uuid: string = this.api.hap.uuid.generate(appleTV.id!);
             if (this.publishedUUIDs.includes(uuid)) {
                 this.log.debug(`Apple TV ${appleTV.name} (${appleTV.id}) with UUID ${uuid} already exists. Skipping.`);
                 continue;
@@ -152,7 +152,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             this.log.info(`Adding Apple TV ${appleTV.name} (${appleTV.id})`);
 
             // create a new accessory
-            const accessory = new this.api.platformAccessory(`Apple TV ${appleTV.name}`, uuid);
+            const accessory: PlatformAccessory = new this.api.platformAccessory(`Apple TV ${appleTV.name}`, uuid);
 
             // store a copy of the device object in the `accessory.context`
             // the `context` property can be used to store any data about the accessory you may need

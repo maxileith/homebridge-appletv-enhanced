@@ -1,4 +1,5 @@
 import { networkInterfaces } from 'os';
+import type { NetworkInterfaceInfo } from 'os';
 
 export function capitalizeFirstLetter(value: string): string {
     return value.charAt(0).toUpperCase() + value.slice(1);
@@ -7,9 +8,9 @@ export function capitalizeFirstLetter(value: string): string {
 export const delay = (ms: number): Promise<void> => new Promise<void>(res => setTimeout(res, ms));
 
 export function getLocalIP(): string {
-    const interfaces = networkInterfaces();
+    const interfaces: NodeJS.Dict<NetworkInterfaceInfo[]> = networkInterfaces();
     for (const k in interfaces) {
-        const networkInterface = interfaces[k]!;
+        const networkInterface: NetworkInterfaceInfo[] = interfaces[k]!;
         for (const info of networkInterface) {
             if (!info.internal && info.family === 'IPv4') {
                 return info.address;

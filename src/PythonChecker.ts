@@ -1,6 +1,7 @@
 import type { Logger } from 'homebridge';
 import path from 'path';
 import fs from 'fs';
+import type { ChildProcessWithoutNullStreams } from 'child_process';
 import { type SpawnOptionsWithoutStdio, spawn } from 'child_process';
 import { delay } from './utils';
 import PrefixLogger from './PrefixLogger';
@@ -53,7 +54,7 @@ class PythonChecker {
     }
 
     private async ensurePythonVersion(): Promise<void> {
-        const version = await this.getSystemPythonVersion();
+        const version: string = await this.getSystemPythonVersion();
         if (SUPPORTED_PYTHON_VERSIONS.findIndex((e) => version.includes(e)) === -1) {
             // eslint-disable-next-line no-constant-condition
             while (true) {
@@ -69,7 +70,7 @@ ${SUPPORTED_PYTHON_VERSIONS[0]} to ${SUPPORTED_PYTHON_VERSIONS[SUPPORTED_PYTHON_
     private async ensureVenvCreated(forceVenvRecreate: boolean): Promise<void> {
         if (forceVenvRecreate === false && this.isVenvCreated()) {
             this.log.info('Virtual environment already exists.');
-            const [venvVersionIsSystemVersion, systemVersion, venvVersion] = await this.isVenvPythonSystemPython();
+            const [venvVersionIsSystemVersion, systemVersion, venvVersion]: [boolean, string, string] = await this.isVenvPythonSystemPython();
             if (venvVersionIsSystemVersion) {
                 this.log.info(`Venv is using current system python version (${systemVersion}).`);
             } else {
@@ -93,14 +94,14 @@ ${SUPPORTED_PYTHON_VERSIONS[0]} to ${SUPPORTED_PYTHON_VERSIONS[SUPPORTED_PYTHON_
     }
 
     private async isVenvPythonSystemPython(): Promise<[boolean, string, string]> {
-        const fileContent = fs.readFileSync(this.venvConfigPath).toString().replaceAll(' ', '');
-        const venvVersion = fileContent.split('version=')[1].split('\n')[0];
-        const systemVersion = await this.getSystemPythonVersion();
+        const fileContent: string = fs.readFileSync(this.venvConfigPath).toString().replaceAll(' ', '');
+        const venvVersion: string = fileContent.split('version=')[1].split('\n')[0];
+        const systemVersion: string = await this.getSystemPythonVersion();
         return [venvVersion === systemVersion, systemVersion, venvVersion];
     }
 
     private async createVenv(): Promise<void> {
-        const [stdout] = await this.runCommand('python3', ['-m', 'venv', this.venvPath, '--clear'], undefined, true);
+        const [stdout]: [string, string] = await this.runCommand('python3', ['-m', 'venv', this.venvPath, '--clear'], undefined, true);
         if (stdout.includes('not created successfully') || !this.isVenvCreated()) {
             // eslint-disable-next-line no-constant-condition
             while (true) {
@@ -124,7 +125,7 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
     }
 
     private async isPipUpToDate(): Promise<boolean> {
-        const [stdout, stderr] = await this.runCommand(this.venvPipPath, ['list', '--outdated'], undefined, true);
+        const [stdout, stderr]: [string, string] = await this.runCommand(this.venvPipPath, ['list', '--outdated'], undefined, true);
         return !stdout.includes('pip ') && !stderr.includes('A new release of pip is available');
     }
 
@@ -142,9 +143,9 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
     }
 
     private async areRequirementsSatisfied(): Promise<boolean> {
-        const [freezeStdout] = await this.runCommand(this.venvPipPath, ['freeze'], undefined, true);
-        const freeze = this.freezeStringToObject(freezeStdout);
-        const requirements = this.freezeStringToObject(fs.readFileSync(this.requirementsPath).toString());
+        const [freezeStdout]: [string, string] = await this.runCommand(this.venvPipPath, ['freeze'], undefined, true);
+        const freeze: Record<string, string> = this.freezeStringToObject(freezeStdout);
+        const requirements: Record<string, string> = this.freezeStringToObject(fs.readFileSync(this.requirementsPath).toString());
         for (const pkg in requirements) {
             if (freeze[pkg] !== requirements[pkg]) {
                 return false;
@@ -154,10 +155,10 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
     }
 
     private freezeStringToObject(value: string): Record<string, string> {
-        const lines = value.trim().split('\n');
+        const lines: string[] = value.trim().split('\n');
         const packages: Record<string, string> = {};
         for (const line of lines) {
-            const [pkg, version] = line.split('==');
+            const [pkg, version]: string[] = line.split('==');
             packages[pkg.replaceAll('_', '-')] = version;
         }
         return packages;
@@ -168,7 +169,7 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
     }
 
     private async getSystemPythonVersion(): Promise<string> {
-        const [version] = await this.runCommand('python3', ['--version'], undefined, true);
+        const [version]: [string, string] = await this.runCommand('python3', ['--version'], undefined, true);
         return version.trim().replace('Python ', '');
     }
 
@@ -179,11 +180,11 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
         hideStdout: boolean = false,
         hideStderr: boolean = false,
     ): Promise<[string, string]> {
-        let running = true;
+        let running: boolean = true;
         let stdout: string = '';
         let stderr: string = '';
 
-        const p = spawn(command, args, options);
+        const p: ChildProcessWithoutNullStreams = spawn(command, args, options);
         p.stdout.setEncoding('utf8');
         p.stdout.on('data', (data: string) => {
             stdout += data;

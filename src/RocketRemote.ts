@@ -151,9 +151,9 @@ class RocketRemote {
 
     public avadaKedavra(numberOfApps: number): void {
         this.log.info('Avada Kedavra');
-        const avadaKedavraSequence = generateAvadaKedavraSequence(numberOfApps);
+        const avadaKedavraSequence: string[] = generateAvadaKedavraSequence(numberOfApps);
         this.log.debug(`Avada Kedavra sequence: ${avadaKedavraSequence.toString()}`);
-        const ak = spawn(this.atvremotePath, [
+        const ak: ChildProcessWithoutNullStreams = spawn(this.atvremotePath, [
             '--scan-hosts', this.ip,
             '--companion-credentials', this.companionCredentials,
             '--airplay-credentials', this.airplayCredentials,
@@ -170,7 +170,7 @@ class RocketRemote {
             if (this.lastCommandSend + 45000 < Date.now()) {
                 this.sendCommand('app_list', true);
             } else {
-                const secondsFromLastCommand = Math.round((Date.now() - this.lastCommandSend) / 1000);
+                const secondsFromLastCommand: number = Math.round((Date.now() - this.lastCommandSend) / 1000);
                 this.log.debug(`Skipping heartbeat since last command was only ${secondsFromLastCommand}s before.`);
             }
         }, 60000);
@@ -182,7 +182,7 @@ class RocketRemote {
     }
 
     private stdoutLog(data: string): void {
-        const toLog = data.replace('pyatv>', '').trim();
+        const toLog: string = data.replace('pyatv>', '').trim();
         if (toLog.toUpperCase().includes('ERROR')) {
             this.stderrLog(toLog);
         } else if (toLog !== '') {

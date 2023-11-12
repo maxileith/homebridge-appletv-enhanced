@@ -29,7 +29,7 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
 
     public static deviceAdvanced(options: AlternatePyATVDeviceOptions | nodePyatv.NodePyATVDeviceOptions): nodePyatv.NodePyATVDevice | undefined {
         if (options.id) {
-            const cachedDevice = this.cachedDevices[options.id];
+            const cachedDevice: nodePyatv.NodePyATVDevice = this.cachedDevices[options.id];
             if (cachedDevice === undefined) {
                 return undefined;
             }
@@ -51,7 +51,7 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
         this.atvscriptPath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvscript');
         this.atvremotePath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvremote');
         if (logger) {
-            const log = new PrefixLogger(logger, 'CustomPyATVInstance');
+            const log: PrefixLogger = new PrefixLogger(logger, 'CustomPyATVInstance');
             log.debug(`Set atvscript path to "${this.atvscriptPath}".`);
             log.debug(`Set atvremote path to "${this.atvremotePath}".`);
         }
