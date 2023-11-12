@@ -90,7 +90,7 @@ body:
         - Apple TV Enhanced:
         - Node:
         - npm:
-        - Python
+        - Python:
     validations:
       required: true
 
