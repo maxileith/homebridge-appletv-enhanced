@@ -70,11 +70,13 @@ ${SUPPORTED_PYTHON_VERSIONS[0]} to ${SUPPORTED_PYTHON_VERSIONS[SUPPORTED_PYTHON_
     private async ensureVenvCreated(forceVenvRecreate: boolean): Promise<void> {
         if (forceVenvRecreate === false && this.isVenvCreated()) {
             this.log.info('Virtual environment already exists.');
-            const [venvVersionIsSystemVersion, systemVersion, venvVersion]: [boolean, string, string] = await this.isVenvPythonSystemPython();
+            const [venvVersionIsSystemVersion, systemVersion, venvVersion]: [boolean, string, string] =
+                await this.isVenvPythonSystemPython();
             if (venvVersionIsSystemVersion) {
                 this.log.info(`Venv is using current system python version (${systemVersion}).`);
             } else {
-                this.log.warn(`Venv (${venvVersion}) is not using current system python version (${systemVersion}). Recreating the virtual environment now ...`);
+                this.log.warn(`Venv (${venvVersion}) is not using current system python version (${systemVersion}). \
+Recreating the virtual environment now ...`);
                 await this.createVenv();
             }
         } else {

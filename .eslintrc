@@ -26,7 +26,7 @@
         "dot-notation": "off",
         "init-declarations": "off",
         "prefer-arrow-callback": ["warn"],
-        "max-len": ["warn", 180],
+        "max-len": ["warn", 140],
         "no-console": ["warn"], // use the provided Homebridge log method instead
         "no-empty-function": "off",
         "no-implied-eval": "off",

@@ -27,7 +27,9 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
         });
     }
 
-    public static deviceAdvanced(options: AlternatePyATVDeviceOptions | nodePyatv.NodePyATVDeviceOptions): nodePyatv.NodePyATVDevice | undefined {
+    public static deviceAdvanced(
+        options: AlternatePyATVDeviceOptions | nodePyatv.NodePyATVDeviceOptions,
+    ): nodePyatv.NodePyATVDevice | undefined {
         if (options.id) {
             const cachedDevice: nodePyatv.NodePyATVDevice = this.cachedDevices[options.id];
             if (cachedDevice === undefined) {
@@ -65,7 +67,9 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
         return this.atvremotePath || 'atvscript';
     }
 
-    private static extendOptions<T extends nodePyatv.NodePyATVDeviceOptions | nodePyatv.NodePyATVInstanceOptions | undefined>(options: T): T {
+    private static extendOptions<T extends nodePyatv.NodePyATVDeviceOptions | nodePyatv.NodePyATVInstanceOptions | undefined>(
+        options: T,
+    ): T {
         return {
             atvscriptPath: this.atvscriptPath,
             atvremotePath: this.atvremotePath,
