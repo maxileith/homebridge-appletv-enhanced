@@ -1,5 +1,6 @@
-import { NodePyATVDeviceState, NodePyATVKeys, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
+import type { NodePyATVDeviceState, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
+import type { RocketRemoteKey } from './enums.ts';
 
-export type TNodePyATVMediaType = keyof typeof NodePyATVMediaType;
-export type TNodePyATVDeviceState = keyof typeof NodePyATVDeviceState;
-export type TNodePyATVKeys = keyof typeof NodePyATVKeys;
+export type TMediaConfigs = Partial<Record<NodePyATVMediaType, string>>;
+export type TDeviceStateConfigs = Partial<Record<NodePyATVDeviceState, string>>;
+export type TRemoteKeysAsSwitchConfigs = Partial<Record<RocketRemoteKey, string>>;

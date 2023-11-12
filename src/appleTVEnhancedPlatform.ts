@@ -1,26 +1,25 @@
-import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, Service, Characteristic } from 'homebridge';
-
+import type { API, DynamicPlatformPlugin, Logger, PlatformAccessory, Service, Characteristic } from 'homebridge';
 import { PLUGIN_NAME } from './settings';
 import { AppleTVEnhancedAccessory } from './appleTVEnhancedAccessory';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
-import { AppleTVEnhancedPlatformConfig } from './interfaces';
-import { NodePyATVDevice } from '@sebbo2002/node-pyatv';
+import type { AppleTVEnhancedPlatformConfig } from './interfaces';
+import type { NodePyATVDevice } from '@sebbo2002/node-pyatv';
 import PythonChecker from './PythonChecker';
 import PrefixLogger from './PrefixLogger';
 import checkOs from './checkOS';
 
 
 export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
-    private readonly log: PrefixLogger;
-
     public readonly Service: typeof Service;
     public readonly Characteristic: typeof Characteristic;
 
     // this is used to track restored cached accessories
     public readonly accessories: PlatformAccessory[] = [];
-    private publishedUUIDs: string[] = [];
+    private readonly publishedUUIDs: string[] = [];
 
-    constructor(
+    private readonly log: PrefixLogger;
+
+    public constructor(
         public readonly ogLog: Logger,
         public readonly config: AppleTVEnhancedPlatformConfig,
         public readonly api: API,
@@ -67,7 +66,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
    * It should be used to setup event handlers for characteristics and update respective values.
    */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    configureAccessory(accessory: PlatformAccessory) {
+    public configureAccessory(accessory: PlatformAccessory): void {
         this.log.info(`Loading accessory from cache: ${accessory.displayName}`);
 
         // // add the restored accessory to the accessories cache so we can track if it has already been registered
@@ -79,7 +78,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
    * Accessories must only be registered once, previously created accessories
    * must not be registered again to prevent "duplicate UUID" errors.
    */
-    async discoverDevices() {
+    private async discoverDevices(): Promise<void> {
         this.log.debug('Starting device discovery ...');
         let scanResults: NodePyATVDevice[] = [];
 
@@ -161,7 +160,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
 
             // create the accessory handler for the newly create accessory
             // this is imported from `platformAccessory.ts`
-            (async () => {
+            (async (): Promise<void> => {
                 this.log.debug(`Waiting for Apple TV ${appleTV.name} (${appleTV.id}) to boot ...`);
                 await (new AppleTVEnhancedAccessory(this, accessory)).untilBooted();
 

@@ -1,12 +1,12 @@
-import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
-import { RemoteControlCommands } from './enums';
+import { type ChildProcessWithoutNullStreams, spawn } from 'child_process';
+import { RocketRemoteKey } from './enums';
 import PrefixLogger from './PrefixLogger';
-import { Logger } from 'homebridge';
+import type { Logger } from 'homebridge';
 import generateAvadaKedavraSequence from './generateAvadaKedavraSequence';
 
 class RocketRemote {
 
-    private process: ChildProcessWithoutNullStreams;
+    private readonly process: ChildProcessWithoutNullStreams;
     private readonly log: PrefixLogger;
     private onCloseCallable?: (() => void) = undefined;
     private heartbeatInterval?: NodeJS.Timeout;
@@ -16,7 +16,7 @@ class RocketRemote {
 
     private lastCommandSend: number = 0;
 
-    constructor(
+    public constructor(
         private readonly ip: string,
         private readonly atvremotePath: string,
         private readonly airplayCredentials: string,
@@ -40,36 +40,11 @@ class RocketRemote {
         this.initHeartbeat();
     }
 
-    private initHeartbeat(): void {
-        this.heartbeatInterval = setInterval(() => {
-            if (this.lastCommandSend + 45000 < Date.now()) {
-                this.sendCommand('app_list', true);
-            } else {
-                const secondsFromLastCommand = Math.round((Date.now() - this.lastCommandSend) / 1000);
-                this.log.debug(`Skipping heartbeat since last command was only ${secondsFromLastCommand}s before.`);
-            }
-        }, 60000);
-    }
-
-    private stderrLog(data: string): void {
-        this.log.error(data);
-        this.process.kill();
-    }
-
-    private stdoutLog(data: string): void {
-        const toLog = data.replace('pyatv>', '').trim();
-        if (toLog.toUpperCase().includes('ERROR')) {
-            this.stderrLog(toLog);
-        } else if (toLog !== '') {
-            this.log.debug(toLog);
-        }
-    }
-
     public openApp(id: string): void {
         this.sendCommand(`launch_app=${id}`);
     }
 
-    public sendCommand(cmd: RemoteControlCommands | string, hideLog: boolean = false): void {
+    public sendCommand(cmd: RocketRemoteKey | string, hideLog: boolean = false): void {
         if (hideLog) {
             this.log.debug(`pyatv>${cmd}`);
         } else {
@@ -80,87 +55,87 @@ class RocketRemote {
     }
 
     public channelDown(): void {
-        this.sendCommand(RemoteControlCommands.CHANNEL_DOWN);
+        this.sendCommand(RocketRemoteKey.CHANNEL_DOWN);
     }
 
     public channelUp(): void {
-        this.sendCommand(RemoteControlCommands.CHANNEL_UP);
+        this.sendCommand(RocketRemoteKey.CHANNEL_UP);
     }
 
     public down(): void {
-        this.sendCommand(RemoteControlCommands.DOWN);
+        this.sendCommand(RocketRemoteKey.DOWN);
     }
 
     public home(): void {
-        this.sendCommand(RemoteControlCommands.HOME);
+        this.sendCommand(RocketRemoteKey.HOME);
     }
 
     public homeHold(): void {
-        this.sendCommand(RemoteControlCommands.HOME_HOLD);
+        this.sendCommand(RocketRemoteKey.HOME_HOLD);
     }
 
     public left(): void {
-        this.sendCommand(RemoteControlCommands.LEFT);
+        this.sendCommand(RocketRemoteKey.LEFT);
     }
 
     public menu(): void {
-        this.sendCommand(RemoteControlCommands.MENU);
+        this.sendCommand(RocketRemoteKey.MENU);
     }
 
     public next(): void {
-        this.sendCommand(RemoteControlCommands.NEXT);
+        this.sendCommand(RocketRemoteKey.NEXT);
     }
 
     public pause(): void {
-        this.sendCommand(RemoteControlCommands.PAUSE);
+        this.sendCommand(RocketRemoteKey.PAUSE);
     }
 
     public play(): void {
-        this.sendCommand(RemoteControlCommands.PLAY);
+        this.sendCommand(RocketRemoteKey.PLAY);
     }
 
     public playPause(): void {
-        this.sendCommand(RemoteControlCommands.PLAY_PAUSE);
+        this.sendCommand(RocketRemoteKey.PLAY_PAUSE);
     }
 
     public previous(): void {
-        this.sendCommand(RemoteControlCommands.PREVIOUS);
+        this.sendCommand(RocketRemoteKey.PREVIOUS);
     }
 
     public right(): void {
-        this.sendCommand(RemoteControlCommands.RIGHT);
+        this.sendCommand(RocketRemoteKey.RIGHT);
     }
 
     public select(): void {
-        this.sendCommand(RemoteControlCommands.SELECT);
+        this.sendCommand(RocketRemoteKey.SELECT);
     }
 
     public skipBackward(): void {
-        this.sendCommand(RemoteControlCommands.SKIP_BACKWARD);
+        this.sendCommand(RocketRemoteKey.SKIP_BACKWARD);
     }
 
     public skipForward(): void {
-        this.sendCommand(RemoteControlCommands.SKIP_FORWARD);
+        this.sendCommand(RocketRemoteKey.SKIP_FORWARD);
     }
 
     public stop(): void {
-        this.sendCommand(RemoteControlCommands.STOP);
+        this.sendCommand(RocketRemoteKey.STOP);
     }
 
     public turnOff(): void {
-        this.sendCommand(RemoteControlCommands.TURN_OFF);
+        this.sendCommand(RocketRemoteKey.TURN_OFF);
     }
 
     public turnOn(): void {
-        this.sendCommand(RemoteControlCommands.TURN_ON);
+        this.sendCommand(RocketRemoteKey.TURN_ON);
     }
 
     public topMenu(): void {
-        this.sendCommand(RemoteControlCommands.TOP_MENU);
+        this.sendCommand(RocketRemoteKey.TOP_MENU);
     }
 
     public up(): void {
-        this.sendCommand(RemoteControlCommands.UP);
+        this.sendCommand(RocketRemoteKey.UP);
     }
 
     public onClose(f: () => void): void {
@@ -188,6 +163,31 @@ class RocketRemote {
         ak.stderr.setEncoding('utf8');
         ak.stdout.on('data', this.stdoutListener);
         ak.stderr.on('data', this.stderrListener);
+    }
+
+    private initHeartbeat(): void {
+        this.heartbeatInterval = setInterval(() => {
+            if (this.lastCommandSend + 45000 < Date.now()) {
+                this.sendCommand('app_list', true);
+            } else {
+                const secondsFromLastCommand = Math.round((Date.now() - this.lastCommandSend) / 1000);
+                this.log.debug(`Skipping heartbeat since last command was only ${secondsFromLastCommand}s before.`);
+            }
+        }, 60000);
+    }
+
+    private stderrLog(data: string): void {
+        this.log.error(data);
+        this.process.kill();
+    }
+
+    private stdoutLog(data: string): void {
+        const toLog = data.replace('pyatv>', '').trim();
+        if (toLog.toUpperCase().includes('ERROR')) {
+            this.stderrLog(toLog);
+        } else if (toLog !== '') {
+            this.log.debug(toLog);
+        }
     }
 }
 

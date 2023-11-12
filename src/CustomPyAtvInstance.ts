@@ -1,13 +1,11 @@
 import * as nodePyatv from '@sebbo2002/node-pyatv';
-import { Logger } from 'homebridge';
+import type { Logger } from 'homebridge';
 import path from 'path';
-import { AlternatePyATVDeviceOptions } from './interfaces';
+import type { AlternatePyATVDeviceOptions } from './interfaces';
 import PrefixLogger from './PrefixLogger';
 
 
-interface ICache {
-    [k: string]: nodePyatv.NodePyATVDevice;
-}
+type ICache = Record<string, nodePyatv.NodePyATVDevice>;
 
 class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
 
@@ -20,10 +18,6 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
         super(options);
     }
 
-    public async find(options?: nodePyatv.NodePyATVFindAndInstanceOptions): Promise<nodePyatv.NodePyATVDevice[]> {
-        return CustomPyATVInstance.find(options);
-    }
-
     public static async find(options?: nodePyatv.NodePyATVFindAndInstanceOptions): Promise<nodePyatv.NodePyATVDevice[]> {
         return nodePyatv.NodePyATVInstance.find(this.extendOptions(options)).then(async (results) => {
             for (const result of results) {
@@ -33,7 +27,7 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
         });
     }
 
-    public static deviceAdvanced(options: nodePyatv.NodePyATVDeviceOptions | AlternatePyATVDeviceOptions): nodePyatv.NodePyATVDevice | undefined {
+    public static deviceAdvanced(options: AlternatePyATVDeviceOptions | nodePyatv.NodePyATVDeviceOptions): nodePyatv.NodePyATVDevice | undefined {
         if (options.id) {
             const cachedDevice = this.cachedDevices[options.id];
             if (cachedDevice === undefined) {
@@ -63,6 +57,14 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
         }
     }
 
+    public static getAtvremotePath(): string {
+        return this.atvremotePath || 'atvremote';
+    }
+
+    public static getAtvscriptPath(): string {
+        return this.atvremotePath || 'atvscript';
+    }
+
     private static extendOptions<T extends nodePyatv.NodePyATVDeviceOptions | nodePyatv.NodePyATVInstanceOptions | undefined>(options: T): T {
         return {
             atvscriptPath: this.atvscriptPath,
@@ -71,12 +73,8 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
         };
     }
 
-    public static getAtvremotePath(): string {
-        return this.atvremotePath || 'atvremote';
-    }
-
-    public static getAtvscriptPath(): string {
-        return this.atvremotePath || 'atvscript';
+    public async find(options?: nodePyatv.NodePyATVFindAndInstanceOptions): Promise<nodePyatv.NodePyATVDevice[]> {
+        return CustomPyATVInstance.find(options);
     }
 }
 

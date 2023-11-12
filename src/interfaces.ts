@@ -1,6 +1,6 @@
-import { PlatformConfig, Service } from 'homebridge';
-import { TNodePyATVDeviceState, TNodePyATVMediaType } from './types';
-import { RemoteControlCommands } from './enums';
+import type { PlatformConfig, Service } from 'homebridge';
+import type { RocketRemoteKey } from './enums';
+import type { NodePyATVDeviceState, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
 
 export interface NodePyATVApp {
     id: string;
@@ -8,9 +8,7 @@ export interface NodePyATVApp {
     launch: () => Promise<void>;
 }
 
-export interface IInputs {
-    [k: string]: Service;
-}
+export type IInputs = Record<string, Service>;
 
 export interface IAppConfig {
     configuredName: string;
@@ -19,9 +17,7 @@ export interface IAppConfig {
     identifier: number;
 }
 
-export interface IAppConfigs {
-    [k: string]: IAppConfig;
-}
+export type IAppConfigs = Record<string, IAppConfig>;
 
 export interface ICommonConfig {
     configuredName?: string;
@@ -29,22 +25,10 @@ export interface ICommonConfig {
     showAvadaKedavra?: number;
 }
 
-export interface IMediaConfigs {
-    [k: string]: string;
-}
-
-export interface IStateConfigs {
-    [k: string]: string;
-}
-
-export interface IRemoteKeysAsSwitchConfigs {
-    [k: string]: string;
-}
-
-export interface AppleTVEnhancedPlatformConfig extends PlatformConfig {
-    mediaTypes?: TNodePyATVMediaType[];
-    deviceStates?: TNodePyATVDeviceState[];
-    remoteKeysAsSwitch?: RemoteControlCommands[];
+export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_bridge' | 'name' | 'platform'> {
+    mediaTypes?: NodePyATVMediaType[];
+    deviceStates?: NodePyATVDeviceState[];
+    remoteKeysAsSwitch?: RocketRemoteKey[];
     avadaKedavraAppAmount?: number;
     discover?: {
         multicast?: boolean;

@@ -1,11 +1,11 @@
-import { Logger } from 'homebridge';
+import type { Logger } from 'homebridge';
 import path from 'path';
 import fs from 'fs';
-import { SpawnOptionsWithoutStdio, spawn } from 'child_process';
+import { type SpawnOptionsWithoutStdio, spawn } from 'child_process';
 import { delay } from './utils';
 import PrefixLogger from './PrefixLogger';
 
-const SUPPORTED_PYTHON_VERSIONS = [
+const SUPPORTED_PYTHON_VERSIONS: string[] = [
     '3.8',
     '3.9',
     '3.10',
@@ -23,7 +23,7 @@ class PythonChecker {
     private readonly venvConfigPath: string;
     private readonly requirementsPath: string = path.join(__dirname, '..', 'requirements.txt');
 
-    constructor(logger: Logger, storagePath: string) {
+    public constructor(logger: Logger, storagePath: string) {
         this.log = new PrefixLogger(logger, 'Python check');
 
         this.pluginDirPath = path.join(storagePath, 'appletv-enhanced');
@@ -52,7 +52,7 @@ class PythonChecker {
         }
     }
 
-    private async ensurePythonVersion() {
+    private async ensurePythonVersion(): Promise<void> {
         const version = await this.getSystemPythonVersion();
         if (SUPPORTED_PYTHON_VERSIONS.findIndex((e) => version.includes(e)) === -1) {
             // eslint-disable-next-line no-constant-condition
@@ -66,7 +66,7 @@ ${SUPPORTED_PYTHON_VERSIONS[0]} to ${SUPPORTED_PYTHON_VERSIONS[SUPPORTED_PYTHON_
         }
     }
 
-    private async ensureVenvCreated(forceVenvRecreate: boolean) {
+    private async ensureVenvCreated(forceVenvRecreate: boolean): Promise<void> {
         if (forceVenvRecreate === false && this.isVenvCreated()) {
             this.log.info('Virtual environment already exists.');
             const [venvVersionIsSystemVersion, systemVersion, venvVersion] = await this.isVenvPythonSystemPython();
@@ -153,9 +153,9 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
         return true;
     }
 
-    private freezeStringToObject(value: string): {[k: string]: string} {
+    private freezeStringToObject(value: string): Record<string, string> {
         const lines = value.trim().split('\n');
-        const packages: {[k: string]: string} = {};
+        const packages: Record<string, string> = {};
         for (const line of lines) {
             const [pkg, version] = line.split('==');
             packages[pkg.replaceAll('_', '-')] = version;
@@ -174,8 +174,8 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
 
     private async runCommand(
         command: string,
-        args?: readonly string[] | undefined,
-        options?: SpawnOptionsWithoutStdio | undefined,
+        args?: readonly string[],
+        options?: SpawnOptionsWithoutStdio,
         hideStdout: boolean = false,
         hideStderr: boolean = false,
     ): Promise<[string, string]> {

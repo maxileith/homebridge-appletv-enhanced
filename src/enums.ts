@@ -3,7 +3,7 @@ export enum DisplayOrderTypes {
     ARRAY_ELEMENT_END = 0x00,
 }
 
-export enum RemoteControlCommands {
+export enum RocketRemoteKey {
     CHANNEL_DOWN = 'channel_down',
     CHANNEL_UP = 'channel_up',
     DOWN = 'down',

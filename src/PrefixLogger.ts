@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Logger } from 'homebridge';
+import type { Logger } from 'homebridge';
 
 class PrefixLogger {
 
@@ -24,12 +24,12 @@ class PrefixLogger {
         this.log.error(this.extendMessage(message), ...parameters);
     }
 
-    private extendMessage(message: string): string {
-        return `${this.prefix}: ${message}`;
-    }
-
     public setPrefix(value: string): void {
         this.prefix = value;
+    }
+
+    private extendMessage(message: string): string {
+        return `${this.prefix}: ${message}`;
     }
 }
 

@@ -4,7 +4,7 @@ export function capitalizeFirstLetter(value: string): string {
     return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-export const delay = (ms: number) => new Promise<void>(res => setTimeout(res, ms));
+export const delay = (ms: number): Promise<void> => new Promise<void>(res => setTimeout(res, ms));
 
 export function getLocalIP(): string {
     const interfaces = networkInterfaces();
@@ -38,6 +38,6 @@ export function removeSpecialCharacters(str: string): string {
 
 export function snakeCaseToTitleCase(str: string): string {
     return str
-        .replace(/^[-_]*(.)/, (_, c) => c.toUpperCase()) // Initial char (after -/_)
-        .replace(/[-_]+(.)/g, (_, c) => ' ' + c.toUpperCase()); // First char after each -/_
+        .replace(/^[-_]*(.)/, (_, c: string) => c.toUpperCase()) // Initial char (after -/_)
+        .replace(/[-_]+(.)/g, (_, c: string) => ' ' + c.toUpperCase()); // First char after each -/_
 }

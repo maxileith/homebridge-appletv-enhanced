@@ -1,17 +1,17 @@
 import fs from 'fs';
-import http, { IncomingMessage, ServerResponse } from 'http';
-import { Service, PlatformAccessory, CharacteristicValue, Nullable, PrimitiveTypes, ConstructorArgs } from 'homebridge';
-
-import { AppleTVEnhancedPlatform } from './appleTVEnhancedPlatform';
-import { NodePyATVDevice, NodePyATVDeviceEvent, NodePyATVDeviceState, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
+import http, { type IncomingMessage, type ServerResponse } from 'http';
+import type { Service, PlatformAccessory, CharacteristicValue, Nullable, PrimitiveTypes, ConstructorArgs } from 'homebridge';
+import type { AppleTVEnhancedPlatform } from './appleTVEnhancedPlatform';
+import { type NodePyATVDevice, type NodePyATVDeviceEvent, NodePyATVDeviceState, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
 import md5 from 'md5';
 import { spawn } from 'child_process';
 import path from 'path';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
 import { capitalizeFirstLetter, delay, removeSpecialCharacters, getLocalIP, trimSpecialCharacters, snakeCaseToTitleCase } from './utils';
-import { IAppConfigs, ICommonConfig, IInputs, IMediaConfigs, IRemoteKeysAsSwitchConfigs, IStateConfigs, NodePyATVApp } from './interfaces';
+import type { IAppConfigs, ICommonConfig, IInputs, NodePyATVApp } from './interfaces';
 import PrefixLogger from './PrefixLogger';
-import { DisplayOrderTypes, RemoteControlCommands } from './enums';
+import { DisplayOrderTypes, RocketRemoteKey } from './enums';
+import type { TDeviceStateConfigs, TMediaConfigs, TRemoteKeysAsSwitchConfigs } from './types';
 import RocketRemote from './RocketRemote';
 
 
@@ -46,18 +46,18 @@ export class AppleTVEnhancedAccessory {
     private service: Service | undefined = undefined;
     private device: NodePyATVDevice;
     private inputs: IInputs = {};
-    private deviceStateServices: { [k: string]: Service } = {};
-    private mediaTypeServices: { [k: string]: Service } = {};
-    private remoteKeyServices: { [k: string]: Service } = {};
+    private deviceStateServices: Partial<Record<NodePyATVDeviceState, Service>> = {};
+    private mediaTypeServices: Partial<Record<NodePyATVMediaType, Service>> = {};
+    private remoteKeyServices: Partial<Record<RocketRemoteKey, Service>> = {};
     private avadaKedavraService: Service | undefined = undefined;
     private rocketRemote: RocketRemote | undefined = undefined;
 
     private appConfigs: IAppConfigs | undefined = undefined;
     private commonConfig: ICommonConfig | undefined = undefined;
 
-    private stateConfigs: IStateConfigs | undefined = undefined;
-    private mediaConfigs: IMediaConfigs | undefined = undefined;
-    private remoteKeyAsSwitchConfigs: IRemoteKeysAsSwitchConfigs | undefined = undefined;
+    private stateConfigs: TDeviceStateConfigs | undefined = undefined;
+    private mediaConfigs: TMediaConfigs | undefined = undefined;
+    private remoteKeyAsSwitchConfigs: TRemoteKeysAsSwitchConfigs | undefined = undefined;
 
     private booted: boolean = false;
     private offline: boolean = false;
@@ -69,7 +69,7 @@ export class AppleTVEnhancedAccessory {
 
     private readonly log: PrefixLogger;
 
-    constructor(
+    public constructor(
         private readonly platform: AppleTVEnhancedPlatform,
         private readonly accessory: PlatformAccessory,
     ) {
@@ -77,7 +77,7 @@ export class AppleTVEnhancedAccessory {
 
         this.log = new PrefixLogger(this.platform.ogLog, `${this.device.name} (${this.device.id})`);
 
-        const pairingRequired = () => {
+        const pairingRequired = (): void => {
             this.pair(this.device.host, this.device.name).then((c) => {
                 this.setCredentials(c);
                 this.device = CustomPyAtvInstance.deviceAdvanced({
@@ -91,7 +91,7 @@ export class AppleTVEnhancedAccessory {
         };
 
         const credentials = this.getCredentials();
-        if (!credentials) {
+        if (credentials === undefined) {
             pairingRequired();
         } else {
             this.device = CustomPyAtvInstance.deviceAdvanced({
@@ -109,6 +109,13 @@ export class AppleTVEnhancedAccessory {
                 }
             });
         }
+    }
+
+    public async untilBooted(): Promise<void> {
+        while (!this.booted) {
+            await delay(100);
+        }
+        this.log.debug('Reporting as booted.');
     }
 
     private async startUp(): Promise<void> {
@@ -171,7 +178,7 @@ export class AppleTVEnhancedAccessory {
     private createListeners(): void {
         this.log.debug('recreating listeners');
 
-        const filterErrorHandler = (event: NodePyATVDeviceEvent | Error, listener: (event: NodePyATVDeviceEvent) => void): void => {
+        const filterErrorHandler = (event: Error | NodePyATVDeviceEvent, listener: (event: NodePyATVDeviceEvent) => void): void => {
             if (!(event instanceof Error)) {
                 if (this.offline && event.value !== null) {
                     this.log.info('Reestablished the connection');
@@ -182,17 +189,17 @@ export class AppleTVEnhancedAccessory {
             }
         };
 
-        const powerStateListener = (e: Error | NodePyATVDeviceEvent) => filterErrorHandler(e, this.handleActiveUpdate.bind(this));
+        const powerStateListener = (e: Error | NodePyATVDeviceEvent): void => filterErrorHandler(e, this.handleActiveUpdate.bind(this));
         // const appIdListener = (e: Error | NodePyATVDeviceEvent) => filterErrorHandler(e, this.handleInputUpdate.bind(this));
-        const deviceStateListener = (e: Error | NodePyATVDeviceEvent) => filterErrorHandler(e, this.handleDeviceStateUpdate.bind(this));
-        const mediaTypeListener = (e: Error | NodePyATVDeviceEvent) => filterErrorHandler(e, this.handleMediaTypeUpdate.bind(this));
+        const deviceStateListener = (e: Error | NodePyATVDeviceEvent): void => filterErrorHandler(e, this.handleDeviceStateUpdate.bind(this));
+        const mediaTypeListener = (e: Error | NodePyATVDeviceEvent): void => filterErrorHandler(e, this.handleMediaTypeUpdate.bind(this));
 
         this.device.on('update:powerState', powerStateListener);
         // this.device.on('update:appId', appIdListener);
         this.device.on('update:deviceState', deviceStateListener);
         this.device.on('update:mediaType', mediaTypeListener);
 
-        this.device.once('error', ((e: Error | NodePyATVDeviceEvent) => {
+        this.device.once('error', ((e: Error | NodePyATVDeviceEvent): void => {
             this.log.debug(e as unknown as string);
             this.offline = true;
             this.log.warn('Lost connection. Trying to reconnect ...');
@@ -226,7 +233,7 @@ export class AppleTVEnhancedAccessory {
             this.log,
         );
 
-        this.rocketRemote.onClose((async () => {
+        this.rocketRemote.onClose((async (): Promise<void> => {
             await delay(5000);
             this.createRemote();
         }).bind(this));
@@ -234,8 +241,7 @@ export class AppleTVEnhancedAccessory {
 
     private createMediaTypeSensors(): void {
         const mediaTypes = Object.keys(NodePyATVMediaType) as NodePyATVMediaType[];
-        for (let i = 0; i < mediaTypes.length; i++) {
-            const mediaType = mediaTypes[i];
+        for (const mediaType of mediaTypes) {
             if (this.platform.config.mediaTypes !== undefined && !this.platform.config.mediaTypes.includes(mediaType)) {
                 continue;
             }
@@ -257,11 +263,11 @@ export class AppleTVEnhancedAccessory {
                     this.setMediaTypeConfig(mediaType, value.toString());
                 });
             s.getCharacteristic(this.platform.Characteristic.MotionDetected)
-                .onGet(async () => {
+                .onGet(async (): Promise<CharacteristicValue> => {
                     if (this.offline) {
                         throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
                     }
-                    return s.getCharacteristic(this.platform.Characteristic.MotionDetected).value;
+                    return s.getCharacteristic(this.platform.Characteristic.MotionDetected).value as CharacteristicValue;
                 });
             this.service!.addLinkedService(s);
             this.mediaTypeServices[mediaType] = s;
@@ -269,9 +275,8 @@ export class AppleTVEnhancedAccessory {
     }
 
     private createRemoteKeysAsSwitches(): void {
-        const remoteKeys = Object.values(RemoteControlCommands) as RemoteControlCommands[];
-        for (let i = 0; i < remoteKeys.length; i++) {
-            const remoteKey = remoteKeys[i];
+        const remoteKeys = Object.values(RocketRemoteKey) as RocketRemoteKey[];
+        for (const remoteKey of remoteKeys) {
             if (this.platform.config.remoteKeysAsSwitch !== undefined && !this.platform.config.remoteKeysAsSwitch.includes(remoteKey)) {
                 continue;
             }
@@ -301,7 +306,7 @@ export class AppleTVEnhancedAccessory {
                         s.setCharacteristic(this.platform.Characteristic.On, false);
                     }
                 })
-                .onGet(async () => {
+                .onGet(async (): Promise<CharacteristicValue> => {
                     if (this.offline) {
                         throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
                     }
@@ -329,8 +334,7 @@ export class AppleTVEnhancedAccessory {
 
     private createDeviceStateSensors(): void {
         const deviceStates = Object.keys(NodePyATVDeviceState) as NodePyATVDeviceState[];
-        for (let i = 0; i < deviceStates.length; i++) {
-            const deviceState = deviceStates[i];
+        for (const deviceState of deviceStates) {
             if (this.platform.config.deviceStates !== undefined && !this.platform.config.deviceStates.includes(deviceState)) {
                 continue;
             }
@@ -352,11 +356,11 @@ export class AppleTVEnhancedAccessory {
                     this.setDeviceStateConfig(deviceState, value.toString());
                 });
             s.getCharacteristic(this.platform.Characteristic.MotionDetected)
-                .onGet(async () => {
+                .onGet(async (): Promise<CharacteristicValue> => {
                     if (this.offline) {
                         throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
                     }
-                    return s.getCharacteristic(this.platform.Characteristic.MotionDetected).value;
+                    return s.getCharacteristic(this.platform.Characteristic.MotionDetected).value as CharacteristicValue;
                 });
             this.service!.addLinkedService(s);
             this.deviceStateServices[deviceState] = s;
@@ -406,6 +410,8 @@ export class AppleTVEnhancedAccessory {
                 this.platform.Characteristic.CurrentMediaState,
                 this.platform.Characteristic.CurrentMediaState.INTERRUPTED,
             );
+            break;
+        default:
             break;
         }
     }
@@ -577,15 +583,15 @@ It might be a good idea to uninstall unused apps.`);
         fs.writeFileSync(jsonPath, JSON.stringify(this.commonConfig, null, 4), { encoding:'utf8', flag:'w' });
     }
 
-    private getMediaConfigs(): IMediaConfigs {
+    private getMediaConfigs(): TMediaConfigs {
         if (this.mediaConfigs === undefined) {
             const jsonPath = this.getPath('mediaTypes.json');
-            this.mediaConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IMediaConfigs;
+            this.mediaConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TMediaConfigs;
         }
         return this.mediaConfigs;
     }
 
-    private setMediaTypeConfig(key: string, value: string): void {
+    private setMediaTypeConfig(key: NodePyATVMediaType, value: string): void {
         if (this.mediaConfigs === undefined) {
             this.mediaConfigs = {};
         }
@@ -594,15 +600,15 @@ It might be a good idea to uninstall unused apps.`);
         fs.writeFileSync(jsonPath, JSON.stringify(this.mediaConfigs, null, 4), { encoding:'utf8', flag:'w' });
     }
 
-    private getDeviceStateConfigs(): IStateConfigs {
+    private getDeviceStateConfigs(): TDeviceStateConfigs {
         if (this.stateConfigs === undefined) {
             const jsonPath = this.getPath('deviceStates.json');
-            this.stateConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IStateConfigs;
+            this.stateConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TDeviceStateConfigs;
         }
         return this.stateConfigs;
     }
 
-    private setDeviceStateConfig(key: string, value: string): void {
+    private setDeviceStateConfig(key: NodePyATVDeviceState, value: string): void {
         if (this.stateConfigs === undefined) {
             this.stateConfigs = {};
         }
@@ -611,15 +617,15 @@ It might be a good idea to uninstall unused apps.`);
         fs.writeFileSync(jsonPath, JSON.stringify(this.stateConfigs, null, 4), { encoding:'utf8', flag:'w' });
     }
 
-    private getRemoteKeyAsSwitchConfigs(): IRemoteKeysAsSwitchConfigs {
+    private getRemoteKeyAsSwitchConfigs(): TRemoteKeysAsSwitchConfigs {
         if (this.remoteKeyAsSwitchConfigs === undefined) {
             const jsonPath = this.getPath('remoteKeySwitches.json');
-            this.remoteKeyAsSwitchConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IRemoteKeysAsSwitchConfigs;
+            this.remoteKeyAsSwitchConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TRemoteKeysAsSwitchConfigs;
         }
         return this.remoteKeyAsSwitchConfigs;
     }
 
-    private setRemoteKeyAsSwitchConfig(key: string, value: string): void {
+    private setRemoteKeyAsSwitchConfig(key: RocketRemoteKey, value: string): void {
         if (this.remoteKeyAsSwitchConfigs === undefined) {
             this.remoteKeyAsSwitchConfigs = {};
         }
@@ -632,7 +638,7 @@ It might be a good idea to uninstall unused apps.`);
         if (this.offline) {
             throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
         }
-        return this.service!.getCharacteristic(this.platform.Characteristic.Active).value;
+        return this.service!.getCharacteristic(this.platform.Characteristic.Active).value as Nullable<CharacteristicValue>;
     }
 
     private async handleActiveSet(state: CharacteristicValue): Promise<void> {
@@ -659,11 +665,11 @@ It might be a good idea to uninstall unused apps.`);
                 }
                 if (this.mediaTypeServices[mediaType]) {
                     this.log.info(`New Media Type State: ${mediaType}`);
-                    this.mediaTypeServices[mediaType].setCharacteristic(this.platform.Characteristic.MotionDetected, true);
+                    this.mediaTypeServices[mediaType]!.setCharacteristic(this.platform.Characteristic.MotionDetected, true);
                 }
                 if (this.deviceStateServices[deviceState]) {
                     this.log.info(`New Device State: ${deviceState}`);
-                    this.deviceStateServices[deviceState].setCharacteristic(this.platform.Characteristic.MotionDetected, true);
+                    this.deviceStateServices[deviceState]!.setCharacteristic(this.platform.Characteristic.MotionDetected, true);
                 }
                 break;
             }
@@ -673,7 +679,7 @@ It might be a good idea to uninstall unused apps.`);
         }
     }
 
-    private handleActiveUpdate(event: NodePyATVDeviceEvent) {
+    private handleActiveUpdate(event: NodePyATVDeviceEvent): void {
         if (event.value === null) {
             return;
         }
@@ -689,7 +695,7 @@ It might be a good idea to uninstall unused apps.`);
     }
 
     private async handleActiveIdentifierGet(): Promise<Nullable<CharacteristicValue>> {
-        return this.service!.getCharacteristic(this.platform.Characteristic.ActiveIdentifier).value;
+        return this.service!.getCharacteristic(this.platform.Characteristic.ActiveIdentifier).value as Nullable<CharacteristicValue>;
     }
 
     private async handleActiveIdentifierSet(state: CharacteristicValue): Promise<void> {
@@ -713,7 +719,7 @@ It might be a good idea to uninstall unused apps.`);
     }
 
     private async handleConfiguredNameGet(): Promise<Nullable<CharacteristicValue>> {
-        return this.service!.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+        return this.service!.getCharacteristic(this.platform.Characteristic.ConfiguredName).value as Nullable<CharacteristicValue>;
     }
 
     private async handleConfiguredNameSet(state: CharacteristicValue): Promise<void> {
@@ -730,7 +736,7 @@ It might be a good idea to uninstall unused apps.`);
     }
 
     private async handleSleepDiscoveryModeGet(): Promise<Nullable<CharacteristicValue>> {
-        return this.service!.getCharacteristic(this.platform.Characteristic.SleepDiscoveryMode).value;
+        return this.service!.getCharacteristic(this.platform.Characteristic.SleepDiscoveryMode).value as Nullable<CharacteristicValue>;
     }
 
     private async handleRemoteKeySet(state: CharacteristicValue): Promise<void> {
@@ -774,6 +780,8 @@ It might be a good idea to uninstall unused apps.`);
         case this.platform.Characteristic.RemoteKey.INFORMATION:
             this.rocketRemote?.topMenu();
             break;
+        default:
+            break;
         }
     }
 
@@ -800,7 +808,7 @@ It might be a good idea to uninstall unused apps.`);
     }
 
     private getCredentials(): string | undefined {
-        if (!this.credentials) {
+        if (this.credentials === undefined) {
             const path = this.getPath('credentials.txt', '');
             const fileContent = fs.readFileSync(path, 'utf8').trim();
             this.credentials = fileContent === '' ? undefined : fileContent;
@@ -929,13 +937,6 @@ It might be a good idea to uninstall unused apps.`);
         }
 
         return credentials;
-    }
-
-    public async untilBooted(): Promise<void> {
-        while (!this.booted) {
-            await delay(100);
-        }
-        this.log.debug('Reporting as booted.');
     }
 
     private async credentialsValid(): Promise<boolean> {
