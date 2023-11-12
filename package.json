@@ -9,7 +9,10 @@
         "lint": "eslint src/**.ts --max-warnings=0",
         "watch": "npm run build && npm link && nodemon",
         "build": "npm ci && rimraf -I ./dist && npm run lint && tsc && mkdir ./dist/html && cp ./src/html/*.html ./dist/html",
-        "prepublishOnly": "npm run build"
+        "prepublishOnly": "npm run build",
+        "publishPreMajor": "npm version premajor && npm publish --tag beta",
+        "publishPreMinor": "npm version preminor && npm publish --tag beta",
+        "publishPre": "npm version prerelease && npm publish --tag beta"
     },
     "engines": {
         "homebridge": "^1.7.0",
