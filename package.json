@@ -61,7 +61,7 @@
         "ts-node": "^10.9.1",
         "typescript": "^5.2.2",
         "rimraf": "^5.0.5",
-        "@types/md5": "^2.3.4"
+        "@types/md5": "^2.3.5"
     },
     "dependencies": {
         "@sebbo2002/node-pyatv": "^7.0.3",
