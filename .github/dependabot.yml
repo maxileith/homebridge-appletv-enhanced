@@ -26,6 +26,7 @@ updates:
           # Prefix all commit messages with "npm: "
           prefix: npm
       versioning-strategy: increase
+      rebase-strategy: disabled
 
     # Enable version updates for pip
     - package-ecosystem: pip
@@ -48,3 +49,4 @@ updates:
           # Prefix all commit messages with "pip: "
           prefix: pip
       versioning-strategy: increase
+      rebase-strategy: disabled
