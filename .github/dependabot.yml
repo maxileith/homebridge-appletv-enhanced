@@ -15,7 +15,7 @@ updates:
           time: "04:00"
           # Use CET
           timezone: Europe/Berlin
-      target-branch: main
+      target-branch: develop
       labels:
           - dependency
       reviewers:
@@ -37,7 +37,7 @@ updates:
           time: "04:00"
           # Use CET
           timezone: Europe/Berlin
-      target-branch: main
+      target-branch: develop
       labels:
           - dependency
       reviewers:
