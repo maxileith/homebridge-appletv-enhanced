@@ -5,44 +5,46 @@
 
 version: 2
 updates:
-  # Enable version updates for npm
-  - package-ecosystem: npm #
-    # Look for `package.json` and `lock` files in the `root` directory
-    directory: /
-    # Check the npm registry for updates every day (weekdays)
-    schedule:
-      interval: daily
-      time: "04:00"
-      # Use CET
-      timezone: Europe/Berlin
-    target-branch: main
-    labels:
-      - dependency
-    reviewers:
-      - maxileith
-    assignees:
-      - maxileith
-    commit-message:
-      # Prefix all commit messages with "npm: "
-      prefix: "npm"
+    # Enable version updates for npm
+    - package-ecosystem: npm #
+      # Look for `package.json` and `lock` files in the `root` directory
+      directory: /
+      # Check the npm registry for updates every day (weekdays)
+      schedule:
+          interval: daily
+          time: "04:00"
+          # Use CET
+          timezone: Europe/Berlin
+      target-branch: main
+      labels:
+          - dependency
+      reviewers:
+          - maxileith
+      assignees:
+          - maxileith
+      commit-message:
+          # Prefix all commit messages with "npm: "
+          prefix: npm
+      versioning-strategy: increase
 
-  # Enable version updates for pip
-  - package-ecosystem: pip
-    # Look for a `requirements.txt` in the `root` directory
-    directory: /
-    # Check the pip registry for updates every day (weekdays)
-    schedule:
-      interval: daily
-      time: "04:00"
-      # Use CET
-      timezone: Europe/Berlin
-    target-branch: main
-    labels:
-      - dependency
-    reviewers:
-      - maxileith
-    assignees:
-      - maxileith
-    commit-message:
-      # Prefix all commit messages with "pip: "
-      prefix: "pip"
+    # Enable version updates for pip
+    - package-ecosystem: pip
+      # Look for a `requirements.txt` in the `root` directory
+      directory: /
+      # Check the pip registry for updates every day (weekdays)
+      schedule:
+          interval: daily
+          time: "04:00"
+          # Use CET
+          timezone: Europe/Berlin
+      target-branch: main
+      labels:
+          - dependency
+      reviewers:
+          - maxileith
+      assignees:
+          - maxileith
+      commit-message:
+          # Prefix all commit messages with "pip: "
+          prefix: pip
+      versioning-strategy: increase
