@@ -7,9 +7,9 @@
     "author": "Maximilian Leith",
     "scripts": {
         "lint": "eslint src/**.ts --max-warnings=0",
-        "watch": "npm install && npm run build && npm link && nodemon",
-        "build": "rimraf -I ./dist && tsc && mkdir ./dist/html && cp ./src/html/*.html ./dist/html",
-        "prepublishOnly": "npm install && npm run lint && npm run build"
+        "watch": "npm run build && npm link && nodemon",
+        "build": "npm ci && rimraf -I ./dist && tsc && mkdir ./dist/html && cp ./src/html/*.html ./dist/html",
+        "prepublishOnly": "npm ci && npm run lint && npm run build"
     },
     "engines": {
         "homebridge": "^1.7.0",
