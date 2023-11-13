@@ -9,7 +9,8 @@
         "lint": "eslint src/**.ts --max-warnings=0",
         "watch": "npm run build && npm link && nodemon",
         "build": "npm ci && rimraf -I ./dist && npm run lint && tsc && mkdir ./dist/html && cp ./src/html/*.html ./dist/html",
-        "prepublishOnly": "npm run build"
+        "prepublishOnly": "npm run build",
+        "postversion": "git push && git push --tags"
     },
     "engines": {
         "homebridge": "^1.7.0",

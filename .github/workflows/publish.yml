@@ -6,7 +6,7 @@ on:
       - "*"
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -16,6 +16,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
+          registry-url: "https://registry.npmjs.org"
 
       - name: Publish Beta
         if: ${{ contains(github.ref_name, '-') }}
