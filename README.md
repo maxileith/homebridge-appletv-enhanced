@@ -114,7 +114,8 @@ To configure manually, add the following to the `platforms` section of Homebridg
         "multicast": true,
         "unicast": ["192.168.0.15"],
         "blacklist": ["AA:BB:CC:DD:EE:FF", "192.168.0.42"]
-    }
+    },
+    "forceVenvRecreate": false
 }
 ```
 
