@@ -11,9 +11,8 @@ updates:
     directory: /
     # Check the npm registry for updates every day (weekdays)
     schedule:
-      interval: weekly
-      day: friday
-      time: "13:00"
+      interval: daily
+      time: "04:00"
       # Use CET
       timezone: Europe/Berlin
     target-branch: develop
@@ -27,6 +26,14 @@ updates:
       # Prefix all commit messages with "npm: "
       prefix: npm
     versioning-strategy: increase
+    groups:
+      typescript-eslint:
+        patterns:
+          - "@typescript-eslint/*"
+      md5:
+        patterns:
+          - "@types/md5"
+          - "md5"
 
   # Enable version updates for pip
   - package-ecosystem: pip
@@ -34,9 +41,8 @@ updates:
     directory: /
     # Check the pip registry for updates every day (weekdays)
     schedule:
-      interval: weekly
-      day: friday
-      time: "13:00"
+      interval: daily
+      time: "04:00"
       # Use CET
       timezone: Europe/Berlin
     target-branch: develop
@@ -50,3 +56,9 @@ updates:
       # Prefix all commit messages with "pip: "
       prefix: pip
     versioning-strategy: increase
+    groups:
+      pydantic:
+        patterns:
+          - "pydantic"
+          - "pydantic_core"
+          - "pydantic-core"

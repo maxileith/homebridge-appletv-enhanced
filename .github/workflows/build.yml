@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: ubuntu-latest Node 20 Build
+    name: ubuntu-latest Node ${{ matrix.node }} Build
     runs-on: ubuntu-latest
 
     strategy:
