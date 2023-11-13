@@ -28,6 +28,7 @@ This plugin automatically discovers Apple TV devices in the local network and ex
 ## Requirements
 
 -   Only Linux will be supported by the maintainer
+-   Most recent Version of Node 20 LTS or 18 LTS
 -   Python 3.8, 3.9, 3.10 or 3.11
 -   Python virtual environment module `virtualenv`. (the plugin will create a virtual environment on startup and will install python dependencies in this virtual environment)
     -   The python module `virtualenv` has to be installed manually. This won't be handled by the plugin itself.
