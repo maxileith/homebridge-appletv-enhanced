@@ -98,7 +98,7 @@
                 "items": {
                     "type": "string",
                     "title": "URI",
-                    "placeholder": "vlc://https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8"
+                    "placeholder": "https://www.disneyplus.com/movies/rogue-one-a-star-wars-story/14CV6eSbygOA"
                 }
             },
             "discover": {
