@@ -1,0 +1,41 @@
+name: Pip Requirements Compatibility Check
+
+on:
+  pull_request:
+    paths:
+      - "requirements.txt"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: "${{ matrix.os }} - Python ${{ matrix.python }}"
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python:
+          - "3.8"
+          - "3.9"
+          - "3.10"
+          - "3.11"
+        os:
+          - ubuntu-latest
+          - macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Print Python version
+        run: python3 --version
+
+      - name: Upgrade Pip
+        run: pip3 install --upgrade pip
+
+      - name: Install dependencies
+        run: pip3 install -r requirements.txt

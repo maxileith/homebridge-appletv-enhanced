@@ -1,0 +1,45 @@
+name: "CodeQL"
+
+on:
+  push:
+    branches: ["develop", "main"]
+    paths-ignore:
+      - "**/*.md"
+      - "**/*.gif"
+      - "**/*.png"
+  pull_request:
+    branches: ["develop", "main"]
+    paths-ignore:
+      - "**/*.md"
+      - "**/*.gif"
+      - "**/*.png"
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: "javascript-typescript"
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: "/language:javascript-typescript"
