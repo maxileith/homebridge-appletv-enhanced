@@ -254,15 +254,13 @@ export class AppleTVEnhancedAccessory {
             if (this.platform.config.mediaTypes !== undefined && !this.platform.config.mediaTypes.includes(mediaType)) {
                 continue;
             }
-            this.log.debug(`Adding media type ${mediaType} as a motion sensor.`);
+            const configuredName: string = this.getMediaConfigs()[mediaType] || capitalizeFirstLetter(mediaType);
+            this.log.debug(`Adding media type ${mediaType} as a motion sensor. (named: ${configuredName})`);
             const s: Service = this.accessory.getService(mediaType) ||
                 this.addServiceSave(this.platform.Service.MotionSensor, mediaType, mediaType)!
                     .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
                     .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(mediaType))
-                    .setCharacteristic(
-                        this.platform.Characteristic.ConfiguredName,
-                        this.getMediaConfigs()[mediaType] || capitalizeFirstLetter(mediaType),
-                    );
+                    .setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName);
             s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
                 .onSet(async (value: CharacteristicValue) => {
                     if (value === '') {
@@ -294,14 +292,12 @@ export class AppleTVEnhancedAccessory {
             if (this.platform.config.remoteKeysAsSwitch !== undefined && !this.platform.config.remoteKeysAsSwitch.includes(remoteKey)) {
                 continue;
             }
-            this.log.debug(`Adding remote key ${remoteKey} as a switch.`);
+            const configuredName: string = this.getRemoteKeyAsSwitchConfigs()[remoteKey] || snakeCaseToTitleCase(remoteKey);
+            this.log.debug(`Adding remote key ${remoteKey} as a switch. (named: ${configuredName})`);
             const s: Service = this.accessory.getService(remoteKey) ||
                 this.addServiceSave(this.platform.Service.Switch, remoteKey, remoteKey)!
                     .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(remoteKey))
-                    .setCharacteristic(
-                        this.platform.Characteristic.ConfiguredName,
-                        this.getRemoteKeyAsSwitchConfigs()[remoteKey] || snakeCaseToTitleCase(remoteKey),
-                    )
+                    .setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName)
                     .setCharacteristic(this.platform.Characteristic.On, false);
             s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
                 .onSet(async (value: CharacteristicValue) => {
@@ -357,17 +353,15 @@ export class AppleTVEnhancedAccessory {
             if (this.platform.config.deviceStates !== undefined && !this.platform.config.deviceStates.includes(deviceState)) {
                 continue;
             }
-            this.log.debug(`Adding device state ${deviceState} as a motion sensor.`);
+            const configuredName: string = this.getDeviceStateConfigs()[deviceState] || capitalizeFirstLetter(deviceState);
+            this.log.debug(`Adding device state ${deviceState} as a motion sensor. (named: ${configuredName})`);
             const s: Service = this.accessory.getService(deviceState) ||
                 this.addServiceSave(this.platform.Service.MotionSensor, deviceState, deviceState)!
                     .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
                     .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(deviceState))
-                    .setCharacteristic(
-                        this.platform.Characteristic.ConfiguredName,
-                        this.getDeviceStateConfigs()[deviceState] || capitalizeFirstLetter(deviceState),
-                    );
+                    .setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName);
             s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
-                .onSet(async (value) => {
+                .onSet(async (value: CharacteristicValue) => {
                     if (value === '') {
                         return;
                     }
@@ -446,11 +440,12 @@ export class AppleTVEnhancedAccessory {
                 ? this.platform.Characteristic.CurrentVisibilityState.HIDDEN
                 : this.platform.Characteristic.CurrentVisibilityState.SHOWN;
 
-        this.log.debug('Adding Avada Kedavra as an input.');
+        const configuredName: string = this.getCommonConfig()['avadaKedavraName'] || 'Avada Kedavra';
+        this.log.debug(`Adding Avada Kedavra as an input. (named: ${configuredName})`);
 
         this.avadaKedavraService = this.accessory.getService('Avada Kedavra') ||
             this.addServiceSave(this.platform.Service.InputSource, 'Avada Kedavra', 'avadaKedavra')!
-                .setCharacteristic(this.platform.Characteristic.ConfiguredName, 'Avada Kedavra')
+                .setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName)
                 .setCharacteristic(this.platform.Characteristic.InputSourceType, this.platform.Characteristic.InputSourceType.OTHER)
                 .setCharacteristic(this.platform.Characteristic.IsConfigured, this.platform.Characteristic.IsConfigured.CONFIGURED)
                 .setCharacteristic(this.platform.Characteristic.Name, 'Avada Kedavra')
@@ -460,7 +455,7 @@ export class AppleTVEnhancedAccessory {
                 .setCharacteristic(this.platform.Characteristic.Identifier, AVADA_KEDAVRA_IDENTIFIER);
 
         this.avadaKedavraService.getCharacteristic(this.platform.Characteristic.TargetVisibilityState)
-            .onSet(async (value) => {
+            .onSet(async (value: CharacteristicValue) => {
                 const current: Nullable<CharacteristicValue> =
                     this.avadaKedavraService!.getCharacteristic(this.platform.Characteristic.TargetVisibilityState).value;
                 this.log.info(`Changing visibility state of Avada Kedavra from ${current} to ${value}.`);
@@ -491,7 +486,7 @@ export class AppleTVEnhancedAccessory {
 
         let addedApps: number = 0;
         apps.every((app) => {
-            this.log.debug(`Adding ${appConfigs[app.id].configuredName} (${app.id}) as an input.`);
+            this.log.debug(`Adding ${app.id} as an input. (named: ${appConfigs[app.id].configuredName})`);
             const s: Service | undefined =
                 this.accessory.getService(app.name) || this.addServiceSave(this.platform.Service.InputSource, app.name, app.id);
 
@@ -519,7 +514,7 @@ It might be a good idea to uninstall unused apps.`);
                 .setCharacteristic(this.platform.Characteristic.TargetVisibilityState, appConfigs[app.id].visibilityState)
                 .setCharacteristic(this.platform.Characteristic.Identifier, appConfigs[app.id].identifier);
             s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
-                .onSet(async (value) => {
+                .onSet(async (value: CharacteristicValue) => {
                     if (value === '') {
                         return;
                     }
@@ -530,18 +525,21 @@ It might be a good idea to uninstall unused apps.`);
                     appConfigs[app.id].configuredName = value.toString();
                     this.setAppConfigs(appConfigs);
                 })
-                .onGet(async () => {
+                .onGet(async (): Promise<Nullable<CharacteristicValue>> => {
+                    if (this.offline) {
+                        throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+                    }
                     return appConfigs[app.id].configuredName;
                 });
             s.getCharacteristic(this.platform.Characteristic.IsConfigured)
-                .onSet(async (value) => {
+                .onSet(async (value: CharacteristicValue) => {
                     this.log.info(`Changing is configured of ${appConfigs[app.id].configuredName} (${app.id}) \
 from ${appConfigs[app.id].isConfigured} to ${value}.`);
                     appConfigs[app.id].isConfigured = value as 0 | 1;
                     this.setAppConfigs(appConfigs);
                 });
             s.getCharacteristic(this.platform.Characteristic.TargetVisibilityState)
-                .onSet(async (value) => {
+                .onSet(async (value: CharacteristicValue) => {
                     this.log.info(`Changing visibility state of ${appConfigs[app.id].configuredName} (${app.id}) \
 from ${appConfigs[app.id].visibilityState} to ${value}.`);
                     appConfigs[app.id].visibilityState = value as 0 | 1;
