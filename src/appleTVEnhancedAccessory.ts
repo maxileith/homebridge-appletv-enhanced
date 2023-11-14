@@ -454,6 +454,26 @@ export class AppleTVEnhancedAccessory {
                 .setCharacteristic(this.platform.Characteristic.TargetVisibilityState, visibilityState)
                 .setCharacteristic(this.platform.Characteristic.Identifier, AVADA_KEDAVRA_IDENTIFIER);
 
+        this.avadaKedavraService.getCharacteristic(this.platform.Characteristic.ConfiguredName)
+            .onSet(async (value: CharacteristicValue) => {
+                if (value === '') {
+                    return;
+                }
+                const oldValue: Nullable<CharacteristicValue> =
+                    this.avadaKedavraService!.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+                if (oldValue === value) {
+                    return;
+                }
+                this.log.info(`Changing configured name of Avada Kedavra from ${oldValue} to ${value}.`);
+                this.setCommonConfig('avadaKedavraName', value.toString());
+            })
+            .onGet(async (): Promise<Nullable<CharacteristicValue>> => {
+                if (this.offline) {
+                    throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+                }
+                return this.avadaKedavraService!.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+            });
+
         this.avadaKedavraService.getCharacteristic(this.platform.Characteristic.TargetVisibilityState)
             .onSet(async (value: CharacteristicValue) => {
                 const current: Nullable<CharacteristicValue> =

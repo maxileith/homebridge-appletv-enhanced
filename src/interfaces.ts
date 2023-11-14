@@ -23,6 +23,7 @@ export interface ICommonConfig {
     configuredName?: string;
     activeIdentifier?: number;
     showAvadaKedavra?: number;
+    avadaKedavraName?: string;
 }
 
 export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_bridge' | 'name' | 'platform'> {
