@@ -1001,24 +1001,42 @@ media-src * \'self\'');
                 await this.device.listApps();
                 return true;
             } catch (error: unknown) {
-                if (error instanceof Error) {
-                    if (error.message.includes('pyatv.exceptions.ProtocolError: Command _systemInfo failed')) {
-                        this.log.debug(error.message);
-                        continue;
-                    }
+                if (error instanceof Error && error.message.includes('pyatv.exceptions.ProtocolError: Command _systemInfo failed')) {
+                    this.log.debug(error.message);
+                    this.log.debug(error.stack as string);
+                    continue;
+                }
 
-                    if (
-                        error.message.includes('asyncio.exceptions.CancelledError') &&
-                        error.message.includes('raise asyncio.TimeoutError')
-                    ) {
-                        this.log.debug(error.message);
+                if (
+                    error instanceof Error &&
+                    error.message.includes('asyncio.exceptions.CancelledError') &&
+                    error.message.includes('raise asyncio.TimeoutError')
+                ) {
+                    this.log.debug(error.message);
+                    this.log.debug(error.stack as string);
+                    while (true) {
                         this.log.warn('The plugin is receiving errors that look like you have not set the access level of Speakers & TVs \
 in your home app to "Everybody" or "Anybody On the Same Network". Fix this and restart the plugin to continue initializing the Apple TV \
 device. Enable debug logging to see the original errors.');
-                        while (true) {
-                            await delay(300000);
-                        }
+                        await delay(300000);
                     }
+                }
+
+                if (
+                    error instanceof Error &&
+                    error.message.includes('Could not find any Apple TV on current network')
+                ) {
+                    while (true) {
+                        this.log.warn('Apple TV can be reached on OSI Layer 2 but not on 3. This is likely a network problem. Restart \
+the plugin after you have fixed the root cause.');
+                        await delay(300000);
+                    }
+                }
+
+                if (error instanceof Error) {
+                    this.log.error(error.message);
+                    this.log.error(error.stack as string);
+                    process.exit(1);
                 }
 
                 throw error;

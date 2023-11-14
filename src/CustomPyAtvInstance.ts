@@ -19,12 +19,13 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
     }
 
     public static async find(options?: nodePyatv.NodePyATVFindAndInstanceOptions): Promise<nodePyatv.NodePyATVDevice[]> {
-        return nodePyatv.NodePyATVInstance.find(this.extendOptions(options)).then(async (results) => {
-            for (const result of results) {
-                this.cachedDevices[result.id!] = result;
-            }
-            return results;
-        });
+        return nodePyatv.NodePyATVInstance.find(this.extendOptions(options))
+            .then(async (results) => {
+                for (const result of results) {
+                    this.cachedDevices[result.id!] = result;
+                }
+                return results;
+            });
     }
 
     public static deviceAdvanced(
