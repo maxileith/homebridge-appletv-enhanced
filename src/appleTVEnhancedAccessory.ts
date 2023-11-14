@@ -78,38 +78,38 @@ export class AppleTVEnhancedAccessory {
 
         this.log = new PrefixLogger(this.platform.ogLog, `${this.device.name} (${this.device.id})`);
 
-        const pairingRequired = (): void => {
-            this.pair(this.device.host, this.device.name).then((c) => {
+        const credentials: string | undefined = this.getCredentials();
+        this.device = CustomPyAtvInstance.deviceAdvanced({
+            id: this.accessory.context.id as string,
+            airplayCredentials: credentials,
+            companionCredentials: credentials,
+        })!;
+
+        const pairingRequired = async (): Promise<void> => {
+            return this.pair(this.device.host, this.device.name).then((c) => {
                 this.setCredentials(c);
                 this.device = CustomPyAtvInstance.deviceAdvanced({
                     id: this.device.id!,
                     airplayCredentials: c,
                     companionCredentials: c,
                 })!;
-                this.startUp();
                 this.log.warn('Paring was successful. Add it to your home in the Home app: com.apple.home://launch');
             });
         };
 
-        const credentials: string | undefined = this.getCredentials();
-        if (credentials === undefined) {
-            pairingRequired();
-        } else {
-            this.device = CustomPyAtvInstance.deviceAdvanced({
-                id: this.device.id!,
-                airplayCredentials: credentials,
-                companionCredentials: credentials,
-            })!;
-            this.credentialsValid().then((valid) => {
+        const validationLoop = (): void => {
+            this.credentialsValid().then((valid: boolean): void => {
                 if (valid) {
                     this.log.info('Credentials are still valid. Continuing ...');
                     this.startUp();
                 } else {
                     this.log.warn('Credentials are no longer valid. Need to repair ...');
-                    pairingRequired();
+                    pairingRequired().then(validationLoop.bind(this));
                 }
             });
-        }
+        };
+
+        validationLoop();
     }
 
     public async untilBooted(): Promise<void> {
@@ -991,17 +991,37 @@ media-src * \'self\'');
     }
 
     private async credentialsValid(): Promise<boolean> {
+        if (this.getCredentials() === undefined) {
+            return false;
+        }
+
         for (let i: number = 0; i < 5; i++) {
             this.log.info('verifying credentials ...');
             try {
                 await this.device.listApps();
                 return true;
             } catch (error: unknown) {
-                if (error instanceof Error && error.message.includes('pyatv.exceptions.ProtocolError: Command _systemInfo failed')) {
-                    this.log.debug(error.message);
-                } else {
-                    throw error;
+                if (error instanceof Error) {
+                    if (error.message.includes('pyatv.exceptions.ProtocolError: Command _systemInfo failed')) {
+                        this.log.debug(error.message);
+                        continue;
+                    }
+
+                    if (
+                        error.message.includes('asyncio.exceptions.CancelledError') &&
+                        error.message.includes('raise asyncio.TimeoutError')
+                    ) {
+                        this.log.debug(error.message);
+                        this.log.warn('The plugin is receiving errors that look like you have not set the access level of Speakers & TVs \
+in your home app to "Everybody" or "Anybody On the Same Network". Fix this and restart the plugin to continue initializing the Apple TV \
+device. Enable debug logging to see the original errors.');
+                        while (true) {
+                            await delay(300000);
+                        }
+                    }
                 }
+
+                throw error;
             }
         }
         return false;

@@ -35,7 +35,7 @@ This plugin automatically discovers Apple TV devices in the local network and ex
         -   On debian-based distros: `sudo apt install python3-venv`
         -   Installation on other distros may vary
 -   Apple TV Models A1625, A1842, A2169, A2737, A2843 are supported (all 4K ones and the latest HD one)
--   The access of Speakers & TVs should by either set to "Everybody" or "Anybody On the Same Network" in the Home app
+-   The access of Speakers & TVs should be either set to "Everybody" or "Anybody On the Same Network" in the Home app
 -   Raspberry Pi 1, 2, 3 and Zero 1, 2 are not recommended for performance reasons. Recommended are 3B+, 4B, 5B.
 -   The homebridge instance and Apple TVs need to be on the same subnet.
 
