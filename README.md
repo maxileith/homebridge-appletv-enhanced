@@ -27,7 +27,7 @@ This plugin automatically discovers Apple TV devices in the local network and ex
 
 ## Requirements
 
--   Only Linux will be supported by the maintainer
+-   Only Linux will be supported by the maintainer (although since MacOS / UNIX is similar to Linux, it should run on MacOS just fine)
 -   Most recent Version of Node 20 LTS or 18 LTS
 -   Python 3.8, 3.9, 3.10 or 3.11
 -   Python virtual environment module `virtualenv`. (the plugin will create a virtual environment on startup and will install python dependencies in this virtual environment)
@@ -37,6 +37,7 @@ This plugin automatically discovers Apple TV devices in the local network and ex
 -   Apple TV Models A1625, A1842, A2169, A2737, A2843 are supported (all 4K ones and the latest HD one)
 -   The access of Speakers & TVs should by either set to "Everybody" or "Anybody On the Same Network" in the Home app
 -   Raspberry Pi 1, 2, 3 and Zero 1, 2 are not recommended for performance reasons. Recommended are 3B+, 4B, 5B.
+-   The homebridge instance and Apple TVs need to be on the same subnet.
 
 ## Pairing
 
