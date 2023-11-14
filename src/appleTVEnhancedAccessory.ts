@@ -8,11 +8,19 @@ import md5 from 'md5';
 import { type ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import path from 'path';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
-import { capitalizeFirstLetter, delay, removeSpecialCharacters, getLocalIP, trimSpecialCharacters, snakeCaseToTitleCase } from './utils';
-import type { IAppConfig, IAppConfigs, ICommonConfig, IInputs, NodePyATVApp } from './interfaces';
+import {
+    capitalizeFirstLetter,
+    delay,
+    removeSpecialCharacters,
+    getLocalIP,
+    trimSpecialCharacters,
+    snakeCaseToTitleCase,
+    trimToMaxLength,
+} from './utils';
+import type { IAppConfig, IAppConfigs, ICommonConfig, ICustomInput, IInputs, NodePyATVApp } from './interfaces';
 import PrefixLogger from './PrefixLogger';
 import { DisplayOrderTypes, RocketRemoteKey } from './enums';
-import type { TDeviceStateConfigs, TMediaConfigs, TRemoteKeysAsSwitchConfigs } from './types';
+import type { TCustomInputConfigs, TDeviceStateConfigs, TMediaConfigs, TRemoteKeysAsSwitchConfigs } from './types';
 import RocketRemote from './RocketRemote';
 
 
@@ -56,9 +64,10 @@ export class AppleTVEnhancedAccessory {
     private appConfigs: IAppConfigs | undefined = undefined;
     private commonConfig: ICommonConfig | undefined = undefined;
 
-    private stateConfigs: TDeviceStateConfigs | undefined = undefined;
+    private deviceStateConfigs: TDeviceStateConfigs | undefined = undefined;
     private mediaConfigs: TMediaConfigs | undefined = undefined;
     private remoteKeyAsSwitchConfigs: TRemoteKeysAsSwitchConfigs | undefined = undefined;
+    private customInputConfigs: TCustomInputConfigs | undefined = undefined;
 
     private booted: boolean = false;
     private offline: boolean = false;
@@ -171,7 +180,7 @@ export class AppleTVEnhancedAccessory {
         this.createRemoteKeysAsSwitches();
         this.createAvadaKedavra();
         const apps: NodePyATVApp[] = await this.device.listApps();
-        this.createInputs(apps);
+        this.createInputs(apps, this.platform.config.customInputURIs || []);
 
         // create event listeners to keep everything up-to-date
         this.createListeners();
@@ -486,13 +495,17 @@ export class AppleTVEnhancedAccessory {
         this.service?.addLinkedService(this.avadaKedavraService);
     }
 
-    private createInputs(apps: NodePyATVApp[]): void {
+    private createInputs(apps: NodePyATVApp[], customURIs: string[]): void {
+        const appsAndCustomInputs: (ICustomInput | NodePyATVApp)[] = [...customURIs.map((uri) => {
+            return { id: uri, name: uri };
+        }), ...apps];
+
         const appConfigs: IAppConfigs = this.getAppConfigs();
 
-        apps.forEach((app) => {
+        appsAndCustomInputs.forEach((app: ICustomInput | NodePyATVApp) => {
             if (!Object.keys(appConfigs).includes(app.id)) {
                 appConfigs[app.id] = {
-                    configuredName: DEFAULT_APP_RENAME[app.id] || trimSpecialCharacters(app.name),
+                    configuredName: DEFAULT_APP_RENAME[app.id] || trimSpecialCharacters(trimToMaxLength(app.name, 64)),
                     isConfigured: this.platform.Characteristic.IsConfigured.CONFIGURED,
                     visibilityState: HIDE_BY_DEFAULT_APPS.includes(app.id)
                         ? this.platform.Characteristic.CurrentVisibilityState.HIDDEN
@@ -501,11 +514,18 @@ export class AppleTVEnhancedAccessory {
                 };
             }
         });
+        this.setAppConfigs(appConfigs);
 
-        apps.sort((a, b) => appConfigs[a.id].configuredName > appConfigs[b.id].configuredName ? 1 : -1);
+        appsAndCustomInputs.sort((a, b) => {
+            if (customURIs.includes(a.id) === customURIs.includes(b.id)) {
+                return appConfigs[a.id].configuredName > appConfigs[b.id].configuredName ? 1 : -1;
+            } else {
+                return customURIs.includes(a.id) ? 1 : -1;
+            }
+        });
 
         let addedApps: number = 0;
-        apps.every((app) => {
+        appsAndCustomInputs.toReversed().every((app: ICustomInput | NodePyATVApp) => {
             this.log.debug(`Adding ${app.id} as an input. (named: ${appConfigs[app.id].configuredName})`);
             const s: Service | undefined =
                 this.accessory.getService(app.name) || this.addServiceSave(this.platform.Service.InputSource, app.name, app.id);
@@ -520,7 +540,8 @@ The following services have been added:
 - ${Object.keys(this.remoteKeyServices).length.toString().padStart(2, '0')} switches for remote keys
 - ${Object.keys(this.remoteKeyServices).length.toString().padStart(2, '0')} switches for remote keys
 - 01 Avada Kedavra as an input
-- ${addedApps.toString().padStart(2, '0')} apps as inputs have been added (${apps.length - addedApps} apps could not be added)
+- ${addedApps.toString().padStart(2, '0')} apps as inputs have been added (${apps.length - addedApps} apps could not be added; including \
+custom Inputs)
 It might be a good idea to uninstall unused apps.`);
                 return false;
             }
@@ -528,7 +549,7 @@ It might be a good idea to uninstall unused apps.`);
             s.setCharacteristic(this.platform.Characteristic.ConfiguredName, appConfigs[app.id].configuredName)
                 .setCharacteristic(this.platform.Characteristic.InputSourceType, this.platform.Characteristic.InputSourceType.APPLICATION)
                 .setCharacteristic(this.platform.Characteristic.IsConfigured, appConfigs[app.id].isConfigured)
-                .setCharacteristic(this.platform.Characteristic.Name, app.name)
+                .setCharacteristic(this.platform.Characteristic.Name, trimSpecialCharacters(trimToMaxLength(app.name, 64)))
                 .setCharacteristic(this.platform.Characteristic.CurrentVisibilityState, appConfigs[app.id].visibilityState)
                 .setCharacteristic(this.platform.Characteristic.InputDeviceType, this.platform.Characteristic.InputDeviceType.OTHER)
                 .setCharacteristic(this.platform.Characteristic.TargetVisibilityState, appConfigs[app.id].visibilityState)
@@ -573,9 +594,9 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
 
             return true;
         });
-        this.setAppConfigs(appConfigs);
 
-        const appOrderIdentifiers: number[] = apps.slice(0, addedApps).map((e) => appConfigs[e.id].identifier);
+        const appOrderIdentifiers: number[] =
+            appsAndCustomInputs.slice(appsAndCustomInputs.length - addedApps).map((e) => appConfigs[e.id].identifier);
         const appOrderIdentifiersWithAvadaKedavra: number[] = [AVADA_KEDAVRA_IDENTIFIER].concat(appOrderIdentifiers);
         const tlv8: string = this.appIdentifiersOrderToTLV8(appOrderIdentifiersWithAvadaKedavra);
         this.log.debug(`Input display order: ${tlv8}`);
@@ -650,20 +671,20 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
     }
 
     private getDeviceStateConfigs(): TDeviceStateConfigs {
-        if (this.stateConfigs === undefined) {
+        if (this.deviceStateConfigs === undefined) {
             const jsonPath: string = this.getPath('deviceStates.json');
-            this.stateConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TDeviceStateConfigs;
+            this.deviceStateConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TDeviceStateConfigs;
         }
-        return this.stateConfigs;
+        return this.deviceStateConfigs;
     }
 
     private setDeviceStateConfig(key: NodePyATVDeviceState, value: string): void {
-        if (this.stateConfigs === undefined) {
-            this.stateConfigs = {};
+        if (this.deviceStateConfigs === undefined) {
+            this.deviceStateConfigs = {};
         }
-        this.stateConfigs[key] = value;
+        this.deviceStateConfigs[key] = value;
         const jsonPath: string = this.getPath('deviceStates.json');
-        fs.writeFileSync(jsonPath, JSON.stringify(this.stateConfigs, null, 4), { encoding:'utf8', flag:'w' });
+        fs.writeFileSync(jsonPath, JSON.stringify(this.deviceStateConfigs, null, 4), { encoding:'utf8', flag:'w' });
     }
 
     private getRemoteKeyAsSwitchConfigs(): TRemoteKeysAsSwitchConfigs {
@@ -745,6 +766,9 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
     }
 
     private async handleActiveIdentifierGet(): Promise<Nullable<CharacteristicValue>> {
+        if (this.offline) {
+            throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+        }
         return this.service!.getCharacteristic(this.platform.Characteristic.ActiveIdentifier).value as Nullable<CharacteristicValue>;
     }
 

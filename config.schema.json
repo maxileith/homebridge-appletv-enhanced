@@ -89,6 +89,18 @@
                 "minimum": 5,
                 "maximum": 35
             },
+            "customInputURIs": {
+                "title": "Custom Input URIs",
+                "description": "Provide URIs for custom Inputs that open the URI on the Apple TV when selected",
+                "type": "array",
+                "default": [],
+                "required": true,
+                "items": {
+                    "type": "string",
+                    "title": "URI",
+                    "placeholder": "vlc://https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8"
+                }
+            },
             "discover": {
                 "title": "Discover",
                 "description": "Settings regarding the discovery of Apple TVs.",

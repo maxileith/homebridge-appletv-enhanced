@@ -3,4 +3,5 @@ import type { RocketRemoteKey } from './enums.ts';
 
 export type TMediaConfigs = Partial<Record<NodePyATVMediaType, string>>;
 export type TDeviceStateConfigs = Partial<Record<NodePyATVDeviceState, string>>;
+export type TCustomInputConfigs = Record<string, string>;
 export type TRemoteKeysAsSwitchConfigs = Partial<Record<RocketRemoteKey, string>>;
