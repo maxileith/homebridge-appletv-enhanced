@@ -207,13 +207,13 @@ export class AppleTVEnhancedAccessory {
         };
 
         const powerStateListener = (e: Error | NodePyATVDeviceEvent): void => filterErrorHandler(e, this.handleActiveUpdate.bind(this));
-        // const appIdListener = (e: Error | NodePyATVDeviceEvent) => filterErrorHandler(e, this.handleInputUpdate.bind(this));
+        const appIdListener = (e: Error | NodePyATVDeviceEvent): void => filterErrorHandler(e, this.handleInputUpdate.bind(this));
         const deviceStateListener = (e: Error | NodePyATVDeviceEvent): void => filterErrorHandler(
             e, this.handleDeviceStateUpdate.bind(this));
         const mediaTypeListener = (e: Error | NodePyATVDeviceEvent): void => filterErrorHandler(e, this.handleMediaTypeUpdate.bind(this));
 
         this.device.on('update:powerState', powerStateListener);
-        // this.device.on('update:appId', appIdListener);
+        this.device.on('update:appId', appIdListener);
         this.device.on('update:deviceState', deviceStateListener);
         this.device.on('update:mediaType', mediaTypeListener);
 
@@ -223,7 +223,7 @@ export class AppleTVEnhancedAccessory {
             this.log.warn('Lost connection. Trying to reconnect ...');
 
             this.device.removeListener('update:powerState', powerStateListener);
-            // this.device.removeListener('update:appId', appIdListener);
+            this.device.removeListener('update:appId', appIdListener);
             this.device.removeListener('update:deviceState', deviceStateListener);
             this.device.removeListener('update:mediaType', mediaTypeListener);
 
