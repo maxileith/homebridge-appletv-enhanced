@@ -129,7 +129,7 @@ export class AppleTVEnhancedAccessory {
     }
 
     private async startUp(): Promise<void> {
-        this.accessory.category = this.platform.api.hap.Categories.TV_SET_TOP_BOX;
+        this.accessory.category = this.platform.api.hap.Categories.APPLE_TV;
 
         // set accessory information
         this.accessory.getService(this.platform.Service.AccessoryInformation)!
