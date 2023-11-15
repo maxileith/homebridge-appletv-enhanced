@@ -16,6 +16,7 @@ This plugin automatically discovers Apple TV devices in the local network and ex
 -   Pairing process without the need to access the command line like with other plugins.
 -   Change the current App by selecting an input in HomeKit.
     -   The plugin is developed in a way that makes it possible to rename, hide or show inputs in HomeKit natively ... and safes it.
+    -   You can even define own inputs based on URIs in the configuration. For instance, you can create an input to open a certain Disney+ movie or show ... or pretty much anything you can think of. Take a look at the example `config.json` ;).
 -   The automation triggers that you are probably here for ...
     -   Since every Apple TV is exposed as a Set-Top Box, you can create a trigger on the power state to execute automations when turning on or off.
     -   For each media type (music, video, tv and unknown) the plugin will create a motion sensor (media types can be hidden or shown by changing the configuration).
@@ -35,7 +36,7 @@ This plugin automatically discovers Apple TV devices in the local network and ex
         -   On debian-based distros: `sudo apt install python3-venv`
         -   Installation on other distros may vary
 -   Apple TV Models A1625, A1842, A2169, A2737, A2843 are supported (all 4K ones and the latest HD one)
--   The access of Speakers & TVs should by either set to "Everybody" or "Anybody On the Same Network" in the Home app
+-   The access of Speakers & TVs should be either set to "Everybody" or "Anybody On the Same Network" in the Home app
 -   Raspberry Pi 1, 2, 3 and Zero 1, 2 are not recommended for performance reasons. Recommended are 3B+, 4B, 5B.
 -   The homebridge instance and Apple TVs need to be on the same subnet.
 
@@ -110,6 +111,12 @@ To configure manually, add the following to the `platforms` section of Homebridg
         "turn_on",
         "top_menu",
         "up"
+    ],
+    "customInputURIs": [
+        "https://www.disneyplus.com/movies/rogue-one-a-star-wars-story/14CV6eSbygOA",
+        "https://www.netflix.com/watch/81260280",
+        "https://tv.apple.com/show/silo/umc.cmc.3yksgc857px0k0rqe5zd4jice",
+        "vlc://https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8"
     ],
     "avadaKedavraAppAmount": 15,
     "discover": {

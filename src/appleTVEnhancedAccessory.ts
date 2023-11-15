@@ -8,8 +8,16 @@ import md5 from 'md5';
 import { type ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import path from 'path';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
-import { capitalizeFirstLetter, delay, removeSpecialCharacters, getLocalIP, trimSpecialCharacters, snakeCaseToTitleCase } from './utils';
-import type { IAppConfig, IAppConfigs, ICommonConfig, IInputs, NodePyATVApp } from './interfaces';
+import {
+    capitalizeFirstLetter,
+    delay,
+    removeSpecialCharacters,
+    getLocalIP,
+    trimSpecialCharacters,
+    snakeCaseToTitleCase,
+    trimToMaxLength,
+} from './utils';
+import type { IAppConfig, IAppConfigs, ICommonConfig, ICustomInput, IInputs, NodePyATVApp } from './interfaces';
 import PrefixLogger from './PrefixLogger';
 import { DisplayOrderTypes, RocketRemoteKey } from './enums';
 import type { TDeviceStateConfigs, TMediaConfigs, TRemoteKeysAsSwitchConfigs } from './types';
@@ -56,15 +64,13 @@ export class AppleTVEnhancedAccessory {
     private appConfigs: IAppConfigs | undefined = undefined;
     private commonConfig: ICommonConfig | undefined = undefined;
 
-    private stateConfigs: TDeviceStateConfigs | undefined = undefined;
+    private deviceStateConfigs: TDeviceStateConfigs | undefined = undefined;
     private mediaConfigs: TMediaConfigs | undefined = undefined;
     private remoteKeyAsSwitchConfigs: TRemoteKeysAsSwitchConfigs | undefined = undefined;
 
     private booted: boolean = false;
     private offline: boolean = false;
-    private turningOn: boolean = false;
-    private lastActiveSet: number = 0;
-    private isFirstActiveSet: boolean = true;
+    private lastTurningOnEvent: number = 0;
 
     private credentials: string | undefined = undefined;
 
@@ -78,38 +84,38 @@ export class AppleTVEnhancedAccessory {
 
         this.log = new PrefixLogger(this.platform.ogLog, `${this.device.name} (${this.device.id})`);
 
-        const pairingRequired = (): void => {
-            this.pair(this.device.host, this.device.name).then((c) => {
+        const credentials: string | undefined = this.getCredentials();
+        this.device = CustomPyAtvInstance.deviceAdvanced({
+            id: this.accessory.context.id as string,
+            airplayCredentials: credentials,
+            companionCredentials: credentials,
+        })!;
+
+        const pairingRequired = async (): Promise<void> => {
+            return this.pair(this.device.host, this.device.name).then((c) => {
                 this.setCredentials(c);
                 this.device = CustomPyAtvInstance.deviceAdvanced({
                     id: this.device.id!,
                     airplayCredentials: c,
                     companionCredentials: c,
                 })!;
-                this.startUp();
                 this.log.warn('Paring was successful. Add it to your home in the Home app: com.apple.home://launch');
             });
         };
 
-        const credentials: string | undefined = this.getCredentials();
-        if (credentials === undefined) {
-            pairingRequired();
-        } else {
-            this.device = CustomPyAtvInstance.deviceAdvanced({
-                id: this.device.id!,
-                airplayCredentials: credentials,
-                companionCredentials: credentials,
-            })!;
-            this.credentialsValid().then((valid) => {
+        const validationLoop = (): void => {
+            this.credentialsValid().then((valid: boolean): void => {
                 if (valid) {
                     this.log.info('Credentials are still valid. Continuing ...');
                     this.startUp();
                 } else {
                     this.log.warn('Credentials are no longer valid. Need to repair ...');
-                    pairingRequired();
+                    pairingRequired().then(validationLoop.bind(this));
                 }
             });
-        }
+        };
+
+        validationLoop();
     }
 
     public async untilBooted(): Promise<void> {
@@ -120,7 +126,7 @@ export class AppleTVEnhancedAccessory {
     }
 
     private async startUp(): Promise<void> {
-        this.accessory.category = this.platform.api.hap.Categories.TV_SET_TOP_BOX;
+        this.accessory.category = this.platform.api.hap.Categories.APPLE_TV;
 
         // set accessory information
         this.accessory.getService(this.platform.Service.AccessoryInformation)!
@@ -171,7 +177,7 @@ export class AppleTVEnhancedAccessory {
         this.createRemoteKeysAsSwitches();
         this.createAvadaKedavra();
         const apps: NodePyATVApp[] = await this.device.listApps();
-        this.createInputs(apps);
+        this.createInputs(apps, this.platform.config.customInputURIs || []);
 
         // create event listeners to keep everything up-to-date
         this.createListeners();
@@ -198,13 +204,13 @@ export class AppleTVEnhancedAccessory {
         };
 
         const powerStateListener = (e: Error | NodePyATVDeviceEvent): void => filterErrorHandler(e, this.handleActiveUpdate.bind(this));
-        // const appIdListener = (e: Error | NodePyATVDeviceEvent) => filterErrorHandler(e, this.handleInputUpdate.bind(this));
+        const appIdListener = (e: Error | NodePyATVDeviceEvent): void => filterErrorHandler(e, this.handleInputUpdate.bind(this));
         const deviceStateListener = (e: Error | NodePyATVDeviceEvent): void => filterErrorHandler(
             e, this.handleDeviceStateUpdate.bind(this));
         const mediaTypeListener = (e: Error | NodePyATVDeviceEvent): void => filterErrorHandler(e, this.handleMediaTypeUpdate.bind(this));
 
         this.device.on('update:powerState', powerStateListener);
-        // this.device.on('update:appId', appIdListener);
+        this.device.on('update:appId', appIdListener);
         this.device.on('update:deviceState', deviceStateListener);
         this.device.on('update:mediaType', mediaTypeListener);
 
@@ -214,7 +220,7 @@ export class AppleTVEnhancedAccessory {
             this.log.warn('Lost connection. Trying to reconnect ...');
 
             this.device.removeListener('update:powerState', powerStateListener);
-            // this.device.removeListener('update:appId', appIdListener);
+            this.device.removeListener('update:appId', appIdListener);
             this.device.removeListener('update:deviceState', deviceStateListener);
             this.device.removeListener('update:mediaType', mediaTypeListener);
 
@@ -254,15 +260,13 @@ export class AppleTVEnhancedAccessory {
             if (this.platform.config.mediaTypes !== undefined && !this.platform.config.mediaTypes.includes(mediaType)) {
                 continue;
             }
-            this.log.debug(`Adding media type ${mediaType} as a motion sensor.`);
+            const configuredName: string = this.getMediaConfigs()[mediaType] || capitalizeFirstLetter(mediaType);
+            this.log.debug(`Adding media type ${mediaType} as a motion sensor. (named: ${configuredName})`);
             const s: Service = this.accessory.getService(mediaType) ||
                 this.addServiceSave(this.platform.Service.MotionSensor, mediaType, mediaType)!
                     .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
                     .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(mediaType))
-                    .setCharacteristic(
-                        this.platform.Characteristic.ConfiguredName,
-                        this.getMediaConfigs()[mediaType] || capitalizeFirstLetter(mediaType),
-                    );
+                    .setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName);
             s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
                 .onSet(async (value: CharacteristicValue) => {
                     if (value === '') {
@@ -294,17 +298,15 @@ export class AppleTVEnhancedAccessory {
             if (this.platform.config.remoteKeysAsSwitch !== undefined && !this.platform.config.remoteKeysAsSwitch.includes(remoteKey)) {
                 continue;
             }
-            this.log.debug(`Adding remote key ${remoteKey} as a switch.`);
+            const configuredName: string = this.getRemoteKeyAsSwitchConfigs()[remoteKey] || snakeCaseToTitleCase(remoteKey);
+            this.log.debug(`Adding remote key ${remoteKey} as a switch. (named: ${configuredName})`);
             const s: Service = this.accessory.getService(remoteKey) ||
                 this.addServiceSave(this.platform.Service.Switch, remoteKey, remoteKey)!
                     .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(remoteKey))
-                    .setCharacteristic(
-                        this.platform.Characteristic.ConfiguredName,
-                        this.getRemoteKeyAsSwitchConfigs()[remoteKey] || snakeCaseToTitleCase(remoteKey),
-                    )
+                    .setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName)
                     .setCharacteristic(this.platform.Characteristic.On, false);
             s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
-                .onSet(async (value: CharacteristicValue) => {
+                .onSet(async (value: CharacteristicValue): Promise<void> => {
                     if (value === '') {
                         return;
                     }
@@ -317,13 +319,13 @@ export class AppleTVEnhancedAccessory {
                     this.setRemoteKeyAsSwitchConfig(remoteKey, value.toString());
                 });
             s.getCharacteristic(this.platform.Characteristic.On)
-                .onSet(async (value: CharacteristicValue) => {
+                .onSet(async (value: CharacteristicValue): Promise<void> => {
                     if (value) {
                         this.log.info(`remote ${remoteKey}`);
                         this.rocketRemote?.sendCommand(remoteKey);
-                        await delay(1000);
-                        s.setCharacteristic(this.platform.Characteristic.On, false);
                     }
+                    await delay(1000);
+                    s.updateCharacteristic(this.platform.Characteristic.On, false);
                 })
                 .onGet(async (): Promise<CharacteristicValue> => {
                     if (this.offline) {
@@ -339,7 +341,7 @@ export class AppleTVEnhancedAccessory {
     private async handleMediaTypeUpdate(event: NodePyATVDeviceEvent): Promise<void> {
         if (event.oldValue !== null && this.mediaTypeServices[event.oldValue]) {
             const s: Service = this.mediaTypeServices[event.oldValue];
-            s.setCharacteristic(this.platform.Characteristic.MotionDetected, false);
+            s.updateCharacteristic(this.platform.Characteristic.MotionDetected, false);
         }
         if (this.service?.getCharacteristic(this.platform.Characteristic.Active).value === this.platform.Characteristic.Active.INACTIVE) {
             return;
@@ -347,7 +349,7 @@ export class AppleTVEnhancedAccessory {
         this.log.info(`New Media Type State: ${event.value}`);
         if (event.value !== null && this.mediaTypeServices[event.value]) {
             const s: Service = this.mediaTypeServices[event.value];
-            s.setCharacteristic(this.platform.Characteristic.MotionDetected, true);
+            s.updateCharacteristic(this.platform.Characteristic.MotionDetected, true);
         }
     }
 
@@ -357,17 +359,15 @@ export class AppleTVEnhancedAccessory {
             if (this.platform.config.deviceStates !== undefined && !this.platform.config.deviceStates.includes(deviceState)) {
                 continue;
             }
-            this.log.debug(`Adding device state ${deviceState} as a motion sensor.`);
+            const configuredName: string = this.getDeviceStateConfigs()[deviceState] || capitalizeFirstLetter(deviceState);
+            this.log.debug(`Adding device state ${deviceState} as a motion sensor. (named: ${configuredName})`);
             const s: Service = this.accessory.getService(deviceState) ||
                 this.addServiceSave(this.platform.Service.MotionSensor, deviceState, deviceState)!
                     .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
                     .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(deviceState))
-                    .setCharacteristic(
-                        this.platform.Characteristic.ConfiguredName,
-                        this.getDeviceStateConfigs()[deviceState] || capitalizeFirstLetter(deviceState),
-                    );
+                    .setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName);
             s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
-                .onSet(async (value) => {
+                .onSet(async (value: CharacteristicValue) => {
                     if (value === '') {
                         return;
                     }
@@ -394,7 +394,7 @@ export class AppleTVEnhancedAccessory {
     private async handleDeviceStateUpdate(event: NodePyATVDeviceEvent): Promise<void> {
         if (event.oldValue !== null && this.deviceStateServices[event.oldValue] !== undefined) {
             const s: Service = this.deviceStateServices[event.oldValue];
-            s.setCharacteristic(this.platform.Characteristic.MotionDetected, false);
+            s.updateCharacteristic(this.platform.Characteristic.MotionDetected, false);
         }
         if (this.service?.getCharacteristic(this.platform.Characteristic.Active).value === this.platform.Characteristic.Active.INACTIVE) {
             return;
@@ -402,35 +402,35 @@ export class AppleTVEnhancedAccessory {
         this.log.info(`New Device State: ${event.value}`);
         if (event.value !== null && this.deviceStateServices[event.value] !== undefined) {
             const s: Service = this.deviceStateServices[event.value];
-            s.setCharacteristic(this.platform.Characteristic.MotionDetected, true);
+            s.updateCharacteristic(this.platform.Characteristic.MotionDetected, true);
         }
         switch (event.value) {
         case NodePyATVDeviceState.playing:
-            this.service?.setCharacteristic(
+            this.service?.updateCharacteristic(
                 this.platform.Characteristic.CurrentMediaState,
                 this.platform.Characteristic.CurrentMediaState.PLAY,
             );
             break;
         case NodePyATVDeviceState.paused:
-            this.service?.setCharacteristic(
+            this.service?.updateCharacteristic(
                 this.platform.Characteristic.CurrentMediaState,
                 this.platform.Characteristic.CurrentMediaState.PAUSE,
             );
             break;
         case NodePyATVDeviceState.stopped:
-            this.service?.setCharacteristic(
+            this.service?.updateCharacteristic(
                 this.platform.Characteristic.CurrentMediaState,
                 this.platform.Characteristic.CurrentMediaState.STOP,
             );
             break;
         case NodePyATVDeviceState.loading:
-            this.service?.setCharacteristic(
+            this.service?.updateCharacteristic(
                 this.platform.Characteristic.CurrentMediaState,
                 this.platform.Characteristic.CurrentMediaState.LOADING,
             );
             break;
         case null:
-            this.service?.setCharacteristic(
+            this.service?.updateCharacteristic(
                 this.platform.Characteristic.CurrentMediaState,
                 this.platform.Characteristic.CurrentMediaState.INTERRUPTED,
             );
@@ -446,11 +446,12 @@ export class AppleTVEnhancedAccessory {
                 ? this.platform.Characteristic.CurrentVisibilityState.HIDDEN
                 : this.platform.Characteristic.CurrentVisibilityState.SHOWN;
 
-        this.log.debug('Adding Avada Kedavra as an input.');
+        const configuredName: string = this.getCommonConfig()['avadaKedavraName'] || 'Avada Kedavra';
+        this.log.debug(`Adding Avada Kedavra as an input. (named: ${configuredName})`);
 
         this.avadaKedavraService = this.accessory.getService('Avada Kedavra') ||
             this.addServiceSave(this.platform.Service.InputSource, 'Avada Kedavra', 'avadaKedavra')!
-                .setCharacteristic(this.platform.Characteristic.ConfiguredName, 'Avada Kedavra')
+                .setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName)
                 .setCharacteristic(this.platform.Characteristic.InputSourceType, this.platform.Characteristic.InputSourceType.OTHER)
                 .setCharacteristic(this.platform.Characteristic.IsConfigured, this.platform.Characteristic.IsConfigured.CONFIGURED)
                 .setCharacteristic(this.platform.Characteristic.Name, 'Avada Kedavra')
@@ -459,25 +460,49 @@ export class AppleTVEnhancedAccessory {
                 .setCharacteristic(this.platform.Characteristic.TargetVisibilityState, visibilityState)
                 .setCharacteristic(this.platform.Characteristic.Identifier, AVADA_KEDAVRA_IDENTIFIER);
 
+        this.avadaKedavraService.getCharacteristic(this.platform.Characteristic.ConfiguredName)
+            .onSet(async (value: CharacteristicValue) => {
+                if (value === '') {
+                    return;
+                }
+                const oldValue: Nullable<CharacteristicValue> =
+                    this.avadaKedavraService!.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+                if (oldValue === value) {
+                    return;
+                }
+                this.log.info(`Changing configured name of Avada Kedavra from ${oldValue} to ${value}.`);
+                this.setCommonConfig('avadaKedavraName', value.toString());
+            })
+            .onGet(async (): Promise<Nullable<CharacteristicValue>> => {
+                if (this.offline) {
+                    throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+                }
+                return this.avadaKedavraService!.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+            });
+
         this.avadaKedavraService.getCharacteristic(this.platform.Characteristic.TargetVisibilityState)
-            .onSet(async (value) => {
+            .onSet(async (value: CharacteristicValue) => {
                 const current: Nullable<CharacteristicValue> =
                     this.avadaKedavraService!.getCharacteristic(this.platform.Characteristic.TargetVisibilityState).value;
                 this.log.info(`Changing visibility state of Avada Kedavra from ${current} to ${value}.`);
-                this.avadaKedavraService!.setCharacteristic(this.platform.Characteristic.CurrentVisibilityState, value);
+                this.avadaKedavraService!.updateCharacteristic(this.platform.Characteristic.CurrentVisibilityState, value);
                 this.setCommonConfig('showAvadaKedavra', value as number);
             });
 
         this.service?.addLinkedService(this.avadaKedavraService);
     }
 
-    private createInputs(apps: NodePyATVApp[]): void {
+    private createInputs(apps: NodePyATVApp[], customURIs: string[]): void {
+        const appsAndCustomInputs: (ICustomInput | NodePyATVApp)[] = [...customURIs.map((uri) => {
+            return { id: uri, name: uri };
+        }), ...apps];
+
         const appConfigs: IAppConfigs = this.getAppConfigs();
 
-        apps.forEach((app) => {
+        appsAndCustomInputs.forEach((app: ICustomInput | NodePyATVApp) => {
             if (!Object.keys(appConfigs).includes(app.id)) {
                 appConfigs[app.id] = {
-                    configuredName: DEFAULT_APP_RENAME[app.id] || trimSpecialCharacters(app.name),
+                    configuredName: DEFAULT_APP_RENAME[app.id] || trimSpecialCharacters(trimToMaxLength(app.name, 64)),
                     isConfigured: this.platform.Characteristic.IsConfigured.CONFIGURED,
                     visibilityState: HIDE_BY_DEFAULT_APPS.includes(app.id)
                         ? this.platform.Characteristic.CurrentVisibilityState.HIDDEN
@@ -486,12 +511,19 @@ export class AppleTVEnhancedAccessory {
                 };
             }
         });
+        this.setAppConfigs(appConfigs);
 
-        apps.sort((a, b) => appConfigs[a.id].configuredName > appConfigs[b.id].configuredName ? 1 : -1);
+        appsAndCustomInputs.sort((a, b) => {
+            if (customURIs.includes(a.id) === customURIs.includes(b.id)) {
+                return appConfigs[a.id].configuredName > appConfigs[b.id].configuredName ? 1 : -1;
+            } else {
+                return customURIs.includes(a.id) ? 1 : -1;
+            }
+        });
 
         let addedApps: number = 0;
-        apps.every((app) => {
-            this.log.debug(`Adding ${appConfigs[app.id].configuredName} (${app.id}) as an input.`);
+        appsAndCustomInputs.slice().reverse().every((app: ICustomInput | NodePyATVApp) => {
+            this.log.debug(`Adding ${app.id} as an input. (named: ${appConfigs[app.id].configuredName})`);
             const s: Service | undefined =
                 this.accessory.getService(app.name) || this.addServiceSave(this.platform.Service.InputSource, app.name, app.id);
 
@@ -505,7 +537,8 @@ The following services have been added:
 - ${Object.keys(this.remoteKeyServices).length.toString().padStart(2, '0')} switches for remote keys
 - ${Object.keys(this.remoteKeyServices).length.toString().padStart(2, '0')} switches for remote keys
 - 01 Avada Kedavra as an input
-- ${addedApps.toString().padStart(2, '0')} apps as inputs have been added (${apps.length - addedApps} apps could not be added)
+- ${addedApps.toString().padStart(2, '0')} apps as inputs have been added (${apps.length - addedApps} apps could not be added; including \
+custom Inputs)
 It might be a good idea to uninstall unused apps.`);
                 return false;
             }
@@ -513,13 +546,13 @@ It might be a good idea to uninstall unused apps.`);
             s.setCharacteristic(this.platform.Characteristic.ConfiguredName, appConfigs[app.id].configuredName)
                 .setCharacteristic(this.platform.Characteristic.InputSourceType, this.platform.Characteristic.InputSourceType.APPLICATION)
                 .setCharacteristic(this.platform.Characteristic.IsConfigured, appConfigs[app.id].isConfigured)
-                .setCharacteristic(this.platform.Characteristic.Name, app.name)
+                .setCharacteristic(this.platform.Characteristic.Name, trimSpecialCharacters(trimToMaxLength(app.name, 64)))
                 .setCharacteristic(this.platform.Characteristic.CurrentVisibilityState, appConfigs[app.id].visibilityState)
                 .setCharacteristic(this.platform.Characteristic.InputDeviceType, this.platform.Characteristic.InputDeviceType.OTHER)
                 .setCharacteristic(this.platform.Characteristic.TargetVisibilityState, appConfigs[app.id].visibilityState)
                 .setCharacteristic(this.platform.Characteristic.Identifier, appConfigs[app.id].identifier);
             s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
-                .onSet(async (value) => {
+                .onSet(async (value: CharacteristicValue) => {
                     if (value === '') {
                         return;
                     }
@@ -527,25 +560,29 @@ It might be a good idea to uninstall unused apps.`);
                         return;
                     }
                     this.log.info(`Changing configured name of ${app.id} from ${appConfigs[app.id].configuredName} to ${value}.`);
+                    s.updateCharacteristic(this.platform.Characteristic.ConfiguredName, value.toString());
                     appConfigs[app.id].configuredName = value.toString();
                     this.setAppConfigs(appConfigs);
                 })
-                .onGet(async () => {
+                .onGet(async (): Promise<Nullable<CharacteristicValue>> => {
+                    if (this.offline) {
+                        throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+                    }
                     return appConfigs[app.id].configuredName;
                 });
             s.getCharacteristic(this.platform.Characteristic.IsConfigured)
-                .onSet(async (value) => {
+                .onSet(async (value: CharacteristicValue) => {
                     this.log.info(`Changing is configured of ${appConfigs[app.id].configuredName} (${app.id}) \
 from ${appConfigs[app.id].isConfigured} to ${value}.`);
                     appConfigs[app.id].isConfigured = value as 0 | 1;
                     this.setAppConfigs(appConfigs);
                 });
             s.getCharacteristic(this.platform.Characteristic.TargetVisibilityState)
-                .onSet(async (value) => {
+                .onSet(async (value: CharacteristicValue) => {
                     this.log.info(`Changing visibility state of ${appConfigs[app.id].configuredName} (${app.id}) \
 from ${appConfigs[app.id].visibilityState} to ${value}.`);
                     appConfigs[app.id].visibilityState = value as 0 | 1;
-                    s.setCharacteristic(this.platform.Characteristic.CurrentVisibilityState, value);
+                    s.updateCharacteristic(this.platform.Characteristic.CurrentVisibilityState, value);
                     this.setAppConfigs(appConfigs);
                 });
             this.service!.addLinkedService(s);
@@ -555,9 +592,9 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
 
             return true;
         });
-        this.setAppConfigs(appConfigs);
 
-        const appOrderIdentifiers: number[] = apps.slice(0, addedApps).map((e) => appConfigs[e.id].identifier);
+        const appOrderIdentifiers: number[] =
+            appsAndCustomInputs.slice(appsAndCustomInputs.length - addedApps).map((e) => appConfigs[e.id].identifier);
         const appOrderIdentifiersWithAvadaKedavra: number[] = [AVADA_KEDAVRA_IDENTIFIER].concat(appOrderIdentifiers);
         const tlv8: string = this.appIdentifiersOrderToTLV8(appOrderIdentifiersWithAvadaKedavra);
         this.log.debug(`Input display order: ${tlv8}`);
@@ -577,7 +614,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         if (appConfig) {
             const appIdentifier: number = appConfig.identifier;
             this.setCommonConfig('activeIdentifier', appIdentifier);
-            this.service!.setCharacteristic(this.platform.Characteristic.ActiveIdentifier, appIdentifier);
+            this.service!.updateCharacteristic(this.platform.Characteristic.ActiveIdentifier, appIdentifier);
         } else {
             this.log.warn(`Could not update the input to ${appId} since the app is unknown.`);
         }
@@ -632,20 +669,20 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
     }
 
     private getDeviceStateConfigs(): TDeviceStateConfigs {
-        if (this.stateConfigs === undefined) {
+        if (this.deviceStateConfigs === undefined) {
             const jsonPath: string = this.getPath('deviceStates.json');
-            this.stateConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TDeviceStateConfigs;
+            this.deviceStateConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TDeviceStateConfigs;
         }
-        return this.stateConfigs;
+        return this.deviceStateConfigs;
     }
 
     private setDeviceStateConfig(key: NodePyATVDeviceState, value: string): void {
-        if (this.stateConfigs === undefined) {
-            this.stateConfigs = {};
+        if (this.deviceStateConfigs === undefined) {
+            this.deviceStateConfigs = {};
         }
-        this.stateConfigs[key] = value;
+        this.deviceStateConfigs[key] = value;
         const jsonPath: string = this.getPath('deviceStates.json');
-        fs.writeFileSync(jsonPath, JSON.stringify(this.stateConfigs, null, 4), { encoding:'utf8', flag:'w' });
+        fs.writeFileSync(jsonPath, JSON.stringify(this.deviceStateConfigs, null, 4), { encoding:'utf8', flag:'w' });
     }
 
     private getRemoteKeyAsSwitchConfigs(): TRemoteKeysAsSwitchConfigs {
@@ -673,19 +710,10 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
     }
 
     private async handleActiveSet(state: CharacteristicValue): Promise<void> {
-        // prevent turning on the Apple TV when starting up the plugin when HomePods are selected as audio output
-        if (this.isFirstActiveSet) {
-            this.log.debug('Not setting the active state since this is the initial update');
-            this.isFirstActiveSet = false;
-            return;
-        }
-
         const WAIT_MAX_FOR_STATES: number = 30; // seconds
         const STEPS: number = 500; // milliseconds
 
-        if (state === this.platform.Characteristic.Active.ACTIVE && !this.turningOn) {
-            this.turningOn = true;
-            this.lastActiveSet = Date.now();
+        if (state === this.platform.Characteristic.Active.ACTIVE) {
             this.rocketRemote?.turnOn();
             for (let i: number = STEPS; i <= WAIT_MAX_FOR_STATES * 1000; i += STEPS) {
                 const { mediaType, deviceState } = await this.device.getState();
@@ -696,16 +724,14 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
                 }
                 if (this.mediaTypeServices[mediaType]) {
                     this.log.info(`New Media Type State: ${mediaType}`);
-                    this.mediaTypeServices[mediaType]!.setCharacteristic(this.platform.Characteristic.MotionDetected, true);
+                    this.mediaTypeServices[mediaType]!.updateCharacteristic(this.platform.Characteristic.MotionDetected, true);
                 }
                 if (this.deviceStateServices[deviceState]) {
                     this.log.info(`New Device State: ${deviceState}`);
-                    this.deviceStateServices[deviceState]!.setCharacteristic(this.platform.Characteristic.MotionDetected, true);
+                    this.deviceStateServices[deviceState]!.updateCharacteristic(this.platform.Characteristic.MotionDetected, true);
                 }
-                break;
             }
-            this.turningOn = false;
-        } else if (state === this.platform.Characteristic.Active.INACTIVE && this.lastActiveSet + 7500 < Date.now()) {
+        } else if (state === this.platform.Characteristic.Active.INACTIVE) {
             this.rocketRemote?.turnOff();
         }
     }
@@ -719,14 +745,18 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         }
         const value: 0 | 1 =
             event.value === 'on' ? this.platform.Characteristic.Active.ACTIVE : this.platform.Characteristic.Active.INACTIVE;
-        if (value === this.platform.Characteristic.Active.INACTIVE && this.lastActiveSet + 7500 > Date.now()) {
+        if (value === this.platform.Characteristic.Active.INACTIVE && this.lastTurningOnEvent + 7500 > Date.now()) {
             return;
         }
+        this.lastTurningOnEvent = Date.now();
         this.log.info(`New Active State: ${event.value}`);
-        this.service!.setCharacteristic(this.platform.Characteristic.Active, value);
+        this.service!.updateCharacteristic(this.platform.Characteristic.Active, value);
     }
 
     private async handleActiveIdentifierGet(): Promise<Nullable<CharacteristicValue>> {
+        if (this.offline) {
+            throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+        }
         return this.service!.getCharacteristic(this.platform.Characteristic.ActiveIdentifier).value as Nullable<CharacteristicValue>;
     }
 
@@ -973,6 +1003,10 @@ media-src * \'self\'');
     }
 
     private async credentialsValid(): Promise<boolean> {
+        if (this.getCredentials() === undefined) {
+            return false;
+        }
+
         for (let i: number = 0; i < 5; i++) {
             this.log.info('verifying credentials ...');
             try {
@@ -981,9 +1015,43 @@ media-src * \'self\'');
             } catch (error: unknown) {
                 if (error instanceof Error && error.message.includes('pyatv.exceptions.ProtocolError: Command _systemInfo failed')) {
                     this.log.debug(error.message);
-                } else {
-                    throw error;
+                    this.log.debug(error.stack as string);
+                    continue;
                 }
+
+                if (
+                    error instanceof Error &&
+                    error.message.includes('asyncio.exceptions.CancelledError') &&
+                    error.message.includes('raise asyncio.TimeoutError')
+                ) {
+                    this.log.debug(error.message);
+                    this.log.debug(error.stack as string);
+                    while (true) {
+                        this.log.warn('The plugin is receiving errors that look like you have not set the access level of Speakers & TVs \
+in your home app to "Everybody" or "Anybody On the Same Network". Fix this and restart the plugin to continue initializing the Apple TV \
+device. Enable debug logging to see the original errors.');
+                        await delay(300000);
+                    }
+                }
+
+                if (
+                    error instanceof Error &&
+                    error.message.includes('Could not find any Apple TV on current network')
+                ) {
+                    while (true) {
+                        this.log.warn('Apple TV can be reached on OSI Layer 2 but not on 3. This is likely a network problem. Restart \
+the plugin after you have fixed the root cause.');
+                        await delay(300000);
+                    }
+                }
+
+                if (error instanceof Error) {
+                    this.log.error(error.message);
+                    this.log.error(error.stack as string);
+                    process.exit(1);
+                }
+
+                throw error;
             }
         }
         return false;

@@ -33,6 +33,14 @@ export function trimSpecialCharacters(value: string): string {
     return value;
 }
 
+export function trimToMaxLength(value: string, maxLength: number): string {
+    if (value.length <= maxLength) {
+        return value;
+    } else {
+        return value.substring(0, maxLength);
+    }
+}
+
 export function removeSpecialCharacters(str: string): string {
     return str.replace(/[^a-zA-Z0-9 ]/g, '').trim();
 }

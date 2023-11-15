@@ -13,8 +13,6 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
     public readonly Service: typeof Service;
     public readonly Characteristic: typeof Characteristic;
 
-    // this is used to track restored cached accessories
-    public readonly accessories: PlatformAccessory[] = [];
     private readonly publishedUUIDs: string[] = [];
 
     private readonly log: PrefixLogger;
@@ -58,20 +56,12 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             this.log.info('Starting device discovery ...');
             this.discoverDevices();
             setInterval(() => this.discoverDevices(), 60000);
+            setTimeout(() => this.warnNoDevices(), 150000);
         });
     }
 
-    /**
-   * This function is invoked when homebridge restores cached accessories from disk at startup.
-   * It should be used to setup event handlers for characteristics and update respective values.
-   */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public configureAccessory(accessory: PlatformAccessory): void {
-        this.log.info(`Loading accessory from cache: ${accessory.displayName}`);
-
-        // // add the restored accessory to the accessories cache so we can track if it has already been registered
-        this.accessories.push(accessory);
-    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
+    public configureAccessory(accessory: PlatformAccessory): void {}
 
     /**
    * This is an example method showing how to register discovered accessories.
@@ -171,5 +161,12 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
         }
 
         this.log.debug('Finished device discovery.');
+    }
+
+    private warnNoDevices(): void {
+        if (this.publishedUUIDs.length === 0) {
+            this.log.warn('The device discovery could not find any Apple TV devices until now. Are you sure that you have a compatible \
+Apple TV and the Apple TV is in the same subnet? (see https://github.com/maxileith/homebridge-appletv-enhanced#requirements)');
+        }
     }
 }

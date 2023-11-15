@@ -56,11 +56,10 @@ class PythonChecker {
     private async ensurePythonVersion(): Promise<void> {
         const version: string = await this.getSystemPythonVersion();
         if (SUPPORTED_PYTHON_VERSIONS.findIndex((e) => version.includes(e)) === -1) {
-            // eslint-disable-next-line no-constant-condition
             while (true) {
                 this.log.error(`${version} is installed. However, only Python \
 ${SUPPORTED_PYTHON_VERSIONS[0]} to ${SUPPORTED_PYTHON_VERSIONS[SUPPORTED_PYTHON_VERSIONS.length - 1]} is supported.`);
-                await delay(120000);
+                await delay(300000);
             }
         } else {
             this.log.info(`Python ${version} is installed and supported by the plugin.`);
@@ -105,12 +104,11 @@ Recreating the virtual environment now ...`);
     private async createVenv(): Promise<void> {
         const [stdout]: [string, string] = await this.runCommand('python3', ['-m', 'venv', this.venvPath, '--clear'], undefined, true);
         if (stdout.includes('not created successfully') || !this.isVenvCreated()) {
-            // eslint-disable-next-line no-constant-condition
             while (true) {
                 this.log.error('virtualenv python module is not installed. You need to install the \
 python package virtualenv either by using \'python3 -m pip install virutalenv\' or installing it via system packages. \
 On debian based distributions this is usally \'sudo apt install python3-venv\'');
-                await delay(60000);
+                await delay(300000);
             }
         } else if (stdout.trim() !== '') {
             this.log.warn(stdout);

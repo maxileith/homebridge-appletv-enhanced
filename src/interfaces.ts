@@ -23,6 +23,7 @@ export interface ICommonConfig {
     configuredName?: string;
     activeIdentifier?: number;
     showAvadaKedavra?: number;
+    avadaKedavraName?: string;
 }
 
 export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_bridge' | 'name' | 'platform'> {
@@ -30,6 +31,7 @@ export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_br
     deviceStates?: NodePyATVDeviceState[];
     remoteKeysAsSwitch?: RocketRemoteKey[];
     avadaKedavraAppAmount?: number;
+    customInputURIs?: string[];
     discover?: {
         multicast?: boolean;
         unicast?: string[];
@@ -42,4 +44,9 @@ export interface AlternatePyATVDeviceOptions {
     id: string;
     airplayCredentials?: string;
     companionCredentials?: string;
+}
+
+export interface ICustomInput {
+    id: string;
+    name: string;
 }

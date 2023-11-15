@@ -1,5 +1,4 @@
 {
-    "watch": ["src"],
     "ext": "ts",
     "ignore": [],
     "exec": "tsc && homebridge -I -D",

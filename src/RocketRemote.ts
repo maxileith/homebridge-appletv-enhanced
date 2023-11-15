@@ -46,9 +46,9 @@ class RocketRemote {
 
     public sendCommand(cmd: RocketRemoteKey | string, hideLog: boolean = false): void {
         if (hideLog) {
-            this.log.debug(`pyatv>${cmd}`);
+            this.log.debug(cmd);
         } else {
-            this.log.info(`pyatv>${cmd}`);
+            this.log.info(cmd);
         }
         this.process.stdin.write(`${cmd}\n`);
         this.lastCommandSend = Date.now();

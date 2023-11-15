@@ -89,6 +89,18 @@
                 "minimum": 5,
                 "maximum": 35
             },
+            "customInputURIs": {
+                "title": "Custom Input URIs",
+                "description": "Provide URIs for custom Inputs that open the URI on the Apple TV when selected",
+                "type": "array",
+                "default": [],
+                "required": true,
+                "items": {
+                    "type": "string",
+                    "title": "URI",
+                    "placeholder": "https://www.disneyplus.com/movies/rogue-one-a-star-wars-story/14CV6eSbygOA"
+                }
+            },
             "discover": {
                 "title": "Discover",
                 "description": "Settings regarding the discovery of Apple TVs.",
