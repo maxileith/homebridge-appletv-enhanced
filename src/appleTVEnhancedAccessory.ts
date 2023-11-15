@@ -20,7 +20,7 @@ import {
 import type { IAppConfig, IAppConfigs, ICommonConfig, ICustomInput, IInputs, NodePyATVApp } from './interfaces';
 import PrefixLogger from './PrefixLogger';
 import { DisplayOrderTypes, RocketRemoteKey } from './enums';
-import type { TCustomInputConfigs, TDeviceStateConfigs, TMediaConfigs, TRemoteKeysAsSwitchConfigs } from './types';
+import type { TDeviceStateConfigs, TMediaConfigs, TRemoteKeysAsSwitchConfigs } from './types';
 import RocketRemote from './RocketRemote';
 
 
@@ -67,13 +67,10 @@ export class AppleTVEnhancedAccessory {
     private deviceStateConfigs: TDeviceStateConfigs | undefined = undefined;
     private mediaConfigs: TMediaConfigs | undefined = undefined;
     private remoteKeyAsSwitchConfigs: TRemoteKeysAsSwitchConfigs | undefined = undefined;
-    private customInputConfigs: TCustomInputConfigs | undefined = undefined;
 
     private booted: boolean = false;
     private offline: boolean = false;
-    private turningOn: boolean = false;
-    private lastActiveSet: number = 0;
-    private isFirstActiveSet: boolean = true;
+    private lastTurningOnEvent: number = 0;
 
     private credentials: string | undefined = undefined;
 
@@ -309,7 +306,7 @@ export class AppleTVEnhancedAccessory {
                     .setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName)
                     .setCharacteristic(this.platform.Characteristic.On, false);
             s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
-                .onSet(async (value: CharacteristicValue) => {
+                .onSet(async (value: CharacteristicValue): Promise<void> => {
                     if (value === '') {
                         return;
                     }
@@ -322,13 +319,13 @@ export class AppleTVEnhancedAccessory {
                     this.setRemoteKeyAsSwitchConfig(remoteKey, value.toString());
                 });
             s.getCharacteristic(this.platform.Characteristic.On)
-                .onSet(async (value: CharacteristicValue) => {
+                .onSet(async (value: CharacteristicValue): Promise<void> => {
                     if (value) {
                         this.log.info(`remote ${remoteKey}`);
                         this.rocketRemote?.sendCommand(remoteKey);
-                        await delay(1000);
-                        s.setCharacteristic(this.platform.Characteristic.On, false);
                     }
+                    await delay(1000);
+                    s.updateCharacteristic(this.platform.Characteristic.On, false);
                 })
                 .onGet(async (): Promise<CharacteristicValue> => {
                     if (this.offline) {
@@ -344,7 +341,7 @@ export class AppleTVEnhancedAccessory {
     private async handleMediaTypeUpdate(event: NodePyATVDeviceEvent): Promise<void> {
         if (event.oldValue !== null && this.mediaTypeServices[event.oldValue]) {
             const s: Service = this.mediaTypeServices[event.oldValue];
-            s.setCharacteristic(this.platform.Characteristic.MotionDetected, false);
+            s.updateCharacteristic(this.platform.Characteristic.MotionDetected, false);
         }
         if (this.service?.getCharacteristic(this.platform.Characteristic.Active).value === this.platform.Characteristic.Active.INACTIVE) {
             return;
@@ -352,7 +349,7 @@ export class AppleTVEnhancedAccessory {
         this.log.info(`New Media Type State: ${event.value}`);
         if (event.value !== null && this.mediaTypeServices[event.value]) {
             const s: Service = this.mediaTypeServices[event.value];
-            s.setCharacteristic(this.platform.Characteristic.MotionDetected, true);
+            s.updateCharacteristic(this.platform.Characteristic.MotionDetected, true);
         }
     }
 
@@ -397,7 +394,7 @@ export class AppleTVEnhancedAccessory {
     private async handleDeviceStateUpdate(event: NodePyATVDeviceEvent): Promise<void> {
         if (event.oldValue !== null && this.deviceStateServices[event.oldValue] !== undefined) {
             const s: Service = this.deviceStateServices[event.oldValue];
-            s.setCharacteristic(this.platform.Characteristic.MotionDetected, false);
+            s.updateCharacteristic(this.platform.Characteristic.MotionDetected, false);
         }
         if (this.service?.getCharacteristic(this.platform.Characteristic.Active).value === this.platform.Characteristic.Active.INACTIVE) {
             return;
@@ -405,35 +402,35 @@ export class AppleTVEnhancedAccessory {
         this.log.info(`New Device State: ${event.value}`);
         if (event.value !== null && this.deviceStateServices[event.value] !== undefined) {
             const s: Service = this.deviceStateServices[event.value];
-            s.setCharacteristic(this.platform.Characteristic.MotionDetected, true);
+            s.updateCharacteristic(this.platform.Characteristic.MotionDetected, true);
         }
         switch (event.value) {
         case NodePyATVDeviceState.playing:
-            this.service?.setCharacteristic(
+            this.service?.updateCharacteristic(
                 this.platform.Characteristic.CurrentMediaState,
                 this.platform.Characteristic.CurrentMediaState.PLAY,
             );
             break;
         case NodePyATVDeviceState.paused:
-            this.service?.setCharacteristic(
+            this.service?.updateCharacteristic(
                 this.platform.Characteristic.CurrentMediaState,
                 this.platform.Characteristic.CurrentMediaState.PAUSE,
             );
             break;
         case NodePyATVDeviceState.stopped:
-            this.service?.setCharacteristic(
+            this.service?.updateCharacteristic(
                 this.platform.Characteristic.CurrentMediaState,
                 this.platform.Characteristic.CurrentMediaState.STOP,
             );
             break;
         case NodePyATVDeviceState.loading:
-            this.service?.setCharacteristic(
+            this.service?.updateCharacteristic(
                 this.platform.Characteristic.CurrentMediaState,
                 this.platform.Characteristic.CurrentMediaState.LOADING,
             );
             break;
         case null:
-            this.service?.setCharacteristic(
+            this.service?.updateCharacteristic(
                 this.platform.Characteristic.CurrentMediaState,
                 this.platform.Characteristic.CurrentMediaState.INTERRUPTED,
             );
@@ -488,7 +485,7 @@ export class AppleTVEnhancedAccessory {
                 const current: Nullable<CharacteristicValue> =
                     this.avadaKedavraService!.getCharacteristic(this.platform.Characteristic.TargetVisibilityState).value;
                 this.log.info(`Changing visibility state of Avada Kedavra from ${current} to ${value}.`);
-                this.avadaKedavraService!.setCharacteristic(this.platform.Characteristic.CurrentVisibilityState, value);
+                this.avadaKedavraService!.updateCharacteristic(this.platform.Characteristic.CurrentVisibilityState, value);
                 this.setCommonConfig('showAvadaKedavra', value as number);
             });
 
@@ -525,7 +522,7 @@ export class AppleTVEnhancedAccessory {
         });
 
         let addedApps: number = 0;
-        appsAndCustomInputs.toReversed().every((app: ICustomInput | NodePyATVApp) => {
+        appsAndCustomInputs.slice().reverse().every((app: ICustomInput | NodePyATVApp) => {
             this.log.debug(`Adding ${app.id} as an input. (named: ${appConfigs[app.id].configuredName})`);
             const s: Service | undefined =
                 this.accessory.getService(app.name) || this.addServiceSave(this.platform.Service.InputSource, app.name, app.id);
@@ -563,6 +560,7 @@ It might be a good idea to uninstall unused apps.`);
                         return;
                     }
                     this.log.info(`Changing configured name of ${app.id} from ${appConfigs[app.id].configuredName} to ${value}.`);
+                    s.updateCharacteristic(this.platform.Characteristic.ConfiguredName, value.toString());
                     appConfigs[app.id].configuredName = value.toString();
                     this.setAppConfigs(appConfigs);
                 })
@@ -584,7 +582,7 @@ from ${appConfigs[app.id].isConfigured} to ${value}.`);
                     this.log.info(`Changing visibility state of ${appConfigs[app.id].configuredName} (${app.id}) \
 from ${appConfigs[app.id].visibilityState} to ${value}.`);
                     appConfigs[app.id].visibilityState = value as 0 | 1;
-                    s.setCharacteristic(this.platform.Characteristic.CurrentVisibilityState, value);
+                    s.updateCharacteristic(this.platform.Characteristic.CurrentVisibilityState, value);
                     this.setAppConfigs(appConfigs);
                 });
             this.service!.addLinkedService(s);
@@ -616,7 +614,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         if (appConfig) {
             const appIdentifier: number = appConfig.identifier;
             this.setCommonConfig('activeIdentifier', appIdentifier);
-            this.service!.setCharacteristic(this.platform.Characteristic.ActiveIdentifier, appIdentifier);
+            this.service!.updateCharacteristic(this.platform.Characteristic.ActiveIdentifier, appIdentifier);
         } else {
             this.log.warn(`Could not update the input to ${appId} since the app is unknown.`);
         }
@@ -712,19 +710,10 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
     }
 
     private async handleActiveSet(state: CharacteristicValue): Promise<void> {
-        // prevent turning on the Apple TV when starting up the plugin when HomePods are selected as audio output
-        if (this.isFirstActiveSet) {
-            this.log.debug('Not setting the active state since this is the initial update');
-            this.isFirstActiveSet = false;
-            return;
-        }
-
         const WAIT_MAX_FOR_STATES: number = 30; // seconds
         const STEPS: number = 500; // milliseconds
 
-        if (state === this.platform.Characteristic.Active.ACTIVE && !this.turningOn) {
-            this.turningOn = true;
-            this.lastActiveSet = Date.now();
+        if (state === this.platform.Characteristic.Active.ACTIVE) {
             this.rocketRemote?.turnOn();
             for (let i: number = STEPS; i <= WAIT_MAX_FOR_STATES * 1000; i += STEPS) {
                 const { mediaType, deviceState } = await this.device.getState();
@@ -735,16 +724,14 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
                 }
                 if (this.mediaTypeServices[mediaType]) {
                     this.log.info(`New Media Type State: ${mediaType}`);
-                    this.mediaTypeServices[mediaType]!.setCharacteristic(this.platform.Characteristic.MotionDetected, true);
+                    this.mediaTypeServices[mediaType]!.updateCharacteristic(this.platform.Characteristic.MotionDetected, true);
                 }
                 if (this.deviceStateServices[deviceState]) {
                     this.log.info(`New Device State: ${deviceState}`);
-                    this.deviceStateServices[deviceState]!.setCharacteristic(this.platform.Characteristic.MotionDetected, true);
+                    this.deviceStateServices[deviceState]!.updateCharacteristic(this.platform.Characteristic.MotionDetected, true);
                 }
-                break;
             }
-            this.turningOn = false;
-        } else if (state === this.platform.Characteristic.Active.INACTIVE && this.lastActiveSet + 7500 < Date.now()) {
+        } else if (state === this.platform.Characteristic.Active.INACTIVE) {
             this.rocketRemote?.turnOff();
         }
     }
@@ -758,11 +745,12 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         }
         const value: 0 | 1 =
             event.value === 'on' ? this.platform.Characteristic.Active.ACTIVE : this.platform.Characteristic.Active.INACTIVE;
-        if (value === this.platform.Characteristic.Active.INACTIVE && this.lastActiveSet + 7500 > Date.now()) {
+        if (value === this.platform.Characteristic.Active.INACTIVE && this.lastTurningOnEvent + 7500 > Date.now()) {
             return;
         }
+        this.lastTurningOnEvent = Date.now();
         this.log.info(`New Active State: ${event.value}`);
-        this.service!.setCharacteristic(this.platform.Characteristic.Active, value);
+        this.service!.updateCharacteristic(this.platform.Characteristic.Active, value);
     }
 
     private async handleActiveIdentifierGet(): Promise<Nullable<CharacteristicValue>> {
