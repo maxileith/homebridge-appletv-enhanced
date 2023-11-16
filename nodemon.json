@@ -1,7 +1,7 @@
 {
     "ext": "ts",
     "ignore": [],
-    "exec": "tsc && homebridge -I -D",
+    "exec": "tsc && homebridge --insecure --debug --user-storage-path ./user_storage",
     "signal": "SIGTERM",
     "env": {
         "NODE_OPTIONS": "--trace-warnings"
