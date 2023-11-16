@@ -141,6 +141,7 @@ export class AppleTVEnhancedAccessory {
         // create the service
         this.service =
             this.accessory.getService(this.platform.Service.Television) || this.addServiceSave(this.platform.Service.Television)!;
+        this.service.addCharacteristic(this.platform.Characteristic.FirmwareRevision);
         this.service
             .setCharacteristic(this.platform.Characteristic.Active, this.platform.Characteristic.Active.INACTIVE)
             .setCharacteristic(
@@ -263,10 +264,12 @@ export class AppleTVEnhancedAccessory {
             const configuredName: string = this.getMediaConfigs()[mediaType] || capitalizeFirstLetter(mediaType);
             this.log.debug(`Adding media type ${mediaType} as a motion sensor. (named: ${configuredName})`);
             const s: Service = this.accessory.getService(mediaType) ||
-                this.addServiceSave(this.platform.Service.MotionSensor, mediaType, mediaType)!
-                    .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
-                    .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(mediaType))
-                    .setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName);
+                this.addServiceSave(this.platform.Service.MotionSensor, mediaType, mediaType)!;
+            s.addOptionalCharacteristic(this.platform.Characteristic.ConfiguredName);
+            s
+                .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
+                .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(mediaType))
+                .setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName);
             s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
                 .onSet(async (value: CharacteristicValue) => {
                     if (value === '') {
@@ -301,10 +304,12 @@ export class AppleTVEnhancedAccessory {
             const configuredName: string = this.getRemoteKeyAsSwitchConfigs()[remoteKey] || snakeCaseToTitleCase(remoteKey);
             this.log.debug(`Adding remote key ${remoteKey} as a switch. (named: ${configuredName})`);
             const s: Service = this.accessory.getService(remoteKey) ||
-                this.addServiceSave(this.platform.Service.Switch, remoteKey, remoteKey)!
-                    .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(remoteKey))
-                    .setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName)
-                    .setCharacteristic(this.platform.Characteristic.On, false);
+                this.addServiceSave(this.platform.Service.Switch, remoteKey, remoteKey)!;
+            s.addOptionalCharacteristic(this.platform.Characteristic.ConfiguredName);
+            s
+                .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(remoteKey))
+                .setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName)
+                .setCharacteristic(this.platform.Characteristic.On, false);
             s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
                 .onSet(async (value: CharacteristicValue): Promise<void> => {
                     if (value === '') {
@@ -362,10 +367,12 @@ export class AppleTVEnhancedAccessory {
             const configuredName: string = this.getDeviceStateConfigs()[deviceState] || capitalizeFirstLetter(deviceState);
             this.log.debug(`Adding device state ${deviceState} as a motion sensor. (named: ${configuredName})`);
             const s: Service = this.accessory.getService(deviceState) ||
-                this.addServiceSave(this.platform.Service.MotionSensor, deviceState, deviceState)!
-                    .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
-                    .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(deviceState))
-                    .setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName);
+                this.addServiceSave(this.platform.Service.MotionSensor, deviceState, deviceState)!;
+            s.addOptionalCharacteristic(this.platform.Characteristic.ConfiguredName);
+            s
+                .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
+                .setCharacteristic(this.platform.Characteristic.Name, capitalizeFirstLetter(deviceState))
+                .setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName);
             s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
                 .onSet(async (value: CharacteristicValue) => {
                     if (value === '') {
