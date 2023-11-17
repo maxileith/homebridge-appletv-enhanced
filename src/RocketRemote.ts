@@ -9,6 +9,7 @@ class RocketRemote {
     private readonly process: ChildProcessWithoutNullStreams;
     private readonly log: PrefixLogger;
     private onCloseCallable?: (() => void) = undefined;
+    private onHomeCallable?: (() => void) = undefined;
     private heartbeatInterval?: NodeJS.Timeout;
 
     private readonly stdoutListener = this.stdoutLog.bind(this);
@@ -49,6 +50,9 @@ class RocketRemote {
             this.log.debug(cmd);
         } else {
             this.log.info(cmd);
+        }
+        if (this.onHomeCallable !== undefined && cmd === 'home') {
+            this.onHomeCallable();
         }
         this.process.stdin.write(`${cmd}\n`);
         this.lastCommandSend = Date.now();
@@ -147,6 +151,10 @@ class RocketRemote {
             this.log.warn('Lost connection. Trying to reconnect ...');
             this.onCloseCallable && this.onCloseCallable();
         });
+    }
+
+    public onHome(f: () => void): void {
+        this.onHomeCallable = f;
     }
 
     public avadaKedavra(numberOfApps: number): void {

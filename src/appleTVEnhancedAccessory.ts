@@ -44,6 +44,7 @@ const DEFAULT_APP_RENAME: Record<string, string> = {
 
 const MAX_SERVICES: number = 100;
 
+const HOME_IDENTIFIER: number = 69;
 const AVADA_KEDAVRA_IDENTIFIER: number = 42;
 
 /**
@@ -59,6 +60,7 @@ export class AppleTVEnhancedAccessory {
     private mediaTypeServices: Partial<Record<NodePyATVMediaType, Service>> = {};
     private remoteKeyServices: Partial<Record<RocketRemoteKey, Service>> = {};
     private avadaKedavraService: Service | undefined = undefined;
+    private homeInputService: Service | undefined = undefined;
     private rocketRemote: RocketRemote | undefined = undefined;
 
     private appConfigs: IAppConfigs | undefined = undefined;
@@ -177,6 +179,7 @@ export class AppleTVEnhancedAccessory {
         this.createMediaTypeSensors();
         this.createRemoteKeysAsSwitches();
         this.createAvadaKedavra();
+        this.createHomeInput();
         const apps: NodePyATVApp[] = await this.device.listApps();
         this.createInputs(apps, this.platform.config.customInputURIs || []);
 
@@ -248,6 +251,10 @@ export class AppleTVEnhancedAccessory {
             this.getCredentials()!,
             this.log,
         );
+
+        this.rocketRemote.onHome((async (): Promise<void> => {
+            this.service?.updateCharacteristic(this.platform.Characteristic.ActiveIdentifier, HOME_IDENTIFIER);
+        }).bind(this));
 
         this.rocketRemote.onClose((async (): Promise<void> => {
             await delay(5000);
@@ -453,7 +460,7 @@ export class AppleTVEnhancedAccessory {
                 ? this.platform.Characteristic.CurrentVisibilityState.HIDDEN
                 : this.platform.Characteristic.CurrentVisibilityState.SHOWN;
 
-        const configuredName: string = this.getCommonConfig()['avadaKedavraName'] || 'Avada Kedavra';
+        const configuredName: string = this.getCommonConfig().avadaKedavraName || 'Avada Kedavra';
         this.log.debug(`Adding Avada Kedavra as an input. (named: ${configuredName})`);
 
         this.avadaKedavraService = this.accessory.getService('Avada Kedavra') ||
@@ -497,6 +504,58 @@ export class AppleTVEnhancedAccessory {
             });
 
         this.service?.addLinkedService(this.avadaKedavraService);
+    }
+
+    private createHomeInput(): void {
+        const visibilityState: number =
+            this.getCommonConfig().showHomeInput === this.platform.Characteristic.CurrentVisibilityState.SHOWN
+                ? this.platform.Characteristic.CurrentVisibilityState.SHOWN
+                : this.platform.Characteristic.CurrentVisibilityState.HIDDEN;
+
+        const configuredName: string = this.getCommonConfig().homeInputName || 'Home';
+        this.log.debug(`Adding Home as an input. (named: ${configuredName})`);
+
+        this.homeInputService = this.accessory.getService('HomeInput') ||
+            this.addServiceSave(this.platform.Service.InputSource, 'HomeInput', 'homeInput')!
+                .setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName)
+                .setCharacteristic(this.platform.Characteristic.InputSourceType, this.platform.Characteristic.InputSourceType.OTHER)
+                .setCharacteristic(this.platform.Characteristic.IsConfigured, this.platform.Characteristic.IsConfigured.CONFIGURED)
+                .setCharacteristic(this.platform.Characteristic.Name, 'Home')
+                .setCharacteristic(this.platform.Characteristic.CurrentVisibilityState, visibilityState)
+                .setCharacteristic(this.platform.Characteristic.InputDeviceType, this.platform.Characteristic.InputDeviceType.OTHER)
+                .setCharacteristic(this.platform.Characteristic.TargetVisibilityState, visibilityState)
+                .setCharacteristic(this.platform.Characteristic.Identifier, HOME_IDENTIFIER);
+
+        this.homeInputService.getCharacteristic(this.platform.Characteristic.ConfiguredName)
+            .onSet(async (value: CharacteristicValue) => {
+                if (value === '') {
+                    return;
+                }
+                const oldValue: Nullable<CharacteristicValue> =
+                    this.homeInputService!.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+                if (oldValue === value) {
+                    return;
+                }
+                this.log.info(`Changing configured name of Home Input from ${oldValue} to ${value}.`);
+                this.setCommonConfig('homeInputName', value.toString());
+            })
+            .onGet(async (): Promise<Nullable<CharacteristicValue>> => {
+                if (this.offline) {
+                    throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+                }
+                return this.homeInputService!.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+            });
+
+        this.homeInputService.getCharacteristic(this.platform.Characteristic.TargetVisibilityState)
+            .onSet(async (value: CharacteristicValue) => {
+                const current: Nullable<CharacteristicValue> =
+                    this.homeInputService!.getCharacteristic(this.platform.Characteristic.TargetVisibilityState).value;
+                this.log.info(`Changing visibility state of Home Input from ${current} to ${value}.`);
+                this.homeInputService!.updateCharacteristic(this.platform.Characteristic.CurrentVisibilityState, value);
+                this.setCommonConfig('showHomeInput', value as number);
+            });
+
+        this.service?.addLinkedService(this.homeInputService);
     }
 
     private createInputs(apps: NodePyATVApp[], customURIs: string[]): void {
@@ -544,6 +603,7 @@ The following services have been added:
 - ${Object.keys(this.remoteKeyServices).length.toString().padStart(2, '0')} switches for remote keys
 - ${Object.keys(this.remoteKeyServices).length.toString().padStart(2, '0')} switches for remote keys
 - 01 Avada Kedavra as an input
+- 01 Home as an input
 - ${addedApps.toString().padStart(2, '0')} apps as inputs have been added (${apps.length - addedApps} apps could not be added; including \
 custom Inputs)
 It might be a good idea to uninstall unused apps.`);
@@ -602,7 +662,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
 
         const appOrderIdentifiers: number[] =
             appsAndCustomInputs.slice(appsAndCustomInputs.length - addedApps).map((e) => appConfigs[e.id].identifier);
-        const appOrderIdentifiersWithAvadaKedavra: number[] = [AVADA_KEDAVRA_IDENTIFIER].concat(appOrderIdentifiers);
+        const appOrderIdentifiersWithAvadaKedavra: number[] = [AVADA_KEDAVRA_IDENTIFIER, HOME_IDENTIFIER].concat(appOrderIdentifiers);
         const tlv8: string = this.appIdentifiersOrderToTLV8(appOrderIdentifiersWithAvadaKedavra);
         this.log.debug(`Input display order: ${tlv8}`);
         this.service!.setCharacteristic(this.platform.Characteristic.DisplayOrder, tlv8);
@@ -729,13 +789,15 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
                     this.log.debug(`Waiting until mediaType and deviceState is reported: ${i}ms`);
                     continue;
                 }
-                if (this.mediaTypeServices[mediaType]) {
+                if (
+                    this.mediaTypeServices[mediaType] &&
+                    this.deviceStateServices[deviceState]
+                ) {
                     this.log.info(`New Media Type State: ${mediaType}`);
                     this.mediaTypeServices[mediaType]!.updateCharacteristic(this.platform.Characteristic.MotionDetected, true);
-                }
-                if (this.deviceStateServices[deviceState]) {
                     this.log.info(`New Device State: ${deviceState}`);
                     this.deviceStateServices[deviceState]!.updateCharacteristic(this.platform.Characteristic.MotionDetected, true);
+                    break;
                 }
             }
         } else if (state === this.platform.Characteristic.Active.INACTIVE) {
@@ -768,6 +830,11 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
     }
 
     private async handleActiveIdentifierSet(state: CharacteristicValue): Promise<void> {
+        if (state === HOME_IDENTIFIER) {
+            this.rocketRemote?.home();
+            return;
+        }
+
         if (state === AVADA_KEDAVRA_IDENTIFIER) {
             this.setCommonConfig('activeIdentifier', state as number);
             this.rocketRemote?.avadaKedavra(this.platform.config.avadaKedavraAppAmount || 15);
