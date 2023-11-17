@@ -57,7 +57,7 @@ class PythonChecker {
         const version: string = await this.getSystemPythonVersion();
         if (SUPPORTED_PYTHON_VERSIONS.findIndex((e) => version.includes(e)) === -1) {
             while (true) {
-                this.log.error(`${version} is installed. However, only Python \
+                this.log.error(`Python ${version} is installed. However, only Python \
 ${SUPPORTED_PYTHON_VERSIONS[0]} to ${SUPPORTED_PYTHON_VERSIONS[SUPPORTED_PYTHON_VERSIONS.length - 1]} is supported.`);
                 await delay(300000);
             }
