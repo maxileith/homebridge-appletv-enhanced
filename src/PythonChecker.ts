@@ -1,10 +1,10 @@
-import type { Logger } from 'homebridge';
 import path from 'path';
 import fs from 'fs';
 import type { ChildProcessWithoutNullStreams } from 'child_process';
 import { type SpawnOptionsWithoutStdio, spawn } from 'child_process';
 import { delay } from './utils';
 import PrefixLogger from './PrefixLogger';
+import type LogLevelLogger from './LogLevelLogger';
 
 const SUPPORTED_PYTHON_VERSIONS: string[] = [
     '3.8',
@@ -24,7 +24,7 @@ class PythonChecker {
     private readonly venvConfigPath: string;
     private readonly requirementsPath: string = path.join(__dirname, '..', 'requirements.txt');
 
-    public constructor(logger: Logger, storagePath: string) {
+    public constructor(logger: LogLevelLogger | PrefixLogger, storagePath: string) {
         this.log = new PrefixLogger(logger, 'Python check');
 
         this.pluginDirPath = path.join(storagePath, 'appletv-enhanced');

@@ -1,8 +1,8 @@
 import * as nodePyatv from '@sebbo2002/node-pyatv';
-import type { Logger } from 'homebridge';
 import path from 'path';
 import type { AlternatePyATVDeviceOptions } from './interfaces';
 import PrefixLogger from './PrefixLogger';
+import type LogLevelLogger from './LogLevelLogger';
 
 
 type ICache = Record<string, nodePyatv.NodePyATVDevice>;
@@ -50,7 +50,7 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
         return super.device(this.extendOptions<nodePyatv.NodePyATVDeviceOptions>(options as nodePyatv.NodePyATVDeviceOptions));
     }
 
-    public static setStoragePath(storagePath: string, logger?: Logger): void {
+    public static setStoragePath(storagePath: string, logger?: LogLevelLogger | PrefixLogger): void {
         this.atvscriptPath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvscript');
         this.atvremotePath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvremote');
         if (logger) {

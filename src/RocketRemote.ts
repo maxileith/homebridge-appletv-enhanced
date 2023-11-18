@@ -1,8 +1,8 @@
 import { type ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { RocketRemoteKey } from './enums';
 import PrefixLogger from './PrefixLogger';
-import type { Logger } from 'homebridge';
 import generateAvadaKedavraSequence from './generateAvadaKedavraSequence';
+import type LogLevelLogger from './LogLevelLogger';
 
 class RocketRemote {
 
@@ -22,7 +22,7 @@ class RocketRemote {
         private readonly atvremotePath: string,
         private readonly airplayCredentials: string,
         private readonly companionCredentials: string,
-        logger: Logger | PrefixLogger,
+        logger: LogLevelLogger | PrefixLogger,
     ) {
         this.log = new PrefixLogger(logger, 'Rocket Remote');
         this.log.debug('creating');

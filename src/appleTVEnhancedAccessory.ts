@@ -84,7 +84,7 @@ export class AppleTVEnhancedAccessory {
     ) {
         this.device = CustomPyAtvInstance.deviceAdvanced({ id: this.accessory.context.id as string })!;
 
-        this.log = new PrefixLogger(this.platform.ogLog, `${this.device.name} (${this.device.id})`);
+        this.log = new PrefixLogger(this.platform.logLevelLogger, `${this.device.name} (${this.device.id})`);
 
         const credentials: string | undefined = this.getCredentials();
         this.device = CustomPyAtvInstance.deviceAdvanced({
