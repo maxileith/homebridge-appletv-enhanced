@@ -79,7 +79,7 @@ body:
           - **OS**: Raspberry Pi OS Bookworm
           - **Docker**: false
           - **Homebridge**: 1.7.0
-          - **Apple TV Enhanced**: v0.3.4-beta.5
+          - **Apple TV Enhanced**: v0.5.0
           - **Node**: 20.9.0 (output of `node -v`)
           - **npm**: 10.1.0 (output of `npm -v`)
           - **Python**: 3.11.2 (output of `python3 --version`)
