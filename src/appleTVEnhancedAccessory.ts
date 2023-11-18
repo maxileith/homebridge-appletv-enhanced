@@ -858,18 +858,18 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         return this.service!.getCharacteristic(this.platform.Characteristic.ConfiguredName).value as Nullable<CharacteristicValue>;
     }
 
-    private async handleConfiguredNameSet(state: CharacteristicValue): Promise<void> {
-        if (state === '') {
+    private async handleConfiguredNameSet(value: CharacteristicValue): Promise<void> {
+        if (value === '') {
             return;
         }
         const oldConfiguredName: Nullable<CharacteristicValue> =
             this.service!.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
-        if (oldConfiguredName === state) {
+        if (oldConfiguredName === value) {
             return;
         }
-        this.log.info(`Changed Configured Name from ${oldConfiguredName} to ${state}`);
-        this.setCommonConfig('configuredName', state.toString());
-        this.log.setPrefix(`${state} (${this.device.id})`);
+        this.log.info(`Changed Configured Name from ${oldConfiguredName} to ${value}`);
+        this.setCommonConfig('configuredName', value.toString());
+        this.log.setPrefix(`${value} (${this.device.id})`);
     }
 
     private async handleSleepDiscoveryModeGet(): Promise<Nullable<CharacteristicValue>> {
