@@ -1,7 +1,7 @@
 import os from 'os';
 
 export default function checkOs(logInfo: (message: string) => void, logWarn: (message: string) => void): void {
-    const platform: string = os.platform() === 'darwin' ? 'Mac OS' : os.platform();
+    const platform: string = os.platform() === 'darwin' ? 'MacOS' : os.platform();
     if (platform !== 'linux') {
         logWarn(`\n\
 ██     ██  █████  ██████  ███    ██ ██ ███    ██  ██████  
