@@ -51,7 +51,7 @@ body:
         Please provide relevant log output, from starting the plugin until the bug.
         Be sure to **remove any sensitive information** (MAC-Addresses and Airplay credentials).
         If you have a lengthy log message, please use the file upload functionality in the `Additional Context` section to supply log files.
-      placeholder: Please paste logging output. Refer to the Homebridge GitHub Wiki on how to enable `DEBUG` output.
+      placeholder: Please paste logging output. Debug logging can be enabled in the plugin configuration.
       render: Markdown
     validations:
       required: true
