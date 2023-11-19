@@ -1,7 +1,6 @@
 import { type ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { RocketRemoteKey } from './enums';
 import PrefixLogger from './PrefixLogger';
-import generateAvadaKedavraSequence from './generateAvadaKedavraSequence';
 import type LogLevelLogger from './LogLevelLogger';
 
 class RocketRemote {
@@ -159,7 +158,7 @@ class RocketRemote {
 
     public avadaKedavra(numberOfApps: number): void {
         this.log.info('Avada Kedavra');
-        const avadaKedavraSequence: string[] = generateAvadaKedavraSequence(numberOfApps);
+        const avadaKedavraSequence: string[] = this.generateAvadaKedavraSequence(numberOfApps);
         this.log.debug(`Avada Kedavra sequence: ${avadaKedavraSequence.toString()}`);
         const ak: ChildProcessWithoutNullStreams = spawn(this.atvremotePath, [
             '--scan-hosts', this.ip,
@@ -196,6 +195,15 @@ class RocketRemote {
         } else if (toLog !== '') {
             this.log.debug(toLog);
         }
+    }
+
+    private generateAvadaKedavraSequence(numberOfApps: number): string[] {
+        let sequence: string[] = ['home', 'delay=100', 'home', 'delay=800', 'left', 'delay=300'];
+        for (let i: number = 0; i < numberOfApps; i++) {
+            sequence = sequence.concat(['up', 'delay=50', 'up', 'delay=600']);
+        }
+        sequence.push('home');
+        return sequence;
     }
 }
 
