@@ -12,12 +12,13 @@ export enum LogLevel {
 class LogLevelLogger {
 
     private readonly level: LogLevel;
+    private readonly debugEnv: boolean = process.env.DEBUG !== undefined && process.env.DEBUG.toLowerCase() !== 'false';
 
     public constructor(
         private readonly log: Logger,
         level: LogLevel | undefined,
     ) {
-        this.level = level || LogLevel.INFO;
+        this.level = this.debugEnv === true ? LogLevel.DEBUG : (level || LogLevel.INFO);
     }
 
     public debug(message: string, ...parameters: any[]): void {
