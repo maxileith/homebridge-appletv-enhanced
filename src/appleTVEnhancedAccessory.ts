@@ -250,6 +250,7 @@ export class AppleTVEnhancedAccessory {
             this.getCredentials()!,
             this.getCredentials()!,
             this.log,
+            this.platform.config.avadaKedavraAppAmount || 15,
         );
 
         this.rocketRemote.onHome((async (): Promise<void> => {
@@ -837,7 +838,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
 
         if (state === AVADA_KEDAVRA_IDENTIFIER) {
             this.setCommonConfig('activeIdentifier', state as number);
-            this.rocketRemote?.avadaKedavra(this.platform.config.avadaKedavraAppAmount || 15);
+            this.rocketRemote?.avadaKedavra();
             return;
         }
 
