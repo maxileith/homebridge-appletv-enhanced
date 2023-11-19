@@ -18,7 +18,12 @@ class LogLevelLogger {
         private readonly log: Logger,
         level: LogLevel | undefined,
     ) {
-        this.level = this.debugEnv === true ? LogLevel.DEBUG : (level || LogLevel.INFO);
+        this.level =
+            this.debugEnv === true ?
+                LogLevel.DEBUG :
+                level === undefined ?
+                    LogLevel.DEBUG :
+                    level;
     }
 
     public debug(message: string, ...parameters: any[]): void {
