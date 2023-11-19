@@ -22,7 +22,7 @@ class LogLevelLogger {
             this.debugEnv === true ?
                 LogLevel.DEBUG :
                 level === undefined ?
-                    LogLevel.DEBUG :
+                    LogLevel.INFO :
                     level;
     }
 
