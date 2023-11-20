@@ -1,13 +1,13 @@
 {
     "name": "homebridge-appletv-enhanced",
     "displayName": "Apple TV Enhanced",
-    "version": "0.5.0",
+    "version": "0.6.0-4",
     "description": "Plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV implementation of HomeKit.",
     "main": "dist/index.js",
     "author": "Maximilian Leith",
     "scripts": {
         "lint": "eslint src/**.ts --max-warnings=0",
-        "watch": "npm run build && npm link && nodemon --watch src --watch /var/lib/homebridge/config.json --watch ~/.homebridge/config.json",
+        "watch": "npm run build && npm link && nodemon",
         "build": "npm ci && rimraf -I ./dist && npm run lint && tsc && mkdir ./dist/html && cp ./src/html/*.html ./dist/html",
         "prepublishOnly": "npm run build",
         "postversion": "git push && git push --tags"
@@ -53,10 +53,10 @@
         "url": "http://github.com/maxileith/homebridge-appletv-enhanced/issues"
     },
     "devDependencies": {
-        "@types/node": "^18.18.9",
+        "@types/node": "^18.18.10",
         "@typescript-eslint/eslint-plugin": "^6.11.0",
         "@typescript-eslint/parser": "^6.11.0",
-        "eslint": "^8.53.0",
+        "eslint": "^8.54.0",
         "homebridge": "^1.7.0",
         "nodemon": "^3.0.1",
         "standard-version": "^9.5.0",

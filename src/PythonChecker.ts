@@ -1,10 +1,10 @@
-import type { Logger } from 'homebridge';
 import path from 'path';
 import fs from 'fs';
 import type { ChildProcessWithoutNullStreams } from 'child_process';
 import { type SpawnOptionsWithoutStdio, spawn } from 'child_process';
 import { delay } from './utils';
 import PrefixLogger from './PrefixLogger';
+import type LogLevelLogger from './LogLevelLogger';
 
 const SUPPORTED_PYTHON_VERSIONS: string[] = [
     '3.8',
@@ -24,7 +24,7 @@ class PythonChecker {
     private readonly venvConfigPath: string;
     private readonly requirementsPath: string = path.join(__dirname, '..', 'requirements.txt');
 
-    public constructor(logger: Logger, storagePath: string) {
+    public constructor(logger: LogLevelLogger | PrefixLogger, storagePath: string) {
         this.log = new PrefixLogger(logger, 'Python check');
 
         this.pluginDirPath = path.join(storagePath, 'appletv-enhanced');
@@ -57,7 +57,7 @@ class PythonChecker {
         const version: string = await this.getSystemPythonVersion();
         if (SUPPORTED_PYTHON_VERSIONS.findIndex((e) => version.includes(e)) === -1) {
             while (true) {
-                this.log.error(`${version} is installed. However, only Python \
+                this.log.error(`Python ${version} is installed. However, only Python \
 ${SUPPORTED_PYTHON_VERSIONS[0]} to ${SUPPORTED_PYTHON_VERSIONS[SUPPORTED_PYTHON_VERSIONS.length - 1]} is supported.`);
                 await delay(300000);
             }

@@ -7,22 +7,25 @@ import type { NodePyATVDevice } from '@sebbo2002/node-pyatv';
 import PythonChecker from './PythonChecker';
 import PrefixLogger from './PrefixLogger';
 import checkOs from './checkOS';
+import LogLevelLogger from './LogLevelLogger';
 
 
 export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
     public readonly Service: typeof Service;
     public readonly Characteristic: typeof Characteristic;
 
-    private readonly publishedUUIDs: string[] = [];
-
+    public readonly logLevelLogger: LogLevelLogger;
     private readonly log: PrefixLogger;
 
+    private readonly publishedUUIDs: string[] = [];
+
     public constructor(
-        public readonly ogLog: Logger,
+        ogLog: Logger,
         public readonly config: AppleTVEnhancedPlatformConfig,
         public readonly api: API,
     ) {
-        this.log = new PrefixLogger(this.ogLog, 'Platform');
+        this.logLevelLogger = new LogLevelLogger(ogLog, this.config.logLevel);
+        this.log = new PrefixLogger(this.logLevelLogger, 'Platform');
 
         this.Service = this.api.hap.Service;
         this.Characteristic = this.api.hap.Characteristic;
@@ -37,12 +40,12 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             this.log.debug('Executed didFinishLaunching callback');
 
             // make sure the Python environment is ready
-            checkOs((m) => this.ogLog.info(m), (m) => this.ogLog.warn(m));
-            await new PythonChecker(this.ogLog, this.api.user.storagePath()).allInOne(this.config.forceVenvRecreate);
+            checkOs((m) => this.logLevelLogger.info(m), (m) => this.logLevelLogger.warn(m));
+            await new PythonChecker(this.logLevelLogger, this.api.user.storagePath()).allInOne(this.config.forceVenvRecreate);
 
             // run the method to discover / register your devices as accessories
             this.log.debug(`Setting the storage path of the PyATV instance to ${this.api.user.storagePath()}`);
-            CustomPyAtvInstance.setStoragePath(this.api.user.storagePath(), this.ogLog);
+            CustomPyAtvInstance.setStoragePath(this.api.user.storagePath(), this.logLevelLogger);
 
             if (
                 this.config.discover !== undefined &&

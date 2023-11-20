@@ -1,6 +1,7 @@
 import type { PlatformConfig, Service } from 'homebridge';
 import type { RocketRemoteKey } from './enums';
 import type { NodePyATVDeviceState, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
+import type { LogLevel } from './LogLevelLogger';
 
 export interface NodePyATVApp {
     id: string;
@@ -24,6 +25,8 @@ export interface ICommonConfig {
     activeIdentifier?: number;
     showAvadaKedavra?: number;
     avadaKedavraName?: string;
+    showHomeInput?: number;
+    homeInputName?: string;
 }
 
 export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_bridge' | 'name' | 'platform'> {
@@ -38,6 +41,7 @@ export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_br
         blacklist?: string[];
     };
     forceVenvRecreate?: boolean;
+    logLevel?: LogLevel;
 }
 
 export interface AlternatePyATVDeviceOptions {

@@ -3,7 +3,7 @@
 [![mit license](https://badgen.net/badge/license/MIT/red)](https://github.com/maxileith/homebridge-appletv-enhanced/blob/master/LICENSE)
 [![npm](https://img.shields.io/npm/v/homebridge-appletv-enhanced)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
 [![npm](https://badgen.net/npm/dt/homebridge-appletv-enhanced)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
-[![donate](https://badgen.net/badge/donate/paypal/91BE09)](https://www.paypal.me/maxileith)
+[![donate](https://badgen.net/badge/donate/paypal/91BE09)](https://www.paypal.me/maxileith/EUR)
 [![PyPI pyversions](https://img.shields.io/badge/Python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue)](https://pypi.python.org/pypi/pyatv/)
 
 [Homebridge](https://github.com/homebridge/homebridge) plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV integration of HomeKit.
@@ -35,7 +35,7 @@ This plugin automatically discovers Apple TV devices in the local network and ex
     -   The python module `virtualenv` has to be installed manually. This won't be handled by the plugin itself.
         -   On debian-based distros: `sudo apt install python3-venv`
         -   Installation on other distros may vary
--   Apple TV Models A1625, A1842, A2169, A2737, A2843 are supported (all 4K ones and the latest HD one)
+-   Apple TV Models with tvOS 15 and upwards are supported (all 4K ones and the latest HD one)
 -   The access of Speakers & TVs should be either set to "Everybody" or "Anybody On the Same Network" in the Home app
 -   Raspberry Pi 1, 2, 3 and Zero 1, 2 are not recommended for performance reasons. Recommended are 3B+, 4B, 5B.
 -   The homebridge instance and Apple TVs need to be on the same subnet.
@@ -124,7 +124,8 @@ To configure manually, add the following to the `platforms` section of Homebridg
         "unicast": ["192.168.0.15"],
         "blacklist": ["AA:BB:CC:DD:EE:FF", "192.168.0.42"]
     },
-    "forceVenvRecreate": false
+    "forceVenvRecreate": false,
+    "logLevel": 3
 }
 ```
 

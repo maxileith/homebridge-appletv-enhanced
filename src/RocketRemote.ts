@@ -1,14 +1,14 @@
 import { type ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { RocketRemoteKey } from './enums';
 import PrefixLogger from './PrefixLogger';
-import type { Logger } from 'homebridge';
-import generateAvadaKedavraSequence from './generateAvadaKedavraSequence';
+import type LogLevelLogger from './LogLevelLogger';
 
 class RocketRemote {
 
     private readonly process: ChildProcessWithoutNullStreams;
     private readonly log: PrefixLogger;
     private onCloseCallable?: (() => void) = undefined;
+    private onHomeCallable?: (() => void) = undefined;
     private heartbeatInterval?: NodeJS.Timeout;
 
     private readonly stdoutListener = this.stdoutLog.bind(this);
@@ -16,15 +16,20 @@ class RocketRemote {
 
     private lastCommandSend: number = 0;
 
+    private readonly avadaKedavraSequence: string[];
+
     public constructor(
         private readonly ip: string,
         private readonly atvremotePath: string,
         private readonly airplayCredentials: string,
         private readonly companionCredentials: string,
-        logger: Logger | PrefixLogger,
+        logger: LogLevelLogger | PrefixLogger,
+        avadaKedavraNumberOfApps: number,
     ) {
         this.log = new PrefixLogger(logger, 'Rocket Remote');
         this.log.debug('creating');
+
+        this.avadaKedavraSequence = this.generateAvadaKedavraSequence(avadaKedavraNumberOfApps);
 
         this.process = spawn(this.atvremotePath, [
             '--scan-hosts', this.ip,
@@ -49,6 +54,9 @@ class RocketRemote {
             this.log.debug(cmd);
         } else {
             this.log.info(cmd);
+        }
+        if (this.onHomeCallable !== undefined && cmd === 'home') {
+            this.onHomeCallable();
         }
         this.process.stdin.write(`${cmd}\n`);
         this.lastCommandSend = Date.now();
@@ -149,15 +157,18 @@ class RocketRemote {
         });
     }
 
-    public avadaKedavra(numberOfApps: number): void {
+    public onHome(f: () => void): void {
+        this.onHomeCallable = f;
+    }
+
+    public avadaKedavra(): void {
         this.log.info('Avada Kedavra');
-        const avadaKedavraSequence: string[] = generateAvadaKedavraSequence(numberOfApps);
-        this.log.debug(`Avada Kedavra sequence: ${avadaKedavraSequence.toString()}`);
+        this.log.debug(`Avada Kedavra sequence: ${this.avadaKedavraSequence.toString()}`);
         const ak: ChildProcessWithoutNullStreams = spawn(this.atvremotePath, [
             '--scan-hosts', this.ip,
             '--companion-credentials', this.companionCredentials,
             '--airplay-credentials', this.airplayCredentials,
-            ... avadaKedavraSequence,
+            ... this.avadaKedavraSequence,
         ]);
         ak.stdout.setEncoding('utf8');
         ak.stderr.setEncoding('utf8');
@@ -188,6 +199,15 @@ class RocketRemote {
         } else if (toLog !== '') {
             this.log.debug(toLog);
         }
+    }
+
+    private generateAvadaKedavraSequence(numberOfApps: number): string[] {
+        let sequence: string[] = ['home', 'delay=100', 'home', 'delay=800', 'left', 'delay=300'];
+        for (let i: number = 0; i < numberOfApps; i++) {
+            sequence = sequence.concat(['up', 'delay=50', 'up', 'delay=600']);
+        }
+        sequence.push('home');
+        return sequence;
     }
 }
 

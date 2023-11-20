@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Logger } from 'homebridge';
+import type LogLevelLogger from './LogLevelLogger';
 
 class PrefixLogger {
 
     public constructor(
-        private readonly log: Logger | PrefixLogger,
+        private readonly log: LogLevelLogger | PrefixLogger,
         private prefix: string,
     ) { }
 
