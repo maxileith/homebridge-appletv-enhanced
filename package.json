@@ -14,7 +14,7 @@
     },
     "engines": {
         "homebridge": "^1.7.0",
-        "node": "^20.9.0 || ^18.18.2"
+        "node": "^20.10.0 || ^18.18.2"
     },
     "keywords": [
         "homebridge-plugin",
