@@ -48,6 +48,7 @@ class PythonChecker {
         if (!fs.existsSync(this.pluginDirPath)) {
             this.log.warn('creating plugin dir ...');
             fs.mkdirSync(this.pluginDirPath);
+            this.log.info('plugin dir created');
         } else {
             this.log.info('plugin dir exists.');
         }
@@ -113,6 +114,7 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
         } else if (stdout.trim() !== '') {
             this.log.warn(stdout);
         }
+        this.log.info('Virtual python environment created');
     }
 
     private async ensureVenvPipUpToDate(): Promise<void> {
@@ -121,6 +123,7 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
         } else {
             this.log.warn('Pip is outdated. Updating now ...');
             await this.updatePip();
+            this.log.warn('Pip updated');
         }
     }
 
