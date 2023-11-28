@@ -118,12 +118,13 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
     }
 
     private async ensureVenvPipUpToDate(): Promise<void> {
+        this.log.info('Checking if pip is up-to-date ...');
         if (await this.isPipUpToDate()) {
             this.log.info('Pip is up-to-date');
         } else {
             this.log.warn('Pip is outdated. Updating now ...');
             await this.updatePip();
-            this.log.warn('Pip updated');
+            this.log.info('Pip updated');
         }
     }
 
@@ -140,7 +141,7 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
         if (await this.areRequirementsSatisfied()) {
             this.log.info('Python requirements are satisfied.');
         } else {
-            this.log.warn('Python requirements are not satisfied. Installing them now.');
+            this.log.warn('Python requirements are not satisfied. Installing them now ...');
             await this.installRequirements();
         }
     }
@@ -191,8 +192,9 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
         p.stdout.setEncoding('utf8');
         p.stdout.on('data', (data: string) => {
             stdout += data;
-            if (!hideStdout) {
-                this.log.info(data.replaceAll('\n', ''));
+            data = data.trim();
+            if (!hideStdout && data !== '') {
+                this.log.info(data);
             }
         });
         p.stderr.setEncoding('utf8');
