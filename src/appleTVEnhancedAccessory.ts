@@ -930,11 +930,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
     }
 
     private getPath(file: string, defaultContent = '{}'): string {
-        let dir: string = path.join(this.platform.api.user.storagePath(), 'appletv-enhanced');
-        if (!fs.existsSync(dir)){
-            fs.mkdirSync(dir);
-        }
-        dir += `/${this.device.id!.replaceAll(':', '')}`;
+        const dir: string = path.join(this.platform.api.user.storagePath(), 'appletv-enhanced', this.device.id!.replaceAll(':', ''));
         if (!fs.existsSync(dir)){
             fs.mkdirSync(dir);
         }
