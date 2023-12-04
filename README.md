@@ -1,4 +1,4 @@
-# homebridge-appletv-enhanced
+# Homebridge Apple TV Enhanced
 
 [![mit license](https://badgen.net/badge/license/MIT/red)](https://github.com/maxileith/homebridge-appletv-enhanced/blob/master/LICENSE)
 [![npm](https://img.shields.io/npm/v/homebridge-appletv-enhanced)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
