@@ -35,6 +35,7 @@ export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_br
     remoteKeysAsSwitch?: RocketRemoteKey[];
     avadaKedavraAppAmount?: number;
     customInputURIs?: string[];
+    disableVolumeControlRemote?: boolean;
     discover?: {
         multicast?: boolean;
         unicast?: string[];

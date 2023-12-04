@@ -111,7 +111,9 @@ To configure manually, add the following to the `platforms` section of Homebridg
         "turn_off",
         "turn_on",
         "top_menu",
-        "up"
+        "up",
+        "volume_down",
+        "volume_up"
     ],
     "customInputURIs": [
         "https://www.disneyplus.com/movies/rogue-one-a-star-wars-story/14CV6eSbygOA",
@@ -120,6 +122,7 @@ To configure manually, add the following to the `platforms` section of Homebridg
         "vlc://https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8"
     ],
     "avadaKedavraAppAmount": 15,
+    "disableVolumeControlRemote": false,
     "discover": {
         "multicast": true,
         "unicast": ["192.168.0.15"],

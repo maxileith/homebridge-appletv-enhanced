@@ -61,6 +61,7 @@ export class AppleTVEnhancedAccessory {
     private remoteKeyServices: Partial<Record<RocketRemoteKey, Service>> = {};
     private avadaKedavraService: Service | undefined = undefined;
     private homeInputService: Service | undefined = undefined;
+    private televisionSpeakerService: Service | undefined = undefined;
     private rocketRemote: RocketRemote | undefined = undefined;
 
     private appConfigs: IAppConfigs | undefined = undefined;
@@ -174,6 +175,9 @@ export class AppleTVEnhancedAccessory {
 
         this.log.setPrefix(`${configuredName} (${this.device.id})`);
 
+        // create television speaker
+        this.createTelevisionSpeaker();
+
         // create input and sensor services
         this.createDeviceStateSensors();
         this.createMediaTypeSensors();
@@ -191,6 +195,30 @@ export class AppleTVEnhancedAccessory {
 
         this.log.info('Finished initializing');
         this.booted = true;
+    }
+
+    private createTelevisionSpeaker(): void {
+        this.log.debug('Adding television speaker.');
+
+        this.televisionSpeakerService = this.accessory.getService('televisionSpeaker') ||
+            this.addServiceSave(this.platform.Service.TelevisionSpeaker, 'televisionSpeaker', 'televisionSpeaker')!;
+        this.televisionSpeakerService.setCharacteristic(this.platform.Characteristic.Mute, false);
+
+        if (this.platform.config.disableVolumeControlRemote !== true) {
+            this.televisionSpeakerService.setCharacteristic(
+                this.platform.Characteristic.VolumeControlType,
+                this.platform.Characteristic.VolumeControlType.RELATIVE,
+            );
+            this.televisionSpeakerService.getCharacteristic(this.platform.Characteristic.VolumeSelector)
+                .onSet(async (value: CharacteristicValue): Promise<void> => {
+                    if (value === this.platform.Characteristic.VolumeSelector.INCREMENT) {
+                        this.rocketRemote?.volumeUp();
+                    } else {
+                        this.rocketRemote?.volumeDown();
+                    }
+                });
+        }
+
     }
 
     private createListeners(): void {
@@ -334,7 +362,6 @@ export class AppleTVEnhancedAccessory {
             s.getCharacteristic(this.platform.Characteristic.On)
                 .onSet(async (value: CharacteristicValue): Promise<void> => {
                     if (value) {
-                        this.log.info(`remote ${remoteKey}`);
                         this.rocketRemote?.sendCommand(remoteKey);
                     }
                     await delay(1000);
@@ -599,6 +626,7 @@ export class AppleTVEnhancedAccessory {
 The following services have been added:
 - 01 One service for Accessory Information
 - 01 The television service (Apple TV) itself
+- 01 Television speaker service to control the volume with the iOS remote
 - ${Object.keys(this.deviceStateServices).length.toString().padStart(2, '0')} motion sensors for device states
 - ${Object.keys(this.mediaTypeServices).length.toString().padStart(2, '0')} motion sensors for media types
 - ${Object.keys(this.remoteKeyServices).length.toString().padStart(2, '0')} switches for remote keys

@@ -74,7 +74,9 @@
                         "turn_off",
                         "turn_on",
                         "top_menu",
-                        "up"
+                        "up",
+                        "volume_down",
+                        "volume_up"
                     ]
                 },
                 "required": true
@@ -100,6 +102,13 @@
                     "title": "URI",
                     "placeholder": "https://www.disneyplus.com/movies/rogue-one-a-star-wars-story/14CV6eSbygOA"
                 }
+            },
+            "disableVolumeControlRemote": {
+                "title": "Disable volume control in iOS remote",
+                "description": "Disables the volume control in the iOS remote. It is recommended to disable volume control when the audio setup that the Apple TV is connected to does not supports ARC since the Apple TV does not have any control over the volume in this scenario anyways.",
+                "type": "boolean",
+                "default": false,
+                "required": true
             },
             "discover": {
                 "title": "Discover",
