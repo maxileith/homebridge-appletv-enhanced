@@ -60,7 +60,7 @@
         "homebridge": "^1.7.0",
         "nodemon": "^3.0.2",
         "standard-version": "^9.5.0",
-        "ts-node": "^10.9.1",
+        "ts-node": "^10.9.2",
         "typescript": "^5.3.3",
         "rimraf": "^5.0.5",
         "@types/md5": "^2.3.5"
