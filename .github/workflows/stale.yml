@@ -1,4 +1,4 @@
-name: Close inactive issues and PRs
+name: Stale
 
 on:
   schedule:
@@ -26,3 +26,5 @@ jobs:
           stale-pr-label: stale
           stale-pr-message: "This pull request is stale because it has been open for 60 days with no activity."
           close-pr-message: "This pull request was closed because it has been inactive for 14 days since being marked as stale."
+          exempt-issue-labels: stale-resistant
+          exempt-pr-labels: stale-resistant
