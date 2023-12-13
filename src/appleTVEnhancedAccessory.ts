@@ -202,6 +202,7 @@ export class AppleTVEnhancedAccessory {
 
         this.televisionSpeakerService = this.accessory.getService('televisionSpeaker') ||
             this.addServiceSave(this.platform.Service.TelevisionSpeaker, 'televisionSpeaker', 'televisionSpeaker')!;
+        this.televisionSpeakerService.setCharacteristic(this.platform.Characteristic.Active, this.platform.Characteristic.Active.ACTIVE);
         this.televisionSpeakerService.setCharacteristic(this.platform.Characteristic.Mute, false);
 
         if (this.platform.config.disableVolumeControlRemote !== true) {
