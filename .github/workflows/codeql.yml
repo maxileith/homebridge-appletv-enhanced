@@ -3,25 +3,19 @@ name: "CodeQL"
 on:
   push:
     branches: ["develop", "main"]
-    paths-ignore:
-      - "**/*.md"
-      - "**/*.gif"
-      - "**/*.png"
+    paths:
+      - "**.ts"
   pull_request:
     branches: ["develop", "main"]
-    paths-ignore:
-      - "**/*.md"
-      - "**/*.gif"
-      - "**/*.png"
-  schedule:
-    - cron: "0 4 * * *"
+    paths:
+      - "**.ts"
   workflow_dispatch:
 
 jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
+    timeout-minutes: 360
     permissions:
       actions: read
       contents: read

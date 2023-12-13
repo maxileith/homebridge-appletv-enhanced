@@ -1,4 +1,4 @@
-# homebridge-appletv-enhanced
+# Homebridge Apple TV Enhanced
 
 [![mit license](https://badgen.net/badge/license/MIT/red)](https://github.com/maxileith/homebridge-appletv-enhanced/blob/master/LICENSE)
 [![npm](https://img.shields.io/npm/v/homebridge-appletv-enhanced)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
@@ -32,8 +32,8 @@ This plugin automatically discovers Apple TV devices in the local network and ex
 -   Most recent Version of Node 20 LTS or 18 LTS
 -   Python 3.8, 3.9, 3.10 or 3.11
 -   Python virtual environment module `virtualenv`. (the plugin will create a virtual environment on startup and will install python dependencies in this virtual environment)
-    -   On homebridge **apt-package versions >=1.20.2** the python module is installed automatically as a dependency
-    -   On homebridge **apt-package versions <1.20.2** the python module `virtualenv` has to be installed manually. This won't be handled by the plugin itself.
+    -   On homebridge **apt-package versions >=1.1.4** the python module is installed automatically as a dependency
+    -   Otherwise, the python module `virtualenv` has to be installed manually. This won't be handled by the plugin itself.
         -   On debian-based distros: `sudo apt install python3-venv`
         -   Installation on other distros may vary
 -   Apple TV Models with tvOS 15 and upwards are supported (all 4K ones and the latest HD one)
@@ -111,7 +111,9 @@ To configure manually, add the following to the `platforms` section of Homebridg
         "turn_off",
         "turn_on",
         "top_menu",
-        "up"
+        "up",
+        "volume_down",
+        "volume_up"
     ],
     "customInputURIs": [
         "https://www.disneyplus.com/movies/rogue-one-a-star-wars-story/14CV6eSbygOA",
@@ -120,6 +122,7 @@ To configure manually, add the following to the `platforms` section of Homebridg
         "vlc://https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8"
     ],
     "avadaKedavraAppAmount": 15,
+    "disableVolumeControlRemote": false,
     "discover": {
         "multicast": true,
         "unicast": ["192.168.0.15"],

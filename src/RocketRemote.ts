@@ -49,6 +49,10 @@ class RocketRemote {
         this.sendCommand(`launch_app=${id}`);
     }
 
+    public setVolume(percentage: number): void {
+        this.sendCommand(`set_volume=${percentage}`);
+    }
+
     public sendCommand(cmd: RocketRemoteKey | string, hideLog: boolean = false): void {
         if (hideLog) {
             this.log.debug(cmd);
@@ -144,6 +148,14 @@ class RocketRemote {
 
     public up(): void {
         this.sendCommand(RocketRemoteKey.UP);
+    }
+
+    public volumeDown(): void {
+        this.sendCommand(RocketRemoteKey.VOLUME_DOWN);
+    }
+
+    public volumeUp(): void {
+        this.sendCommand(RocketRemoteKey.VOLUME_UP);
     }
 
     public onClose(f: () => void): void {

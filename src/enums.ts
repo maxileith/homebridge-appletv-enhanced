@@ -25,4 +25,6 @@ export enum RocketRemoteKey {
     TURN_ON = 'turn_on',
     TOP_MENU = 'top_menu',
     UP = 'up',
+    VOLUME_DOWN = 'volume_down',
+    VOLUME_UP = 'volume_up',
 }
