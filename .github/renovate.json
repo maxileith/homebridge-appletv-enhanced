@@ -1,0 +1,15 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "labels": ["dependency"],
+    "assignees": ["maxileith"],
+    "baseBranches": ["develop"],
+    "reviewers": ["maxileith"],
+    "prConcurrentLimit": 0,
+    "prHourlyLimit": 0,
+    "enabledManagers": ["nvm"],
+    "nvm": {
+        "commitMessagePrefix": "nvm:"
+    },
+    "schedule": ["* 4 * * 1,2,3,4,5"],
+    "semanticCommits": "disabled"
+}
