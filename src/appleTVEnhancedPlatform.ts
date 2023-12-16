@@ -113,50 +113,50 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
 
         // loop over the discovered devices and register each one if it has not already been registered
         for (const appleTV of appleTVs) {
-            this.log.debug(`Found Apple TV ${appleTV.name} (${appleTV.id} / ${appleTV.host}).`);
+            this.log.debug(`Found Apple TV ${appleTV.name} (${appleTV.mac} / ${appleTV.host}).`);
 
-            if (/^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$/.test(appleTV.id!) === false) {
-                this.log.debug(`Identifier ${appleTV.id} is not a MAC-Address. ${appleTV.name} (${appleTV.host}) is therefore skipped.`);
+            if (appleTV.mac === undefined) {
+                this.log.debug(`${appleTV.name} (${appleTV.host}) is skipped since the MAC address could not be determined.`);
                 continue;
             }
 
             if (
                 this.config.discover &&
                 this.config.discover.blacklist &&
-                (this.config.discover.blacklist.includes(appleTV.id!) || this.config.discover.blacklist.includes(appleTV.host))
+                (this.config.discover.blacklist.includes(appleTV.mac!) || this.config.discover.blacklist.includes(appleTV.host))
             ) {
-                this.log.debug(`Apple TV ${appleTV.name} (${appleTV.id} / ${appleTV.host}) is on the blacklist. Skipping.`);
+                this.log.debug(`Apple TV ${appleTV.name} (${appleTV.mac} / ${appleTV.host}) is on the blacklist. Skipping.`);
                 continue;
             }
 
             // generate a unique id for the accessory this should be generated from
             // something globally unique, but constant, for example, the device serial
             // number or MAC address
-            const uuid: string = this.api.hap.uuid.generate(appleTV.id!);
+            const uuid: string = this.api.hap.uuid.generate(appleTV.mac!);
             if (this.publishedUUIDs.includes(uuid)) {
-                this.log.debug(`Apple TV ${appleTV.name} (${appleTV.id}) with UUID ${uuid} already exists. Skipping.`);
+                this.log.debug(`Apple TV ${appleTV.name} (${appleTV.mac}) with UUID ${uuid} already exists. Skipping.`);
                 continue;
             }
             this.publishedUUIDs.push(uuid);
 
             // the accessory does not yet exist, so we need to create it
-            this.log.info(`Adding Apple TV ${appleTV.name} (${appleTV.id})`);
+            this.log.info(`Adding Apple TV ${appleTV.name} (${appleTV.mac})`);
 
             // create a new accessory
             const accessory: PlatformAccessory = new this.api.platformAccessory(`Apple TV ${appleTV.name}`, uuid);
 
             // store a copy of the device object in the `accessory.context`
             // the `context` property can be used to store any data about the accessory you may need
-            accessory.context.id = appleTV.id;
+            accessory.context.mac = appleTV.mac;
 
             // create the accessory handler for the newly create accessory
             // this is imported from `platformAccessory.ts`
             (async (): Promise<void> => {
-                this.log.debug(`Waiting for Apple TV ${appleTV.name} (${appleTV.id}) to boot ...`);
+                this.log.debug(`Waiting for Apple TV ${appleTV.name} (${appleTV.mac}) to boot ...`);
                 await (new AppleTVEnhancedAccessory(this, accessory)).untilBooted();
 
                 // link the accessory to your platform
-                this.log.debug(`Apple TV ${appleTV.name} (${appleTV.id}) finished booting. Publishing the accessory now.`);
+                this.log.debug(`Apple TV ${appleTV.name} (${appleTV.mac}) finished booting. Publishing the accessory now.`);
                 this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
             })();
         }
