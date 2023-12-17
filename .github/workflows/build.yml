@@ -5,16 +5,45 @@ on:
   workflow_dispatch:
 
 jobs:
+  node-versions-from-package:
+    name: extract node versions from package.json
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      versions: ${{ steps.load-versions.outputs.versions }}
+
+    steps:
+      - name: Checkout package.json
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: package.json
+
+      - name: Extract Node versions
+        id: load-versions
+        shell: bash
+        run: |
+          version_str=$(jq ".engines.node" package.json --raw-output)
+          new_version=$(echo $version_str | awk -F " || " '{print $1}')
+          old_version=$(echo $version_str | awk -F " || " '{print $3}')
+          new_version="${new_version:1}"
+          old_version="${old_version:1}"
+
+          result="versions={\"list\":[\"$new_version\",\"$old_version\"]}"
+          echo $result
+
+          echo $result >> $GITHUB_OUTPUT
+
   build:
     name: ubuntu-latest Node ${{ matrix.node }} Build
+    needs: node-versions-from-package
+
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        node:
-          - 18
-          - 20
+        node: ${{ fromJSON(needs.node-versions-from-package.outputs.versions).list }}
 
     steps:
       - name: Checkout
@@ -26,4 +55,5 @@ jobs:
           node-version: ${{ matrix.node }}
 
       - name: Build
+        shell: bash
         run: npm run build
