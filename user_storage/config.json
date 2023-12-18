@@ -29,6 +29,7 @@
                 "seeking",
                 "stopped"
             ],
+            "deviceStateDelay": 3,
             "remoteKeysAsSwitch": [
                 "channel_down",
                 "channel_up",

@@ -90,6 +90,7 @@ To configure it manually, add the following to the `platforms` section of Homebr
         "paused",
         "stopped"
     ],
+    "deviceStateDelay": 0,
     "remoteKeysAsSwitch": [
         "channel_down",
         "channel_up",

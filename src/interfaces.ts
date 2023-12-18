@@ -32,6 +32,7 @@ export interface ICommonConfig {
 export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_bridge' | 'name' | 'platform'> {
     mediaTypes?: NodePyATVMediaType[];
     deviceStates?: NodePyATVDeviceState[];
+    deviceStateDelay?: number;
     remoteKeysAsSwitch?: RocketRemoteKey[];
     avadaKedavraAppAmount?: number;
     customInputURIs?: string[];

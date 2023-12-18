@@ -74,6 +74,7 @@ export class AppleTVEnhancedAccessory {
     private booted: boolean = false;
     private offline: boolean = false;
     private lastTurningOnEvent: number = 0;
+    private lastDeviceStateChange: number = 0;
 
     private credentials: string | undefined = undefined;
 
@@ -435,10 +436,27 @@ export class AppleTVEnhancedAccessory {
     }
 
     private async handleDeviceStateUpdate(event: NodePyATVDeviceEvent): Promise<void> {
-        if (event.oldValue !== null && this.deviceStateServices[event.oldValue] !== undefined) {
-            const s: Service = this.deviceStateServices[event.oldValue];
+        const deviceStateDelay: number = (this.platform.config.deviceStateDelay || 0) * 1000;
+        this.log.debug(`New Device State Draft (might be discarded if there are state changes until the configured delay of 
+${deviceStateDelay}ms is over): ${event.value}`);
+
+        this.lastDeviceStateChange = Date.now();
+        // wait for the delay to expire
+        await delay(deviceStateDelay);
+        // abort if there was another device state update in the meantime
+        if (this.lastDeviceStateChange + deviceStateDelay > Date.now()) {
+            this.log.debug(`New Device State Draft discarded: ${event.value}`);
+            return;
+        }
+        // set all device state sensors to inactive
+        for (const deviceState of Object.keys(this.deviceStateServices)) {
+            if (deviceState === event.value) {
+                continue;
+            }
+            const s: Service = this.deviceStateServices[deviceState];
             s.updateCharacteristic(this.platform.Characteristic.MotionDetected, false);
         }
+        // only make device state changes if Apple TV is on
         if (this.service?.getCharacteristic(this.platform.Characteristic.Active).value === this.platform.Characteristic.Active.INACTIVE) {
             return;
         }
