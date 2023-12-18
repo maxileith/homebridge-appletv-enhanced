@@ -72,8 +72,8 @@ The screenshots speak for themselves ...
 
 ## Configuration
 
-The easiest way to use this plugin is to use [homebridge-config-ui-x](https://www.npmjs.com/package/homebridge-config-ui-x).  
-To configure manually, add the following to the `platforms` section of Homebridge's `config.json` after installing the plugin.
+The easiest way to configure this plugin is to use [homebridge-config-ui-x](https://www.npmjs.com/package/homebridge-config-ui-x).  
+To configure it manually, add the following to the `platforms` section of Homebridge's `config.json` after installing the plugin.
 
 **`config.json`**
 
