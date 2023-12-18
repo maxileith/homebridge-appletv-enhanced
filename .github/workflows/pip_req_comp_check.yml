@@ -31,10 +31,13 @@ jobs:
           python-version: ${{ matrix.python }}
 
       - name: Print Python version
+        shell: bash
         run: python3 --version
 
       - name: Upgrade Pip
+        shell: bash
         run: pip3 install --upgrade pip
 
       - name: Install dependencies
+        shell: bash
         run: pip3 install -r requirements.txt

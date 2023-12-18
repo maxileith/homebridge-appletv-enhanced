@@ -8,7 +8,7 @@ cffi==1.16.0
 chacha20poly1305-reuseable==0.12.0
 charset-normalizer==3.3.2
 cryptography==41.0.7
-frozenlist==1.4.0
+frozenlist==1.4.1
 idna==3.6
 ifaddr==0.2.0
 mediafile==0.12.0
@@ -27,4 +27,4 @@ tabulate==0.9.0
 typing_extensions==4.9.0
 urllib3==2.1.0
 yarl==1.9.4
-zeroconf==0.128.4
+zeroconf==0.130.0

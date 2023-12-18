@@ -1020,11 +1020,6 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
             });
             process.stdout.setEncoding('utf8');
             process.stdout.on('data', (data: string) => {
-                if (data.toUpperCase().includes('ERROR')) {
-                    goOn = true;
-                    this.log.error('stdout: ' + data);
-                    return;
-                }
                 this.log.debug('stdout: ' + data);
                 if (data.includes('Enter PIN on screen:')) {
                     return;
@@ -1032,6 +1027,10 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
                 if (data.includes('BackOff=')) {
                     backOffSeconds = parseInt(data.substring(data.search('BackOff=') + 8).split('s', 2)[0]) + 5;
                     goOn = true;
+                    return;
+                }
+                if (data.toUpperCase().includes('ERROR') && !data.includes('Error=Authentication, SeqNo=M4')) {
+                    this.log.error('stdout: ' + data);
                     return;
                 }
                 if (data.includes('You may now use these credentials: ')) {

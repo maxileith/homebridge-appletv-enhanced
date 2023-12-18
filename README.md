@@ -15,7 +15,7 @@ This plugin automatically discovers Apple TV devices in the local network and ex
 -   Automatically discover Apple TVs in your local network.
 -   Pairing process without the need to access the command line like with other plugins.
 -   Change the current App by selecting an input in HomeKit.
-    -   The plugin is developed in a way that makes it possible to rename, hide or show inputs in HomeKit natively ... and safes it.
+    -   The plugin is developed in a way that makes it possible to rename, hide or show inputs in HomeKit natively ... and saves it.
     -   You can even define own inputs based on URIs in the configuration. For instance, you can create an input to open a certain Disney+ movie or show ... or pretty much anything you can think of. Take a look at the example `config.json` ;).
 -   The automation triggers that you are probably here for ...
     -   Since every Apple TV is exposed as a Set-Top Box, you can create a trigger on the power state to execute automations when turning on or off.
@@ -52,7 +52,7 @@ This plugin automatically discovers Apple TV devices in the local network and ex
     1. In the logs there will be a message thats says `You need to pair your Apple TV before the plugin can connect to it. Enter the PIN that is currently displayed on the device here: http://192.168.0.12:42015/` where the link http://192.168.0.12:42015 is different in your log and distinct for one Apple TV if you are connecting multiple.
     2. Open the link. A pairing page will open (see first image below).
     3. In the meantime there should already be a pairing code displayed on your Apple TV. Enter the 4-digit code into the pairing page.
-    4. If the pairing page says that transmitting thr PIN was successful (see second image below), pairing was probably successful (Logs: `Paring was successful. Add it to your home in the Home app: com.apple.home://launch`). To be sure, take a look into the logs, you may have entered the PIN wrong too often or let the pairing request time out too many times (Logs: `Too many attempts. Waiting for x seconds before retrying.`). If you are requested to enter a PIN again (see first image below) you have most probably entered the wrong PIN ... the plugin will attempt a new pairing attempt. Enter the new PIN displayed on the Apple TV again.
+    4. If the pairing page says that transmitting the PIN was successful (see second image below), pairing was probably successful (Logs: `Paring was successful. Add it to your home in the Home app: com.apple.home://launch`). To be sure, take a look into the logs, you may have entered the PIN wrong too often or let the pairing request time out too many times (Logs: `Too many attempts. Waiting for x seconds before retrying.`). If you are requested to enter a PIN again (see first image below) you have most probably entered the wrong PIN ... the plugin will attempt a new pairing attempt. Enter the new PIN displayed on the Apple TV again.
     5. Done ... do this with all your Apple TVs.
 7.  You have paired all Apple TVs (with the plugin, not with Apple Home yet).
 8.  Every Apple TV is exposed as a Set-Top Box and is its own bridge. Therefore, we need to add every Apple TV seperatly to Apple Home. In order to do that, open the Home app, go to add devices > more options, then type in the pairing code from the logs (Logs: `Please add [Apple TV Wohnzimmer (2)] manually in
@@ -72,8 +72,8 @@ The screenshots speak for themselves ...
 
 ## Configuration
 
-The easiest way to use this plugin is to use [homebridge-config-ui-x](https://www.npmjs.com/package/homebridge-config-ui-x).  
-To configure manually, add the following to the `platforms` section of Homebridge's `config.json` after installing the plugin.
+The easiest way to configure this plugin is to use [homebridge-config-ui-x](https://www.npmjs.com/package/homebridge-config-ui-x).  
+To configure it manually, add the following to the `platforms` section of Homebridge's `config.json` after installing the plugin.
 
 **`config.json`**
 
