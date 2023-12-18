@@ -6,7 +6,6 @@ import type { AppleTVEnhancedPlatformConfig } from './interfaces';
 import type { NodePyATVDevice } from '@sebbo2002/node-pyatv';
 import PythonChecker from './PythonChecker';
 import PrefixLogger from './PrefixLogger';
-import checkOs from './checkOS';
 import LogLevelLogger from './LogLevelLogger';
 
 
@@ -40,7 +39,6 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             this.log.debug('Executed didFinishLaunching callback');
 
             // make sure the Python environment is ready
-            checkOs((m) => this.logLevelLogger.info(m), (m) => this.logLevelLogger.warn(m));
             await new PythonChecker(this.logLevelLogger, this.api.user.storagePath()).allInOne(this.config.forceVenvRecreate);
 
             // run the method to discover / register your devices as accessories
