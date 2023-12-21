@@ -45,6 +45,16 @@
                 },
                 "required": true
             },
+            "deviceStateDelay": {
+                "title": "Device State Delay (seconds)",
+                "description": "The time in seconds that the Apple TV needs to report a device state continuously before the plugin will report the device state. E.g. when pausing a video, the video needs to stay paused for x seconds before the state will be reported.",
+                "type": "integer",
+                "default": 0,
+                "placeholder": 0,
+                "required": true,
+                "minimum": 0,
+                "maximum": 15
+            },
             "remoteKeysAsSwitch": {
                 "title": "Remote Keys as Switches",
                 "description": "Remote keys which will be exposed as switches to HomeKit, e.g. to use the remote keys in automations.",
