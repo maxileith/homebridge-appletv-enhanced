@@ -725,7 +725,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
     }
 
     private async handleInputUpdate(event: NodePyATVDeviceEvent): Promise<void> {
-        if (event === null) {
+        if (event === null || event.value !== '') {
             return;
         }
         if (event.value === event.oldValue) {
