@@ -70,7 +70,7 @@
         "@types/md5": "^2.3.5"
     },
     "dependencies": {
-        "@sebbo2002/node-pyatv": "^8.0.0-develop.2",
+        "@sebbo2002/node-pyatv": "^8.0.0-develop.3",
         "md5": "^2.3.0"
     },
     "homepage": "https://github.com/maxileith/homebridge-appletv-enhanced#readme",
