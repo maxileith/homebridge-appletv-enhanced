@@ -32,7 +32,9 @@ This plugin automatically discovers Apple TV devices in the local network and ex
 -   Most recent Version of Node 20 LTS or 18 LTS
 -   Python 3.8, 3.9, 3.10 or 3.11
 -   Python virtual environment module `virtualenv`. (the plugin will create a virtual environment on startup and will install python dependencies in this virtual environment)
-    -   On homebridge **apt-package versions >=1.1.4** the python module is installed automatically as a dependency
+    -   On homebridge **[apt-package >=1.1.4](https://github.com/homebridge/homebridge-apt-pkg/releases/tag/1.1.4)** the python module is installed automatically as a dependency, see [homebridge/homebridge-apt-pkg#16](https://github.com/homebridge/homebridge-apt-pkg/issues/16)
+        -   **[raspian image >= 1.1.2](https://github.com/homebridge/homebridge-raspbian-image/releases/tag/v1.1.2)** includes this apt-package, so there is no need to install it manually.
+        -   **[homebridge-docker >= 2023-11-28](https://github.com/homebridge/docker-homebridge/releases/tag/2023-11-28)** includes this apt-package, so there is no need to install it manually.
     -   Otherwise, the python module `virtualenv` has to be installed manually. This won't be handled by the plugin itself.
         -   On debian-based distros: `sudo apt install python3-venv`
         -   Installation on other distros may vary
