@@ -129,6 +129,11 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
                 continue;
             }
 
+            if (!appleTV.mac) {
+                this.log.debug(`Apple TV ${appleTV.name} has no MAC address. Skipping.`);
+                continue;
+            }
+
             // generate a unique id for the accessory this should be generated from
             // something globally unique, but constant, for example, the device serial
             // number or MAC address
