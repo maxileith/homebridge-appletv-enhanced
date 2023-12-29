@@ -85,13 +85,13 @@ export class AppleTVEnhancedAccessory {
         private readonly platform: AppleTVEnhancedPlatform,
         private readonly accessory: PlatformAccessory,
     ) {
-        this.device = CustomPyAtvInstance.deviceAdvanced({ id: this.accessory.context.id as string })!;
+        this.device = CustomPyAtvInstance.deviceAdvanced({ mac: this.accessory.context.mac as string })!;
 
-        this.log = new PrefixLogger(this.platform.logLevelLogger, `${this.device.name} (${this.device.id})`);
+        this.log = new PrefixLogger(this.platform.logLevelLogger, `${this.device.name} (${this.device.mac})`);
 
         const credentials: string | undefined = this.getCredentials();
         this.device = CustomPyAtvInstance.deviceAdvanced({
-            id: this.accessory.context.id as string,
+            mac: this.accessory.context.mac as string,
             airplayCredentials: credentials,
             companionCredentials: credentials,
         })!;
@@ -100,7 +100,7 @@ export class AppleTVEnhancedAccessory {
             return this.pair(this.device.host, this.device.name).then((c) => {
                 this.setCredentials(c);
                 this.device = CustomPyAtvInstance.deviceAdvanced({
-                    id: this.device.id!,
+                    mac: this.device.mac!,
                     airplayCredentials: c,
                     companionCredentials: c,
                 })!;
@@ -137,7 +137,7 @@ export class AppleTVEnhancedAccessory {
         this.accessory.getService(this.platform.Service.AccessoryInformation)!
             .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Apple Inc.')
             .setCharacteristic(this.platform.Characteristic.Model, this.device.modelName!)
-            .setCharacteristic(this.platform.Characteristic.SerialNumber, this.device.id!)
+            .setCharacteristic(this.platform.Characteristic.SerialNumber, this.device.mac!)
             .setCharacteristic(this.platform.Characteristic.Name, removeSpecialCharacters(this.device.name))
             .setCharacteristic(this.platform.Characteristic.FirmwareRevision, this.device.version!);
 
@@ -175,7 +175,7 @@ export class AppleTVEnhancedAccessory {
         this.service.getCharacteristic(this.platform.Characteristic.RemoteKey)
             .onSet(this.handleRemoteKeySet.bind(this));
 
-        this.log.setPrefix(`${configuredName} (${this.device.id})`);
+        this.log.setPrefix(`${configuredName} (${this.device.mac})`);
 
         // create television speaker
         this.createTelevisionSpeaker();
@@ -261,7 +261,7 @@ export class AppleTVEnhancedAccessory {
 
             const credentials: string | undefined = this.getCredentials();
             this.device = CustomPyAtvInstance.deviceAdvanced({
-                id: this.device.id!,
+                mac: this.device.mac!,
                 airplayCredentials: credentials,
                 companionCredentials: credentials,
             }) || this.device;
@@ -725,7 +725,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
     }
 
     private async handleInputUpdate(event: NodePyATVDeviceEvent): Promise<void> {
-        if (event === null) {
+        if (event.value === null || event.value === '') {
             return;
         }
         if (event.value === event.oldValue) {
@@ -925,7 +925,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         }
         this.log.info(`Changed Configured Name from ${oldConfiguredName} to ${value}`);
         this.setCommonConfig('configuredName', value.toString());
-        this.log.setPrefix(`${value} (${this.device.id})`);
+        this.log.setPrefix(`${value} (${this.device.mac})`);
     }
 
     private async handleSleepDiscoveryModeGet(): Promise<Nullable<CharacteristicValue>> {
@@ -985,7 +985,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
     }
 
     private getPath(file: string, defaultContent = '{}'): string {
-        const dir: string = path.join(this.platform.api.user.storagePath(), 'appletv-enhanced', this.device.id!.replaceAll(':', ''));
+        const dir: string = path.join(this.platform.api.user.storagePath(), 'appletv-enhanced', this.device.mac!.replaceAll(':', ''));
         if (!fs.existsSync(dir)){
             fs.mkdirSync(dir);
         }

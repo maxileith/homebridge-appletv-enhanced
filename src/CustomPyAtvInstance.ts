@@ -22,7 +22,9 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
         return nodePyatv.NodePyATVInstance.find(this.extendOptions(options))
             .then(async (results) => {
                 for (const result of results) {
-                    this.cachedDevices[result.id!] = result;
+                    if (result.mac) {
+                        this.cachedDevices[result.mac] = result;
+                    }
                 }
                 return results;
             });
@@ -31,14 +33,15 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
     public static deviceAdvanced(
         options: AlternatePyATVDeviceOptions | nodePyatv.NodePyATVDeviceOptions,
     ): nodePyatv.NodePyATVDevice | undefined {
-        if (options.id) {
-            const cachedDevice: nodePyatv.NodePyATVDevice = this.cachedDevices[options.id];
+        if (options.mac) {
+            const cachedDevice: nodePyatv.NodePyATVDevice = this.cachedDevices[options.mac];
             if (cachedDevice === undefined) {
                 return undefined;
             }
             return super.device(this.extendOptions({
                 ...options,
                 host: cachedDevice.host,
+                mac: cachedDevice.mac,
                 name: cachedDevice.name,
                 id: cachedDevice.id,
                 model: cachedDevice.model,
