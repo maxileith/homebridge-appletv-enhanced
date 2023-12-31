@@ -9,7 +9,7 @@
 
 [Homebridge](https://github.com/homebridge/homebridge) plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV integration of HomeKit.
 
-This plugin automatically discovers Apple TV devices in the local network and exposes each one as a HomeKit Set-Top Box.
+This plugin automatically discovers Apple TV devices on the local network and exposes each one as a HomeKit Set-Top Box.
 
 ## Features
 
