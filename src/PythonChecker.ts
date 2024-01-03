@@ -40,7 +40,6 @@ class PythonChecker {
         this.log.info('Starting python check.');
         this.ensurePluginDir();
         await this.ensurePythonVersion();
-        this.log.info(`System pip version: ${await this.getSystemPipVersion()}`);
         await this.ensureVenvCreated(forceVenvRecreate);
         await this.ensureVenvPipUpToDate();
         await this.ensureVenvRequirementsSatisfied();
@@ -175,11 +174,6 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
     private async getSystemPythonVersion(): Promise<string> {
         const [version]: [string, string] = await this.runCommand('python3', ['--version'], undefined, true);
         return version.trim().replace('Python ', '');
-    }
-
-    private async getSystemPipVersion(): Promise<string> {
-        const [version]: [string, string] = await this.runCommand('python3', ['-m', 'pip', '--version'], undefined, true);
-        return version.trim().replace('pip ', '').split(' ')[0];
     }
 
     private async getVenvPipVersion(): Promise<string> {
