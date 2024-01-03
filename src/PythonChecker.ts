@@ -122,14 +122,14 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
 
     private async ensureVenvPipUpToDate(): Promise<void> {
         const venvPipVersion: string = await this.getVenvPipVersion();
-        this.log.info(`Venv pip version: ${await this.getSystemPipVersion()}`);
-        this.log.info('Checking if there is an update for pip ...');
+        this.log.info(`Venv pip version: ${venvPipVersion}`);
+        this.log.info('Checking if there is an update for venv pip ...');
         if (venvPipVersion === await this.getMostRecentPipVersion()) {
-            this.log.info('Pip is up-to-date');
+            this.log.info('Venv pip is up-to-date');
         } else {
-            this.log.warn('Pip is outdated. Updating now ...');
+            this.log.warn('Venv pip is outdated. Updating now ...');
             await this.updatePip();
-            this.log.info('Pip updated');
+            this.log.info('Venv pip updated');
         }
     }
 
