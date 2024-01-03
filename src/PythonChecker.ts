@@ -5,6 +5,8 @@ import { type SpawnOptionsWithoutStdio, spawn } from 'child_process';
 import { delay } from './utils';
 import PrefixLogger from './PrefixLogger';
 import type LogLevelLogger from './LogLevelLogger';
+import type { AxiosResponse } from 'axios';
+import axios from 'axios';
 
 const SUPPORTED_PYTHON_VERSIONS: string[] = [
     '3.8',
@@ -38,6 +40,7 @@ class PythonChecker {
         this.log.info('Starting python check.');
         this.ensurePluginDir();
         await this.ensurePythonVersion();
+        this.log.info(`System pip version: ${await this.getSystemPipVersion()}`);
         await this.ensureVenvCreated(forceVenvRecreate);
         await this.ensureVenvPipUpToDate();
         await this.ensureVenvRequirementsSatisfied();
@@ -118,19 +121,16 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
     }
 
     private async ensureVenvPipUpToDate(): Promise<void> {
-        this.log.info('Checking if pip is up-to-date ...');
-        if (await this.isPipUpToDate()) {
+        const venvPipVersion: string = await this.getVenvPipVersion();
+        this.log.info(`Venv pip version: ${await this.getSystemPipVersion()}`);
+        this.log.info('Checking if there is an update for pip ...');
+        if (venvPipVersion === await this.getMostRecentPipVersion()) {
             this.log.info('Pip is up-to-date');
         } else {
             this.log.warn('Pip is outdated. Updating now ...');
             await this.updatePip();
             this.log.info('Pip updated');
         }
-    }
-
-    private async isPipUpToDate(): Promise<boolean> {
-        const [stdout, stderr]: [string, string] = await this.runCommand(this.venvPipPath, ['list', '--outdated'], undefined, true);
-        return !stdout.includes('pip ') && !stderr.includes('A new release of pip is available');
     }
 
     private async updatePip(): Promise<void> {
@@ -175,6 +175,26 @@ On debian based distributions this is usally \'sudo apt install python3-venv\'')
     private async getSystemPythonVersion(): Promise<string> {
         const [version]: [string, string] = await this.runCommand('python3', ['--version'], undefined, true);
         return version.trim().replace('Python ', '');
+    }
+
+    private async getSystemPipVersion(): Promise<string> {
+        const [version]: [string, string] = await this.runCommand('python3', ['-m', 'pip', '--version'], undefined, true);
+        return version.trim().replace('pip ', '').split(' ')[0];
+    }
+
+    private async getVenvPipVersion(): Promise<string> {
+        const [version]: [string, string] = await this.runCommand(this.venvPipPath, ['--version'], undefined, true);
+        return version.trim().replace('pip ', '').split(' ')[0];
+    }
+
+    private async getMostRecentPipVersion(): Promise<string> {
+        try {
+            const response: AxiosResponse<{ info: { version: string } }, unknown> = await axios.get('https://pypi.org/pypi/pip/json');
+            return response.data.info.version;
+        } catch (e) {
+            this.log.error(e as string);
+            return 'error';
+        }
     }
 
     private async runCommand(

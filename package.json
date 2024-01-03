@@ -60,17 +60,18 @@
         "@types/node": "^18.19.4",
         "@typescript-eslint/eslint-plugin": "^6.17.0",
         "@typescript-eslint/parser": "^6.17.0",
+        "@types/md5": "^2.3.5",
         "eslint": "^8.56.0",
         "homebridge": "^1.7.0",
         "nodemon": "^3.0.2",
+        "rimraf": "^5.0.5",
         "standard-version": "^9.5.0",
         "ts-node": "^10.9.2",
-        "typescript": "^5.3.3",
-        "rimraf": "^5.0.5",
-        "@types/md5": "^2.3.5"
+        "typescript": "^5.3.3"
     },
     "dependencies": {
         "@sebbo2002/node-pyatv": "^7.2.1",
+        "axios": "^1.6.3",
         "md5": "^2.3.0"
     },
     "homepage": "https://github.com/maxileith/homebridge-appletv-enhanced#readme",
