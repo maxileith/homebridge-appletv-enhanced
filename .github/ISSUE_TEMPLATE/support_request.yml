@@ -62,6 +62,7 @@ body:
           - **Node**: 20.9.0 (output of `node -v`)
           - **npm**: 10.1.0 (output of `npm -v`)
           - **Python**: 3.11.2 (output of `python3 --version`)
+          - **Pip**: 23.3.3 (output of `python3 -m pip --version`)
       value: |
         - OS:
         - Docker:
@@ -70,6 +71,7 @@ body:
         - Node:
         - npm:
         - Python:
+        - Pip:
     validations:
       required: true
 
