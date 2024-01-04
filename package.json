@@ -71,7 +71,7 @@
     },
     "dependencies": {
         "@sebbo2002/node-pyatv": "^7.2.1",
-        "axios": "^1.6.3",
+        "axios": "^1.6.4",
         "md5": "^2.3.0"
     },
     "homepage": "https://github.com/maxileith/homebridge-appletv-enhanced#readme",
