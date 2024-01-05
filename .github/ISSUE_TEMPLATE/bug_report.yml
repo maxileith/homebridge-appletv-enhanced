@@ -52,7 +52,7 @@ body:
         Be sure to **remove any sensitive information** (MAC-Addresses and Airplay credentials).
         If you have a lengthy log message, please use the file upload functionality in the `Additional Context` section to supply log files.
       placeholder: Please paste logging output. Debug logging can be enabled in the plugin configuration.
-      render: Markdown
+      render: console
     validations:
       required: true
 
