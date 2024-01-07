@@ -39,6 +39,7 @@ This plugin automatically discovers Apple TV devices on the local network and ex
     -   Otherwise, the python module `virtualenv` has to be installed manually. This won't be handled by the plugin itself.
         -   On debian-based distros: `sudo apt install python3-venv`
         -   Installation on other distros may vary
+-   [Homebridge Config UI >= 4.54.2](https://github.com/homebridge/homebridge-config-ui-x/releases/tag/4.54.2) when creating backups
 -   Apple TV Models with tvOS 15 and upwards are supported (all 4K ones and the latest HD one)
 -   The access of Speakers & TVs should be either set to "Everybody" or "Anybody On the Same Network" in the Home app
 -   Raspberry Pi 1, 2, 3 and Zero 1, 2 are not recommended for performance reasons. Recommended are 3B+, 4B, 5B.
