@@ -8,6 +8,10 @@ class PrefixLogger {
         private prefix: string,
     ) { }
 
+    public extendedDebug(message: string, ...parameters: any[]): void {
+        this.log.extendedDebug(this.extendMessage(message), ...parameters);
+    }
+
     public debug(message: string, ...parameters: any[]): void {
         this.log.debug(this.extendMessage(message), ...parameters);
     }

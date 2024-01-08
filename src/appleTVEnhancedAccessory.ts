@@ -445,13 +445,13 @@ export class AppleTVEnhancedAccessory {
         }
 
         const deviceStateDelay: number = (this.platform.config.deviceStateDelay || 0) * 1000;
-        this.log.debug(`New Device State Draft (might be discarded if there are state changes until the configured delay of 
+        this.log.debug(`New Device State Draft (might be discarded if there are state changes until the configured delay of \
 ${deviceStateDelay}ms is over): ${event.value}`);
         // wait for the delay to expire
         await delay(deviceStateDelay);
         // abort if there was another device state update in the meantime
         if (this.lastDeviceStateChange + deviceStateDelay > Date.now()) {
-            this.log.debug(`New Device State Draft discarded: ${event.value}`);
+            this.log.debug(`New Device State Draft discarded (since there was another state change): ${event.value}`);
             return;
         }
         // set all device state sensors to inactive
@@ -464,6 +464,7 @@ ${deviceStateDelay}ms is over): ${event.value}`);
         }
         // only make device state changes if Apple TV is on
         if (this.service?.getCharacteristic(this.platform.Characteristic.Active).value === this.platform.Characteristic.Active.INACTIVE) {
+            this.log.debug(`New Device State Draft discarded (since Apple TV is off): ${event.value}`);
             this.lastDeviceState = null;
             return;
         }

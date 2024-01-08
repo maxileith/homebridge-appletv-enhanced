@@ -168,11 +168,11 @@
             },
             "logLevel": {
                 "title": "Log Level",
-                "description": "Set the log level. (0 - None; 1 - Error; 2 - Warn; 3 - Info; 4 - Debug",
+                "description": "Set the log level. (0 - None; 1 - Error; 2 - Warn; 3 - Info; 4 - Debug; 5 - Extended Debug)",
                 "type": "integer",
                 "default": 3,
                 "minimum": 0,
-                "maximum": 4,
+                "maximum": 5,
                 "required": true
             }
         }

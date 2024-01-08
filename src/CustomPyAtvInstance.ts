@@ -14,6 +14,8 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
     private static atvscriptPath: string | undefined = undefined;
     private static atvremotePath: string | undefined = undefined;
 
+    private static log: PrefixLogger | undefined = undefined;
+
     private constructor(options: nodePyatv.NodePyATVInstanceOptions) {
         super(options);
     }
@@ -23,7 +25,7 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
             .then(async (results) => {
                 for (const result of results) {
                     if (result.mac) {
-                        this.cachedDevices[result.mac] = result;
+                        CustomPyATVInstance.cachedDevices[result.mac] = result;
                     }
                 }
                 return results;
@@ -34,7 +36,7 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
         options: AlternatePyATVDeviceOptions | nodePyatv.NodePyATVDeviceOptions,
     ): nodePyatv.NodePyATVDevice | undefined {
         if (options.mac) {
-            const cachedDevice: nodePyatv.NodePyATVDevice = this.cachedDevices[options.mac];
+            const cachedDevice: nodePyatv.NodePyATVDevice = CustomPyATVInstance.cachedDevices[options.mac];
             if (cachedDevice === undefined) {
                 return undefined;
             }
@@ -49,34 +51,45 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
                 version: cachedDevice.version,
                 os: cachedDevice.os,
             }));
+        } else {
+            return super.device(this.extendOptions<nodePyatv.NodePyATVDeviceOptions>(options as nodePyatv.NodePyATVDeviceOptions));
         }
-        return super.device(this.extendOptions<nodePyatv.NodePyATVDeviceOptions>(options as nodePyatv.NodePyATVDeviceOptions));
     }
 
-    public static setStoragePath(storagePath: string, logger?: LogLevelLogger | PrefixLogger): void {
-        this.atvscriptPath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvscript');
-        this.atvremotePath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvremote');
-        if (logger) {
-            const log: PrefixLogger = new PrefixLogger(logger, 'CustomPyATVInstance');
-            log.debug(`Set atvscript path to "${this.atvscriptPath}".`);
-            log.debug(`Set atvremote path to "${this.atvremotePath}".`);
-        }
+    public static setStoragePath(storagePath: string): void {
+        CustomPyATVInstance.atvscriptPath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvscript');
+        CustomPyATVInstance.atvremotePath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvremote');
+        CustomPyATVInstance.log?.debug(`Set atvscript path to "${CustomPyATVInstance.atvscriptPath}".`);
+        CustomPyATVInstance.log?.debug(`Set atvremote path to "${CustomPyATVInstance.atvremotePath}".`);
+    }
+
+    public static setLogger(logger: LogLevelLogger | PrefixLogger): void {
+        CustomPyATVInstance.log = new PrefixLogger(logger, 'CustomPyATVInstance');
     }
 
     public static getAtvremotePath(): string {
-        return this.atvremotePath || 'atvremote';
+        return CustomPyATVInstance.atvremotePath || 'atvremote';
     }
 
     public static getAtvscriptPath(): string {
-        return this.atvremotePath || 'atvscript';
+        return CustomPyATVInstance.atvremotePath || 'atvscript';
     }
 
     private static extendOptions<T extends nodePyatv.NodePyATVDeviceOptions | nodePyatv.NodePyATVInstanceOptions | undefined>(
         options: T,
     ): T {
+        const debug = (msg: string): void => {
+            if (CustomPyATVInstance.log) {
+                // remove color
+                // eslint-disable-next-line no-control-regex
+                msg = msg.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
+                CustomPyATVInstance.log.extendedDebug(msg);
+            }
+        };
         return {
-            atvscriptPath: this.atvscriptPath,
-            atvremotePath: this.atvremotePath,
+            atvscriptPath: CustomPyATVInstance.atvscriptPath,
+            atvremotePath: CustomPyATVInstance.atvremotePath,
+            debug: debug,
             ...options,
         };
     }
