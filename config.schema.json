@@ -103,7 +103,7 @@
             },
             "customInputURIs": {
                 "title": "Custom Input URIs",
-                "description": "Provide URIs for custom Inputs that open the URI on the Apple TV when selected",
+                "description": "Provide URIs for custom Inputs that open the URI on the Apple TV when selected.",
                 "type": "array",
                 "default": [],
                 "required": true,
