@@ -7,7 +7,7 @@ export enum LogLevel {
     WARN = 2,
     INFO = 3,
     DEBUG = 4,
-    EXTENDED_DEBUG = 5,
+    VERBOSE = 5,
 }
 
 class LogLevelLogger {
@@ -27,8 +27,8 @@ class LogLevelLogger {
                     level;
     }
 
-    public extendedDebug(message: string, ...parameters: any[]): void {
-        if (this.level >= LogLevel.EXTENDED_DEBUG) {
+    public verbose(message: string, ...parameters: any[]): void {
+        if (this.level >= LogLevel.VERBOSE) {
             this.log.info(`\u001B[90m${message}\u001B[39m`, ...parameters);
         }
     }

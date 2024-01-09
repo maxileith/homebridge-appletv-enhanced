@@ -83,7 +83,7 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
                 // remove color
                 // eslint-disable-next-line no-control-regex
                 msg = msg.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
-                CustomPyATVInstance.log.extendedDebug(msg);
+                CustomPyATVInstance.log.verbose(msg);
             }
         };
         return {
