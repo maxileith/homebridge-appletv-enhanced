@@ -8,7 +8,7 @@
     "scripts": {
         "lint": "eslint src/**.ts --max-warnings=0",
         "watch": "npm run build && npm link && nodemon",
-        "build": "npm ci && rimraf -I ./dist && npm run lint && tsc && mkdir ./dist/html && cp ./src/html/*.html ./dist/html",
+        "build": "npm ci && rimraf -I ./dist && npm run lint && tsc && mkdir ./dist/html && cp -r ./src/html ./dist",
         "prepublishOnly": "npm run build",
         "postversion": "git push && git push --tags"
     },
@@ -44,7 +44,8 @@
         "dist",
         "config.schema.json",
         "LICENSES_OF_DEPENDENCIES",
-        "requirements.txt"
+        "requirements.txt",
+        "homebridge-ui/public/index.html"
     ],
     "publishConfig": {
         "access": "public"

@@ -29,6 +29,24 @@ export interface ICommonConfig {
     homeInputName?: string;
 }
 
+export interface DeviceConfigOverride {
+        mac?: string;
+        overrideMediaTypes?: boolean;
+        mediaTypes?: NodePyATVMediaType[];
+        overrideDeviceStates?: boolean;
+        deviceStates?: NodePyATVDeviceState[];
+        overrideDeviceStateDelay?: boolean;
+        deviceStateDelay?: number;
+        overrideRemoteKeysAsSwitch?: boolean;
+        remoteKeysAsSwitch?: RocketRemoteKey[];
+        overrideAvadaKedavraAppAmount?: boolean;
+        avadaKedavraAppAmount?: number;
+        overrideCustomInputURIs?: boolean;
+        customInputURIs?: string[];
+        overrideDisableVolumeControlRemote?: boolean;
+        disableVolumeControlRemote?: boolean;
+    }
+
 export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_bridge' | 'name' | 'platform'> {
     mediaTypes?: NodePyATVMediaType[];
     deviceStates?: NodePyATVDeviceState[];
@@ -37,6 +55,7 @@ export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_br
     avadaKedavraAppAmount?: number;
     customInputURIs?: string[];
     disableVolumeControlRemote?: boolean;
+    deviceSpecificOverrides?: DeviceConfigOverride[];
     discover?: {
         multicast?: boolean;
         unicast?: string[];
