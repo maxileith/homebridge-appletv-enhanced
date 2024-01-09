@@ -186,7 +186,7 @@
             "expandable": true,
             "expanded": false,
             "title": "Defaults",
-            "description": "Settings that apply to all Apple TVs except if they are overwritten in the device-specific settings.",
+            "description": "Settings that apply to all Apple TVs except if they are overwritten in the device-specific settings (device specific overrides are about to come in a future release).",
             "items": [
                 "mediaTypes",
                 "deviceStates",
