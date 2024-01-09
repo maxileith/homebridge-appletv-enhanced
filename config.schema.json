@@ -2,7 +2,7 @@
     "pluginAlias": "AppleTVEnhanced",
     "pluginType": "platform",
     "singular": true,
-    "headerDisplay": "# Apple TV Enhanced\n\n Plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV integration of HomeKit. \n\n Made with ❤ by [maxileith](https://github.com/maxileith). \n\n [license of this plugin](https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/LICENSE) \n\n [open-source licenses](https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/LICENSES_OF_DEPENDENCIES)",
+    "headerDisplay": "# Apple TV Enhanced\n\n Plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV integration of HomeKit. \n\n Made with :heart: by [maxileith](https://github.com/maxileith). \n\n [license of this plugin](https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/LICENSE) \n\n [open-source licenses](https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/LICENSES_OF_DEPENDENCIES)",
     "schema": {
         "type": "object",
         "properties": {
@@ -103,13 +103,14 @@
             },
             "customInputURIs": {
                 "title": "Custom Input URIs",
-                "description": "Provide URIs for custom Inputs that open the URI on the Apple TV when selected",
+                "description": "Provide URIs for custom Inputs that open the URI on the Apple TV when selected.",
                 "type": "array",
                 "default": [],
                 "required": true,
                 "items": {
                     "type": "string",
                     "title": "URI",
+                    "pattern": "^(([^:\\/?#]+):)?(\\/\\/([^\\/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$",
                     "placeholder": "https://www.disneyplus.com/movies/rogue-one-a-star-wars-story/14CV6eSbygOA"
                 }
             },
@@ -122,7 +123,6 @@
             },
             "discover": {
                 "title": "Discover",
-                "description": "Settings regarding the discovery of Apple TVs.",
                 "type": "object",
                 "required": true,
                 "properties": {
@@ -141,6 +141,7 @@
                         "items": {
                             "title": "IPv4 Address",
                             "type": "string",
+                            "format": "ipv4",
                             "placeholder": "192.168.0.42"
                         },
                         "required": true
@@ -153,6 +154,7 @@
                         "items": {
                             "title": "MAC / IPv4 Address",
                             "type": "string",
+                            "pattern": "^(((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)(\\.(?!$)|$)){4}|([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2})$",
                             "placeholder": "AA:BB:CC:DD:EE:FF / 192.168.0.42"
                         },
                         "required": true
@@ -168,15 +170,73 @@
             },
             "logLevel": {
                 "title": "Log Level",
-                "description": "Set the log level. (0 - None; 1 - Error; 2 - Warn; 3 - Info; 4 - Debug",
+                "description": "Set the log level. (0 - None; 1 - Error; 2 - Warn; 3 - Info; 4 - Debug; 5 - Verbose)",
                 "type": "integer",
                 "default": 3,
                 "minimum": 0,
-                "maximum": 4,
+                "maximum": 5,
                 "required": true
             }
         }
     },
-    "form": null,
+    "form": [
+        "name",
+        {
+            "type": "fieldset",
+            "expandable": true,
+            "expanded": false,
+            "title": "Defaults",
+            "description": "Settings that apply to all Apple TVs except if they are overwritten in the device-specific settings (device specific overrides are about to come in a future release).",
+            "items": [
+                "mediaTypes",
+                "deviceStates",
+                "deviceStateDelay",
+                "remoteKeysAsSwitch",
+                {
+                    "key": "customInputURIs",
+                    "type": "array",
+                    "items": {
+                        "key": "customInputURIs[]"
+                    }
+                },
+                "avadaKedavraAppAmount",
+                "disableVolumeControlRemote"
+            ]
+        },
+        {
+            "type": "fieldset",
+            "expandable": true,
+            "expanded": false,
+            "title": "Discovery",
+            "description": "Settings regarding the discovery of Apple TVs.",
+            "items": [
+                "discover.multicast",
+                {
+                    "key": "discover.unicast",
+                    "type": "array",
+                    "items": [
+                        {
+                            "key": "discover.unicast[]"
+                        }
+                    ]
+                },
+                {
+                    "key": "discover.blacklist",
+                    "type": "array",
+                    "items": {
+                        "key": "discover.blacklist[]"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "fieldset",
+            "expandable": true,
+            "expanded": false,
+            "title": "Other",
+            "description": "Settings you usually don't need to touch.",
+            "items": ["forceVenvRecreate", "logLevel"]
+        }
+    ],
     "display": null
 }

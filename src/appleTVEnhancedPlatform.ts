@@ -43,7 +43,8 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
 
             // run the method to discover / register your devices as accessories
             this.log.debug(`Setting the storage path of the PyATV instance to ${this.api.user.storagePath()}`);
-            CustomPyAtvInstance.setStoragePath(this.api.user.storagePath(), this.logLevelLogger);
+            CustomPyAtvInstance.setLogger(this.logLevelLogger);
+            CustomPyAtvInstance.setStoragePath(this.api.user.storagePath());
 
             if (
                 this.config.discover !== undefined &&
