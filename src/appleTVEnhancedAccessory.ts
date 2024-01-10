@@ -17,7 +17,16 @@ import {
     snakeCaseToTitleCase,
     trimToMaxLength,
 } from './utils';
-import type { IAppConfig, IAppConfigs, ICommonConfig, ICustomInput, IInputs, NodePyATVApp } from './interfaces';
+import type {
+    AppleTVEnhancedPlatformConfig,
+    DeviceConfigOverride,
+    IAppConfig,
+    IAppConfigs,
+    ICommonConfig,
+    ICustomInput,
+    IInputs,
+    NodePyATVApp,
+} from './interfaces';
 import PrefixLogger from './PrefixLogger';
 import { DisplayOrderTypes, RocketRemoteKey } from './enums';
 import type { TDeviceStateConfigs, TMediaConfigs, TRemoteKeysAsSwitchConfigs } from './types';
@@ -64,6 +73,8 @@ export class AppleTVEnhancedAccessory {
     private televisionSpeakerService: Service | undefined = undefined;
     private rocketRemote: RocketRemote | undefined = undefined;
 
+    private config: AppleTVEnhancedPlatformConfig;
+
     private appConfigs: IAppConfigs | undefined = undefined;
     private commonConfig: ICommonConfig | undefined = undefined;
 
@@ -85,6 +96,8 @@ export class AppleTVEnhancedAccessory {
         private readonly platform: AppleTVEnhancedPlatform,
         private readonly accessory: PlatformAccessory,
     ) {
+        this.config = this.applyConfigOverrides(this.platform.config, this.accessory.context.mac);
+
         this.device = CustomPyAtvInstance.deviceAdvanced({ mac: this.accessory.context.mac as string })!;
 
         this.log = new PrefixLogger(this.platform.logLevelLogger, `${this.device.name} (${this.device.mac})`);
@@ -187,7 +200,7 @@ export class AppleTVEnhancedAccessory {
         this.createAvadaKedavra();
         this.createHomeInput();
         const apps: NodePyATVApp[] = await this.device.listApps();
-        this.createInputs(apps, this.platform.config.customInputURIs || []);
+        this.createInputs(apps, this.config.customInputURIs || []);
 
         // create event listeners to keep everything up-to-date
         this.createListeners();
@@ -207,7 +220,7 @@ export class AppleTVEnhancedAccessory {
         this.televisionSpeakerService.setCharacteristic(this.platform.Characteristic.Active, this.platform.Characteristic.Active.ACTIVE);
         this.televisionSpeakerService.setCharacteristic(this.platform.Characteristic.Mute, false);
 
-        if (this.platform.config.disableVolumeControlRemote !== true) {
+        if (this.config.disableVolumeControlRemote !== true) {
             this.televisionSpeakerService.setCharacteristic(
                 this.platform.Characteristic.VolumeControlType,
                 this.platform.Characteristic.VolumeControlType.RELATIVE,
@@ -281,7 +294,7 @@ export class AppleTVEnhancedAccessory {
             this.getCredentials()!,
             this.getCredentials()!,
             this.log,
-            this.platform.config.avadaKedavraAppAmount || 15,
+            this.config.avadaKedavraAppAmount || 15,
         );
 
         this.rocketRemote.onHome((async (): Promise<void> => {
@@ -297,7 +310,7 @@ export class AppleTVEnhancedAccessory {
     private createMediaTypeSensors(): void {
         const mediaTypes: NodePyATVMediaType[] = Object.keys(NodePyATVMediaType) as NodePyATVMediaType[];
         for (const mediaType of mediaTypes) {
-            if (this.platform.config.mediaTypes !== undefined && !this.platform.config.mediaTypes.includes(mediaType)) {
+            if (this.config.mediaTypes === undefined || !this.config.mediaTypes.includes(mediaType)) {
                 continue;
             }
             const configuredName: string = this.getMediaConfigs()[mediaType] || capitalizeFirstLetter(mediaType);
@@ -337,7 +350,7 @@ export class AppleTVEnhancedAccessory {
     private createRemoteKeysAsSwitches(): void {
         const remoteKeys: RocketRemoteKey[] = Object.values(RocketRemoteKey) as RocketRemoteKey[];
         for (const remoteKey of remoteKeys) {
-            if (this.platform.config.remoteKeysAsSwitch !== undefined && !this.platform.config.remoteKeysAsSwitch.includes(remoteKey)) {
+            if (this.config.remoteKeysAsSwitch === undefined || !this.config.remoteKeysAsSwitch.includes(remoteKey)) {
                 continue;
             }
             const configuredName: string = this.getRemoteKeyAsSwitchConfigs()[remoteKey] || snakeCaseToTitleCase(remoteKey);
@@ -399,7 +412,7 @@ export class AppleTVEnhancedAccessory {
     private createDeviceStateSensors(): void {
         const deviceStates: NodePyATVDeviceState[] = Object.keys(NodePyATVDeviceState) as NodePyATVDeviceState[];
         for (const deviceState of deviceStates) {
-            if (this.platform.config.deviceStates !== undefined && !this.platform.config.deviceStates.includes(deviceState)) {
+            if (this.config.deviceStates === undefined || !this.config.deviceStates.includes(deviceState)) {
                 continue;
             }
             const configuredName: string = this.getDeviceStateConfigs()[deviceState] || capitalizeFirstLetter(deviceState);
@@ -444,7 +457,7 @@ export class AppleTVEnhancedAccessory {
             return;
         }
 
-        const deviceStateDelay: number = (this.platform.config.deviceStateDelay || 0) * 1000;
+        const deviceStateDelay: number = (this.config.deviceStateDelay || 0) * 1000;
         this.log.debug(`New Device State Draft (might be discarded if there are state changes until the configured delay of \
 ${deviceStateDelay}ms is over): ${event.value}`);
         // wait for the delay to expire
@@ -1211,5 +1224,42 @@ the plugin after you have fixed the root cause.');
         this.log.debug(`Total services ${this.accessory.services.length + 1} (${MAX_SERVICES - this.accessory.services.length - 1} \
 remaining)`);
         return this.accessory.addService(serviceConstructor, ...constructorArgs);
+    }
+
+    private applyConfigOverrides(config: AppleTVEnhancedPlatformConfig, mac: string): AppleTVEnhancedPlatformConfig {
+        if (config.deviceSpecificOverrides === undefined) {
+            return config;
+        }
+
+        const override: DeviceConfigOverride | undefined =
+            config.deviceSpecificOverrides.find((e) => e.mac?.toUpperCase() === mac.toUpperCase());
+
+        if (override === undefined) {
+            return config;
+        }
+
+        if (override.overrideMediaTypes === true) {
+            config.mediaTypes = override.mediaTypes;
+        }
+        if (override.overrideDeviceStates === true) {
+            config.deviceStates = override.deviceStates;
+        }
+        if (override.overrideDeviceStateDelay === true) {
+            config.deviceStateDelay = override.deviceStateDelay;
+        }
+        if (override.overrideRemoteKeysAsSwitch === true) {
+            config.remoteKeysAsSwitch = override.remoteKeysAsSwitch;
+        }
+        if (override.overrideAvadaKedavraAppAmount === true) {
+            config.avadaKedavraAppAmount = override.avadaKedavraAppAmount;
+        }
+        if (override.overrideCustomInputURIs === true) {
+            config.customInputURIs = override.customInputURIs;
+        }
+        if (override.overrideDisableVolumeControlRemote === true) {
+            config.disableVolumeControlRemote = override.disableVolumeControlRemote;
+        }
+
+        return config;
     }
 }

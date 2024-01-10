@@ -19,7 +19,6 @@
         },
         {
             "name": "Apple TV Enhanced",
-            "platform": "AppleTVEnhanced",
             "mediaTypes": ["music", "tv", "unknown", "video"],
             "deviceStates": [
                 "idle",
@@ -55,13 +54,13 @@
                 "volume_down",
                 "volume_up"
             ],
+            "avadaKedavraAppAmount": 15,
             "customInputURIs": [
                 "https://www.disneyplus.com/movies/rogue-one-a-star-wars-story/14CV6eSbygOA",
                 "https://www.netflix.com/watch/81260280",
                 "https://tv.apple.com/show/silo/umc.cmc.3yksgc857px0k0rqe5zd4jice",
                 "vlc://https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8"
             ],
-            "avadaKedavraAppAmount": 15,
             "disableVolumeControlRemote": false,
             "discover": {
                 "multicast": true,
@@ -69,7 +68,9 @@
                 "blacklist": ["AA:BB:CC:DD:EE:FF", "192.168.0.42"]
             },
             "forceVenvRecreate": false,
-            "logLevel": 4
+            "logLevel": 4,
+            "deviceSpecificOverrides": [],
+            "platform": "AppleTVEnhanced"
         }
     ]
 }

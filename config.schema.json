@@ -2,7 +2,7 @@
     "pluginAlias": "AppleTVEnhanced",
     "pluginType": "platform",
     "singular": true,
-    "headerDisplay": "# Apple TV Enhanced\n\n Plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV integration of HomeKit. \n\n Made with :heart: by [maxileith](https://github.com/maxileith). \n\n [license of this plugin](https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/LICENSE) \n\n [open-source licenses](https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/LICENSES_OF_DEPENDENCIES)",
+    "headerDisplay": "## Apple TV Enhanced\n\n Plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV integration of HomeKit. \n\n Made with ❤ by [maxileith](https://github.com/maxileith). \n\n [license of this plugin](https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/LICENSE) \n\n [open-source licenses](https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/LICENSES_OF_DEPENDENCIES)",
     "schema": {
         "type": "object",
         "properties": {
@@ -18,7 +18,7 @@
                 "title": "Media Types as Motion Sensors",
                 "description": "Media types for which a motion sensor is created that triggers when the according media type is present on the Apple TV",
                 "type": "array",
-                "default": ["music", "video"],
+                "default": [],
                 "items": {
                     "title": "Media Type",
                     "type": "string",
@@ -30,7 +30,7 @@
                 "title": "Device States as Motion Sensors",
                 "description": "Device states for which a motion sensor is created that triggers when the according device state is present on the Apple TV",
                 "type": "array",
-                "default": ["playing", "paused"],
+                "default": [],
                 "items": {
                     "title": "Device State",
                     "type": "string",
@@ -176,17 +176,177 @@
                 "minimum": 0,
                 "maximum": 5,
                 "required": true
+            },
+            "deviceSpecificOverrides": {
+                "title": "Device Specific Overrides",
+                "type": "array",
+                "default": [],
+                "required": true,
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "mac": {
+                            "title": "MAC Address",
+                            "description": "MAC address of the Apple TV for which these overrides should apply. You can get the MAC address from the logs easily.",
+                            "type": "string",
+                            "placeholder": "AA:BB:CC:DD:EE:FF",
+                            "required": true,
+                            "pattern": "^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$"
+                        },
+                        "overrideMediaTypes": {
+                            "title": "Override: Media Types as Motion Sensors",
+                            "type": "boolean",
+                            "default": false,
+                            "required": true
+                        },
+                        "mediaTypes": {
+                            "title": "Media Types as Motion Sensors",
+                            "type": "array",
+                            "items": {
+                                "title": "Media Type",
+                                "type": "string",
+                                "enum": ["music", "tv", "unknown", "video"]
+                            },
+                            "default": [],
+                            "required": true
+                        },
+                        "overrideDeviceStates": {
+                            "title": "Override: Device States as Motion Sensors",
+                            "type": "boolean",
+                            "default": false,
+                            "required": true
+                        },
+                        "deviceStates": {
+                            "title": "Device States as Motion Sensors",
+                            "type": "array",
+                            "default": [],
+                            "items": {
+                                "title": "Device State",
+                                "type": "string",
+                                "enum": [
+                                    "idle",
+                                    "loading",
+                                    "paused",
+                                    "playing",
+                                    "seeking",
+                                    "stopped"
+                                ]
+                            },
+                            "required": true
+                        },
+                        "overrideDeviceStateDelay": {
+                            "title": "Override: Device State Delay (seconds)",
+                            "type": "boolean",
+                            "default": false,
+                            "required": true
+                        },
+                        "deviceStateDelay": {
+                            "title": "Device State Delay (seconds)",
+                            "type": "integer",
+                            "placeholder": 0,
+                            "required": true,
+                            "minimum": 0,
+                            "maximum": 15,
+                            "default": 0
+                        },
+                        "overrideRemoteKeysAsSwitch": {
+                            "title": "Override: Remote Keys as Switches",
+                            "type": "boolean",
+                            "default": false,
+                            "required": true
+                        },
+                        "remoteKeysAsSwitch": {
+                            "title": "Remote Keys as Switches",
+                            "type": "array",
+                            "default": [],
+                            "items": {
+                                "title": "Key",
+                                "type": "string",
+                                "enum": [
+                                    "channel_down",
+                                    "channel_up",
+                                    "down",
+                                    "home",
+                                    "home_hold",
+                                    "left",
+                                    "menu",
+                                    "next",
+                                    "pause",
+                                    "play",
+                                    "play_pause",
+                                    "previous",
+                                    "right",
+                                    "select",
+                                    "skip_backward",
+                                    "skip_forward",
+                                    "stop",
+                                    "turn_off",
+                                    "turn_on",
+                                    "top_menu",
+                                    "up",
+                                    "volume_down",
+                                    "volume_up"
+                                ]
+                            },
+                            "required": true
+                        },
+                        "overrideAvadaKedavraAppAmount": {
+                            "title": "Override: Avada Kedavra App Amount",
+                            "type": "boolean",
+                            "default": false,
+                            "required": true
+                        },
+                        "avadaKedavraAppAmount": {
+                            "title": "Avada Kedavra App Amount",
+                            "type": "integer",
+                            "placeholder": 15,
+                            "required": true,
+                            "minimum": 5,
+                            "maximum": 35,
+                            "default": 15
+                        },
+                        "overrideCustomInputURIs": {
+                            "title": "Override: Custom Input URIs",
+                            "type": "boolean",
+                            "default": false,
+                            "required": true
+                        },
+                        "customInputURIs": {
+                            "title": "Custom Input URIs",
+                            "type": "array",
+                            "default": [],
+                            "required": true,
+                            "items": {
+                                "type": "string",
+                                "title": "URI",
+                                "pattern": "^(([^:\\/?#]+):)?(\\/\\/([^\\/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$",
+                                "placeholder": "https://www.disneyplus.com/movies/rogue-one-a-star-wars-story/14CV6eSbygOA"
+                            }
+                        },
+                        "overrideDisableVolumeControlRemote": {
+                            "title": "Override: Disable volume control in iOS remote",
+                            "type": "boolean",
+                            "default": false,
+                            "required": true
+                        },
+                        "disableVolumeControlRemote": {
+                            "title": "Disable volume control in iOS remote",
+                            "type": "boolean",
+                            "default": false,
+                            "required": true
+                        }
+                    }
+                }
             }
         }
     },
     "form": [
-        "name",
         {
             "type": "fieldset",
             "expandable": true,
             "expanded": false,
-            "title": "Defaults",
-            "description": "Settings that apply to all Apple TVs except if they are overwritten in the device-specific settings (device specific overrides are about to come in a future release).",
+            "title": "Basics",
+            "description": "Settings that apply to all Apple TVs except if they are overwritten in the device specific overrides.",
             "items": [
                 "mediaTypes",
                 "deviceStates",
@@ -201,6 +361,114 @@
                 },
                 "avadaKedavraAppAmount",
                 "disableVolumeControlRemote"
+            ]
+        },
+        {
+            "type": "fieldset",
+            "expandable": true,
+            "expanded": false,
+            "title": "Device Specific Overrides",
+            "description": "Override the default settings for specific devices.",
+            "items": [
+                {
+                    "type": "tabarray",
+                    "key": "deviceSpecificOverrides",
+                    "title": "{{ value.mac || 'New Override' }}",
+                    "buttonText": "Add Override",
+                    "items": [
+                        "deviceSpecificOverrides[].mac",
+                        {
+                            "key": "deviceSpecificOverrides[].overrideMediaTypes",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac);"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].mediaTypes",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideMediaTypes === true;"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].overrideDeviceStates",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac);"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].deviceStates",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideDeviceStates === true;"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].overrideDeviceStateDelay",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac);"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].deviceStateDelay",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideDeviceStateDelay === true;"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].overrideRemoteKeysAsSwitch",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac);"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].remoteKeysAsSwitch",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideRemoteKeysAsSwitch === true;"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].overrideAvadaKedavraAppAmount",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac);"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].avadaKedavraAppAmount",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideAvadaKedavraAppAmount === true;"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].overrideCustomInputURIs",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac);"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].customInputURIs",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideCustomInputURIs === true;"
+                            },
+                            "type": "array",
+                            "items": [
+                                {
+                                    "key": "deviceSpecificOverrides[].customInputURIs[]"
+                                }
+                            ]
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].overrideDisableVolumeControlRemote",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac);"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].disableVolumeControlRemote",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideDisableVolumeControlRemote === true;"
+                            }
+                        }
+                    ]
+                }
             ]
         },
         {
@@ -235,7 +503,7 @@
             "expanded": false,
             "title": "Other",
             "description": "Settings you usually don't need to touch.",
-            "items": ["forceVenvRecreate", "logLevel"]
+            "items": ["name", "forceVenvRecreate", "logLevel"]
         }
     ],
     "display": null
