@@ -128,6 +128,33 @@ To configure it manually, add the following to the `platforms` section of Homebr
     ],
     "avadaKedavraAppAmount": 15,
     "disableVolumeControlRemote": false,
+    "deviceSpecificOverrides": [
+        {
+            "mac": "AA:BB:CC:DD:EE:FF",
+            "overrideMediaTypes": true,
+            "mediaTypes": ["music", "video"],
+            "overrideDeviceStates": true,
+            "deviceStates": ["paused", "playing"],
+            "overrideDeviceStateDelay": true,
+            "deviceStateDelay": 3,
+            "overrideRemoteKeysAsSwitch": true,
+            "remoteKeysAsSwitch": [
+                "home",
+                "play_pause",
+                "stop",
+                "volume_down",
+                "volume_up"
+            ],
+            "overrideAvadaKedavraAppAmount": true,
+            "avadaKedavraAppAmount": 15,
+            "overrideCustomInputURIs": true,
+            "customInputURIs": [
+                "https://www.disneyplus.com/de-de/movies/avatar-the-way-of-water/6hlsDJnhiU30"
+            ],
+            "overrideDisableVolumeControlRemote": true,
+            "disableVolumeControlRemote": true
+        }
+    ],
     "discover": {
         "multicast": true,
         "unicast": ["192.168.0.15"],
@@ -138,7 +165,7 @@ To configure it manually, add the following to the `platforms` section of Homebr
 }
 ```
 
-| Attribute                    | Description                                                                                                                                                                                                                                                                                                                                                                                                             | Type            | Valid values                                                                                                                                                                                                                                                  | Default             |
+| Attribute                    | Description                                                                                                                                                                                                                                                                                                                                                                                                             | Type            | Valid values                                                                                                                                                                                                                                                  | defaults to ...     |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
 | `name`                       | The name of the plugin, e.g. shown in the logs.                                                                                                                                                                                                                                                                                                                                                                         | `string`        |                                                                                                                                                                                                                                                               | `Apple TV Enhanced` |
 | `mediaTypes`                 | edia types for which a motion sensor is created that triggers when the according media type is present on the Apple TV                                                                                                                                                                                                                                                                                                  | `array[string]` | `music`, `tv`, `unknown`, `video`                                                                                                                                                                                                                             | `[]`                |
