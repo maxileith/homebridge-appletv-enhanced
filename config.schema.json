@@ -373,8 +373,7 @@
                 {
                     "type": "tabarray",
                     "key": "deviceSpecificOverrides",
-                    "title": "{{ value.mac || 'New Override' }}",
-                    "buttonText": "Add Override",
+                    "title": "{{ value.mac || 'Override' }}",
                     "items": [
                         "deviceSpecificOverrides[].mac",
                         {
