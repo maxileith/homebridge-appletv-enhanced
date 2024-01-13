@@ -30,22 +30,24 @@ export interface ICommonConfig {
 }
 
 export interface DeviceConfigOverride {
-        mac?: string;
-        overrideMediaTypes?: boolean;
-        mediaTypes?: NodePyATVMediaType[];
-        overrideDeviceStates?: boolean;
-        deviceStates?: NodePyATVDeviceState[];
-        overrideDeviceStateDelay?: boolean;
-        deviceStateDelay?: number;
-        overrideRemoteKeysAsSwitch?: boolean;
-        remoteKeysAsSwitch?: RocketRemoteKey[];
-        overrideAvadaKedavraAppAmount?: boolean;
-        avadaKedavraAppAmount?: number;
-        overrideCustomInputURIs?: boolean;
-        customInputURIs?: string[];
-        overrideDisableVolumeControlRemote?: boolean;
-        disableVolumeControlRemote?: boolean;
-    }
+    mac?: string;
+    overrideMediaTypes?: boolean;
+    mediaTypes?: NodePyATVMediaType[];
+    overrideDeviceStates?: boolean;
+    deviceStates?: NodePyATVDeviceState[];
+    overrideDeviceStateDelay?: boolean;
+    deviceStateDelay?: number;
+    overrideRemoteKeysAsSwitch?: boolean;
+    remoteKeysAsSwitch?: RocketRemoteKey[];
+    overrideAvadaKedavraAppAmount?: boolean;
+    avadaKedavraAppAmount?: number;
+    overrideCustomInputURIs?: boolean;
+    customInputURIs?: string[];
+    overrideDisableVolumeControlRemote?: boolean;
+    disableVolumeControlRemote?: boolean;
+    overrideDefaultAudioOutputs?: boolean;
+    defaultAudioOutputs?: string[];
+}
 
 export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_bridge' | 'name' | 'platform'> {
     mediaTypes?: NodePyATVMediaType[];
@@ -55,6 +57,7 @@ export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_br
     avadaKedavraAppAmount?: number;
     customInputURIs?: string[];
     disableVolumeControlRemote?: boolean;
+    defaultAudioOutputs?: string[];
     deviceSpecificOverrides?: DeviceConfigOverride[];
     discover?: {
         multicast?: boolean;

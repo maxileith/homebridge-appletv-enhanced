@@ -158,6 +158,21 @@ class RocketRemote {
         this.sendCommand(RocketRemoteKey.VOLUME_UP);
     }
 
+    public setOutputDevices(identifiers: string[]): void {
+        const i: string = identifiers.join(',');
+        this.sendCommand(`set_output_devices=${i}`);
+    }
+
+    public addOutputDevices(identifiers: string[]): void {
+        const i: string = identifiers.join(',');
+        this.sendCommand(`add_output_devices=${i}`);
+    }
+
+    public removeOutputDevices(identifiers: string[]): void {
+        const i: string = identifiers.join(',');
+        this.sendCommand(`remove_output_devices=${i}`);
+    }
+
     public onClose(f: () => void): void {
         this.onCloseCallable = f;
         this.process.once('close', () => {

@@ -1,5 +1,5 @@
 user_storage/*
-!user_storage/config.json
+!user_storage/config.example.json
 
 .venv
 .vscode

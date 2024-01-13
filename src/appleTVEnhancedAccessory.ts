@@ -102,6 +102,8 @@ export class AppleTVEnhancedAccessory {
 
         this.log = new PrefixLogger(this.platform.logLevelLogger, `${this.device.name} (${this.device.mac})`);
 
+        this.log.debug(`Accessory Config: ${JSON.stringify(this.config)}`);
+
         const credentials: string | undefined = this.getCredentials();
         this.device = CustomPyAtvInstance.deviceAdvanced({
             mac: this.accessory.context.mac as string,
@@ -391,6 +393,15 @@ export class AppleTVEnhancedAccessory {
                 });
             this.service!.addLinkedService(s);
             this.remoteKeyServices[remoteKey] = s;
+        }
+    }
+
+    private applyDefaultAudioOutputs(): void {
+        if (this.config.defaultAudioOutputs !== undefined && this.config.defaultAudioOutputs.length !== 0) {
+            this.log.info(`Applying default audio outputs: ${this.config.defaultAudioOutputs.join(', ')}`);
+            this.rocketRemote!.setOutputDevices(this.config.defaultAudioOutputs);
+        } else {
+            this.log.debug('Skip applying the audio output defaults, since they are not configured.');
         }
     }
 
@@ -887,8 +898,11 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         if (value === this.platform.Characteristic.Active.INACTIVE && this.lastTurningOnEvent + 7500 > Date.now()) {
             return;
         }
-        this.lastTurningOnEvent = Date.now();
         this.log.info(`New Active State: ${event.value}`);
+        if (value === this.platform.Characteristic.Active.ACTIVE) {
+            this.lastTurningOnEvent = Date.now();
+            this.applyDefaultAudioOutputs();
+        }
         this.service!.updateCharacteristic(this.platform.Characteristic.Active, value);
     }
 
@@ -1258,6 +1272,9 @@ remaining)`);
         }
         if (override.overrideDisableVolumeControlRemote === true) {
             config.disableVolumeControlRemote = override.disableVolumeControlRemote;
+        }
+        if (override.overrideDefaultAudioOutputs === true) {
+            config.defaultAudioOutputs = override.defaultAudioOutputs;
         }
 
         return config;
