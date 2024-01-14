@@ -17,7 +17,7 @@
             "customType": "regex",
             "fileMatch": ["^package(-lock)?\\.json$"],
             "matchStrings": [
-                "\\\"engines\\\":[\\s\\n]*\\{[^\\{\\}]*\\\"homebridge\\\"[^\\{\\}]*\\\"node\\\":[\\s\\n]*\\\"\\^(?<currentValue>[^\\s]+)\\s\\|\\|\\s\\^[^\\\"]+\\\""
+                "\\\"engines\\\":[\\s\\n]*\\{[^\\{\\}]*\\\"homebridge\\\"[^\\{\\}]*\\\"node\\\":[\\s\\n]*\\\"\\^(?<currentValue>\\d+\\.\\d+\\.\\d+)\\s\\|\\|\\s\\^\\d+\\.\\d+\\.\\d+\\\""
             ],
             "depNameTemplate": "node",
             "datasourceTemplate": "node-version"
@@ -26,7 +26,7 @@
             "customType": "regex",
             "fileMatch": ["^package(-lock)?\\.json$"],
             "matchStrings": [
-                "\\\"engines\\\":[\\s\\n]*\\{[^\\{\\}]*\\\"homebridge\\\"[^\\{\\}]*\\\"node\\\":[\\s\\n]*\\\"\\^[^\\s]+\\s\\|\\|\\s\\^(?<currentValue>[^\\\"]+)\\\""
+                "\\\"engines\\\":[\\s\\n]*\\{[^\\{\\}]*\\\"homebridge\\\"[^\\{\\}]*\\\"node\\\":[\\s\\n]*\\\"\\^\\d+\\.\\d+\\.\\d+\\s\\|\\|\\s\\^(?<currentValue>\\d+\\.\\d+\\.\\d+)\\\""
             ],
             "depNameTemplate": "node-legacy",
             "datasourceTemplate": "node-version"
