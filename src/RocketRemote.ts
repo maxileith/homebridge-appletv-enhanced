@@ -158,19 +158,19 @@ class RocketRemote {
         this.sendCommand(RocketRemoteKey.VOLUME_UP);
     }
 
-    public setOutputDevices(identifiers: string[]): void {
+    public setOutputDevices(identifiers: string[], hideLog: boolean = false): void {
         const i: string = identifiers.join(',');
-        this.sendCommand(`set_output_devices=${i}`);
+        this.sendCommand(`set_output_devices=${i}`, hideLog);
     }
 
-    public addOutputDevices(identifiers: string[]): void {
+    public addOutputDevices(identifiers: string[], hideLog: boolean = false): void {
         const i: string = identifiers.join(',');
-        this.sendCommand(`add_output_devices=${i}`);
+        this.sendCommand(`add_output_devices=${i}`, hideLog);
     }
 
-    public removeOutputDevices(identifiers: string[]): void {
+    public removeOutputDevices(identifiers: string[], hideLog: boolean = false): void {
         const i: string = identifiers.join(',');
-        this.sendCommand(`remove_output_devices=${i}`);
+        this.sendCommand(`remove_output_devices=${i}`, hideLog);
     }
 
     public onClose(f: () => void): void {

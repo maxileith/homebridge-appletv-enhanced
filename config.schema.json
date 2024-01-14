@@ -486,11 +486,9 @@
                                 "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideCustomInputURIs === true;"
                             },
                             "type": "array",
-                            "items": [
-                                {
-                                    "key": "deviceSpecificOverrides[].customInputURIs[]"
-                                }
-                            ]
+                            "items": {
+                                "key": "deviceSpecificOverrides[].customInputURIs[]"
+                            }
                         },
                         {
                             "key": "deviceSpecificOverrides[].overrideDisableVolumeControlRemote",
@@ -516,11 +514,9 @@
                                 "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideDefaultAudioOutputs === true;"
                             },
                             "type": "array",
-                            "items": [
-                                {
-                                    "key": "deviceSpecificOverrides[].defaultAudioOutputs[]"
-                                }
-                            ]
+                            "items": {
+                                "key": "deviceSpecificOverrides[].defaultAudioOutputs[]"
+                            }
                         }
                     ]
                 }

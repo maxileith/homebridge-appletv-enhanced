@@ -87,6 +87,7 @@ export class AppleTVEnhancedAccessory {
     private lastTurningOnEvent: number = 0;
     private lastDeviceStateChange: number = 0;
     private lastDeviceState: NodePyATVDeviceState | null = null;
+    private defaultAudioOutputsApplied: boolean = false;
 
     private credentials: string | undefined = undefined;
 
@@ -397,9 +398,31 @@ export class AppleTVEnhancedAccessory {
     }
 
     private applyDefaultAudioOutputs(): void {
+        if (this.defaultAudioOutputsApplied === true) {
+            return;
+        }
         if (this.config.defaultAudioOutputs !== undefined && this.config.defaultAudioOutputs.length !== 0) {
-            this.log.info(`Applying default audio outputs: ${this.config.defaultAudioOutputs.join(', ')}`);
-            this.rocketRemote!.setOutputDevices(this.config.defaultAudioOutputs);
+            this.log.info('Applying default audio outputs ...');
+            this.rocketRemote!.setOutputDevices(this.config.defaultAudioOutputs, true);
+            this.defaultAudioOutputsApplied = true;
+        } else {
+            this.log.debug('Skip applying the audio output defaults, since they are not configured.');
+        }
+    }
+
+    private resetAudioOutputs(): void {
+        if (this.defaultAudioOutputsApplied === false) {
+            return;
+        }
+        if (this.config.defaultAudioOutputs !== undefined && this.config.defaultAudioOutputs.length !== 0) {
+            const uuid: string | undefined = this.getUUID();
+            this.log.info('Reset audio output ...');
+            if (uuid !== undefined) {
+                this.rocketRemote!.setOutputDevices([uuid], true);
+                this.defaultAudioOutputsApplied = false;
+            } else {
+                this.log.error('Could not determine the Apple TVs UUID to reset the audio output');
+            }
         } else {
             this.log.debug('Skip applying the audio output defaults, since they are not configured.');
         }
@@ -468,6 +491,25 @@ export class AppleTVEnhancedAccessory {
             return;
         }
 
+        // only make device state changes if Apple TV is on
+        if (this.service?.getCharacteristic(this.platform.Characteristic.Active).value === this.platform.Characteristic.Active.INACTIVE) {
+            this.log.debug(`New Device State Draft discarded (since Apple TV is off): ${event.value}`);
+            this.lastDeviceState = null;
+            return;
+        }
+
+        // apply default audio outputs
+        if (event.value === NodePyATVDeviceState.playing) {
+            this.applyDefaultAudioOutputs();
+        } else {
+            const msUntilResetAudioOutput: number = 5000;
+            setTimeout(async () => {
+                if (this.lastDeviceStateChange + msUntilResetAudioOutput <= Date.now()) {
+                    this.resetAudioOutputs();
+                }
+            }, msUntilResetAudioOutput);
+        }
+
         const deviceStateDelay: number = (this.config.deviceStateDelay || 0) * 1000;
         this.log.debug(`New Device State Draft (might be discarded if there are state changes until the configured delay of \
 ${deviceStateDelay}ms is over): ${event.value}`);
@@ -486,18 +528,14 @@ ${deviceStateDelay}ms is over): ${event.value}`);
             const s: Service = this.deviceStateServices[deviceState];
             s.updateCharacteristic(this.platform.Characteristic.MotionDetected, false);
         }
-        // only make device state changes if Apple TV is on
-        if (this.service?.getCharacteristic(this.platform.Characteristic.Active).value === this.platform.Characteristic.Active.INACTIVE) {
-            this.log.debug(`New Device State Draft discarded (since Apple TV is off): ${event.value}`);
-            this.lastDeviceState = null;
-            return;
-        }
+
         this.lastDeviceState = event.value as NodePyATVDeviceState | null;
         this.log.info(`New Device State: ${event.value}`);
         if (event.value !== null && this.deviceStateServices[event.value] !== undefined) {
             const s: Service = this.deviceStateServices[event.value];
             s.updateCharacteristic(this.platform.Characteristic.MotionDetected, true);
         }
+
         switch (event.value) {
         case NodePyATVDeviceState.playing:
             this.service?.updateCharacteristic(
@@ -901,7 +939,6 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         this.log.info(`New Active State: ${event.value}`);
         if (value === this.platform.Characteristic.Active.ACTIVE) {
             this.lastTurningOnEvent = Date.now();
-            this.applyDefaultAudioOutputs();
         }
         this.service!.updateCharacteristic(this.platform.Characteristic.Active, value);
     }
@@ -1278,5 +1315,15 @@ remaining)`);
         }
 
         return config;
+    }
+
+    private getUUID(): string | undefined {
+        this.log.verbose(`All IDs: ${this.device.allIDs}`);
+        for (const id of this.device.allIDs || []) {
+            if (/^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/.test(id)) {
+                return id;
+            }
+        }
+        return undefined;
     }
 }

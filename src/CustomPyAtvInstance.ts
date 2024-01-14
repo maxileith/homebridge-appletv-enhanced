@@ -50,6 +50,7 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
                 modelName: cachedDevice.modelName,
                 version: cachedDevice.version,
                 os: cachedDevice.os,
+                allIDs: cachedDevice.allIDs,
             }));
         } else {
             return super.device(this.extendOptions<nodePyatv.NodePyATVDeviceOptions>(options as nodePyatv.NodePyATVDeviceOptions));
