@@ -502,7 +502,7 @@ export class AppleTVEnhancedAccessory {
         if (event.value === NodePyATVDeviceState.playing) {
             this.applyDefaultAudioOutputs();
         } else {
-            const msUntilResetAudioOutput: number = 5000;
+            const msUntilResetAudioOutput: number = 7500;
             setTimeout(async () => {
                 if (this.lastDeviceStateChange + msUntilResetAudioOutput <= Date.now()) {
                     this.resetAudioOutputs();

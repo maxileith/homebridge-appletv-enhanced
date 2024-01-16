@@ -2,7 +2,7 @@
     "pluginAlias": "AppleTVEnhanced",
     "pluginType": "platform",
     "singular": true,
-    "headerDisplay": "## Apple TV Enhanced\n\n Plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV integration of HomeKit. \n\n Made with ❤ by [maxileith](https://github.com/maxileith). \n\n [license of this plugin](https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/LICENSE) \n\n [open-source licenses](https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/LICENSES_OF_DEPENDENCIES)",
+    "headerDisplay": "## Apple TV Enhanced\n\n Plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV integration of HomeKit. \n\n Made with ❤ by [maxileith](https://github.com/maxileith). \n\n [license of this plugin](https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/LICENSE) \n\n [open-source licenses](https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/LICENSES_OF_DEPENDENCIES)",
     "schema": {
         "type": "object",
         "properties": {
@@ -123,7 +123,7 @@
             },
             "defaultAudioOutputs": {
                 "title": "Default Audio Outputs",
-                "description": "Set the AirPlay devices that the Apple TV should connect to on startup by adding their identifiers here. You can get the identifiers by executing `./appletv-enhanced/.venv/bin/atvremote scan` assuming you are in your homebridge storage directory. Don't forget to add the Apple TV itself if you want your Apple TV to output audio.",
+                "description": "Set the AirPlay devices that the Apple TV should connect to on startup by adding their identifiers here. Instructions: https://github.com/maxileith/homebridge-appletv-enhanced/blob/develop/docs/md/defaultAudioOutputs.md.",
                 "type": "array",
                 "default": [],
                 "required": true,

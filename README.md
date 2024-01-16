@@ -26,6 +26,7 @@ This plugin automatically discovers Apple TV devices on the local network and ex
     -   Remote keys can also be exposed as switches.
 -   If you do not want all Apple TVs to be exposed, it is possible to blacklist them by providing the MAC-Address.
 -   "Avada Kedavra" which is exposed as an input to close all apps.
+-   You can set any AirPlay 2 audio device as a default audio output, not only HomePods, see [here](https://github.com/maxileith/homebridge-appletv-enhanced/blob/develop/docs/md/defaultAudioOutputs.md).
 
 ## Requirements
 
@@ -62,22 +63,25 @@ This plugin automatically discovers Apple TV devices on the local network and ex
 8.  Every Apple TV is exposed as a Set-Top Box and is its own bridge. Therefore, we need to add every Apple TV seperatly to Apple Home. In order to do that, open the Home app, go to add devices > more options, then type in the pairing code from the logs (Logs: `Please add [Apple TV Wohnzimmer (2)] manually in
 Home app. Setup Code: xxxx-xxxx` this is not the code that you have seen on the Apple TV display).
 
-<img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/enterPIN.jpg" width=280/> <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/pinTransmitted.jpg" width=280/>
+<img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/docs/img/enterPIN.jpg" width=280/> <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/docs/img/pinTransmitted.jpg" width=280/>
 
 ## Screenshots
 
 The screenshots speak for themselves ...
 
-<img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/inputs.png" width=280/> <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/sensors.png" width=280/>
+<img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/docs/img/inputs.png" width=280/> <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/docs/img/sensors.png" width=280/>
 
 ## Avada Kedavra
 
-<img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/avada-kedavra.gif" width=400/>
+<img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/docs/img/avada-kedavra.gif" width=400/>
 
 ## Configuration
 
-The easiest way to configure this plugin is to use [homebridge-config-ui-x](https://www.npmjs.com/package/homebridge-config-ui-x).  
+The easiest way to configure this plugin is to use [homebridge-config-ui-x](https://www.npmjs.com/package/homebridge-config-ui-x).
+
 To configure it manually, add the following to the `platforms` section of Homebridge's `config.json` after installing the plugin.
+
+Also see [device specific overrides](https://github.com/maxileith/homebridge-appletv-enhanced/blob/develop/docs/md/deviceSpecificOverrides.md).
 
 **`config.json`**
 
@@ -181,7 +185,7 @@ To configure it manually, add the following to the `platforms` section of Homebr
 | `avadaKedavraAppAmount`      | How many apps should be closed when selecting the Avada Kedavra Input? Avada Kedavra works by sending a sequence of remote control inputs to the Apple TV. The plugin therefore acts blindly and does not receive any feedback when all apps are closed. So if a high number is selected, the plugin presses the remote control until theoretically x apps are closed, although in reality all apps are already closed. | `integer`       | 5 - 35                                                                                                                                                                                                                                                        | `15`                |
 | `customInputURIs`            | Provide URIs for custom Inputs that open the URI on the Apple TV when selected.                                                                                                                                                                                                                                                                                                                                         | `array[string]` |                                                                                                                                                                                                                                                               | `[]`                |
 | `disableVolumeControlRemote` | Disables the volume control in the iOS remote. It is recommended to disable volume control when the audio setup that the Apple TV is connected to does not supports ARC since the Apple TV does not have any control over the volume in this scenario anyways.                                                                                                                                                          | `boolean`       |                                                                                                                                                                                                                                                               | `false`             |
-| `defaultAudioOutputs`        | Set the AirPlay devices that the Apple TV should connect to on startup by adding their identifiers here. You can get the identifiers by executing `./appletv-enhanced/.venv/bin/atvremote scan` assuming you are in your homebridge storage directory. Don't forget to add the Apple TV itself if you want your Apple TV to output audio.                                                                               | `array[string]` | MAC address / UUID                                                                                                                                                                                                                                            | `[]`                |
+| `defaultAudioOutputs`        | Set the AirPlay devices that the Apple TV should connect to on startup by adding their identifiers here. Instructions: https://github.com/maxileith/homebridge-appletv-enhanced/blob/develop/docs/md/defaultAudioOutputs.md.                                                                                                                                                                                            | `array[string]` | MAC address / UUID                                                                                                                                                                                                                                            | `[]`                |
 | `discover.multicast`         | The default and recommended way to discover Apple TVs.                                                                                                                                                                                                                                                                                                                                                                  | `boolean`       |                                                                                                                                                                                                                                                               | `true`              |
 | `discover.unicast`           | Recommended for Apple TV devices that are not discovered by multicast discovery. Add the IPv4 addresses here. Remember that this requires the Apple TV to have a static IP.                                                                                                                                                                                                                                             | `array[string]` | valid IPv4 addresses                                                                                                                                                                                                                                          | `[]`                |
 | `discover.blacklist`         | Apple TVs that should not be added as a device. You can get the MAC-Address from the logs. When using IPv4 Addresses the regarding Apple TVs need to have a static IP.                                                                                                                                                                                                                                                  | `array[string]` | valid MAC addresses                                                                                                                                                                                                                                           | `[]`                |
@@ -191,7 +195,7 @@ To configure it manually, add the following to the `platforms` section of Homebr
 ## Known Issues
 
 -   Apple TVs report a MAC-Address that is different from the MAC-Address that you will see in the network settings of your Apple TV when scanning for devices. Therefore, when blacklisting Apple TVs use the MAC-Address from the logs.
--   If using external speakers like HomePods as the default, the Apple TV is always reported as powered on. This is a known issue of the dependency [pyatv](https://pyatv.dev), see [postlund/pyatv#1667](https://github.com/postlund/pyatv/issues/1667). As a result, the Apple TV device will only be shown as off in HomeKit when powered off via the Apple TV device in HomeKit. After restarting the plugin the device will always be shown as on.
+-   If using external speakers like HomePods as the default, the Apple TV is always reported as powered on. This is a known issue of the dependency [pyatv](https://pyatv.dev), see [postlund/pyatv#1667](https://github.com/postlund/pyatv/issues/1667). As a result, the Apple TV device will only be shown as off in HomeKit when powered off via the Apple TV device in HomeKit. After restarting the plugin the device will always be shown as on. [Setting the default audio outputs](https://github.com/maxileith/homebridge-appletv-enhanced/blob/develop/docs/md/defaultAudioOutputs.md) via this plugin might be a valid workaround for you.
 -   See also [open bugs](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aopen+label%3Abug).
 
 ## Versioning
