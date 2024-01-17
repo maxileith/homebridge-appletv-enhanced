@@ -170,7 +170,7 @@ export class AppleTVEnhancedAccessory {
             .setCharacteristic(this.platform.Characteristic.Active, this.platform.Characteristic.Active.INACTIVE)
             .setCharacteristic(
                 this.platform.Characteristic.ActiveIdentifier,
-                this.getCommonConfig().activeIdentifier || this.appIdToNumber('com.apple.TVSettings'),
+                this.getCommonConfig().activeIdentifier || HOME_IDENTIFIER,
             )
             .setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName)
             .setCharacteristic(
