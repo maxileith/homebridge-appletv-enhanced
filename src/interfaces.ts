@@ -6,7 +6,6 @@ import type { LogLevel } from './LogLevelLogger';
 export interface NodePyATVApp {
     id: string;
     name: string;
-    launch: () => Promise<void>;
 }
 
 export type IInputs = Record<string, Service>;
@@ -72,9 +71,4 @@ export interface AlternatePyATVDeviceOptions {
     mac: string;
     airplayCredentials?: string;
     companionCredentials?: string;
-}
-
-export interface ICustomInput {
-    id: string;
-    name: string;
 }

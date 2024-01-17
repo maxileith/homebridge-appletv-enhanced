@@ -23,7 +23,6 @@ import type {
     IAppConfig,
     IAppConfigs,
     ICommonConfig,
-    ICustomInput,
     IInputs,
     NodePyATVApp,
 } from './interfaces';
@@ -51,10 +50,13 @@ const DEFAULT_APP_RENAME: Record<string, string> = {
     'com.apple.TVMusic': 'Apple Music',
 };
 
+const AIR_PLAY_URI: string = 'com.apple.TVAirPlay';
+
 const MAX_SERVICES: number = 100;
 
 const HOME_IDENTIFIER: number = 69;
 const AVADA_KEDAVRA_IDENTIFIER: number = 42;
+const AIR_PLAY_IDENTIFIER: number = 7567;
 
 /**
  * Platform Accessory
@@ -71,6 +73,7 @@ export class AppleTVEnhancedAccessory {
     private avadaKedavraService: Service | undefined = undefined;
     private homeInputService: Service | undefined = undefined;
     private televisionSpeakerService: Service | undefined = undefined;
+    private airPlayInputService: Service | undefined = undefined;
     private rocketRemote: RocketRemote | undefined = undefined;
 
     private config: AppleTVEnhancedPlatformConfig;
@@ -202,6 +205,7 @@ export class AppleTVEnhancedAccessory {
         this.createRemoteKeysAsSwitches();
         this.createAvadaKedavra();
         this.createHomeInput();
+        this.createAirPlayInput();
         const apps: NodePyATVApp[] = await this.device.listApps();
         this.createInputs(apps, this.config.customInputURIs || []);
 
@@ -256,12 +260,14 @@ export class AppleTVEnhancedAccessory {
 
         const powerStateListener = (e: Error | NodePyATVDeviceEvent): void => filterErrorHandler(e, this.handleActiveUpdate.bind(this));
         const appIdListener = (e: Error | NodePyATVDeviceEvent): void => filterErrorHandler(e, this.handleInputUpdate.bind(this));
+        const appListener = (e: Error | NodePyATVDeviceEvent): void => filterErrorHandler(e, this.airPlayInputUpdateName.bind(this));
         const deviceStateListener = (e: Error | NodePyATVDeviceEvent): void => filterErrorHandler(
             e, this.handleDeviceStateUpdate.bind(this));
         const mediaTypeListener = (e: Error | NodePyATVDeviceEvent): void => filterErrorHandler(e, this.handleMediaTypeUpdate.bind(this));
 
         this.device.on('update:powerState', powerStateListener);
         this.device.on('update:appId', appIdListener);
+        this.device.on('update:app', appListener);
         this.device.on('update:deviceState', deviceStateListener);
         this.device.on('update:mediaType', mediaTypeListener);
 
@@ -272,6 +278,7 @@ export class AppleTVEnhancedAccessory {
 
             this.device.removeListener('update:powerState', powerStateListener);
             this.device.removeListener('update:appId', appIdListener);
+            this.device.removeListener('update:app', appListener);
             this.device.removeListener('update:deviceState', deviceStateListener);
             this.device.removeListener('update:mediaType', mediaTypeListener);
 
@@ -301,7 +308,7 @@ export class AppleTVEnhancedAccessory {
         );
 
         this.rocketRemote.onHome((async (): Promise<void> => {
-            this.service?.updateCharacteristic(this.platform.Characteristic.ActiveIdentifier, HOME_IDENTIFIER);
+            this.service!.updateCharacteristic(this.platform.Characteristic.ActiveIdentifier, HOME_IDENTIFIER);
         }).bind(this));
 
         this.rocketRemote.onClose((async (): Promise<void> => {
@@ -433,7 +440,7 @@ export class AppleTVEnhancedAccessory {
             const s: Service = this.mediaTypeServices[event.oldValue];
             s.updateCharacteristic(this.platform.Characteristic.MotionDetected, false);
         }
-        if (this.service?.getCharacteristic(this.platform.Characteristic.Active).value === this.platform.Characteristic.Active.INACTIVE) {
+        if (this.service!.getCharacteristic(this.platform.Characteristic.Active).value === this.platform.Characteristic.Active.INACTIVE) {
             return;
         }
         this.log.info(`New Media Type State: ${event.value}`);
@@ -492,7 +499,7 @@ export class AppleTVEnhancedAccessory {
         }
 
         // only make device state changes if Apple TV is on
-        if (this.service?.getCharacteristic(this.platform.Characteristic.Active).value === this.platform.Characteristic.Active.INACTIVE) {
+        if (this.service!.getCharacteristic(this.platform.Characteristic.Active).value === this.platform.Characteristic.Active.INACTIVE) {
             this.log.debug(`New Device State Draft discarded (since Apple TV is off): ${event.value}`);
             this.lastDeviceState = null;
             return;
@@ -538,31 +545,31 @@ ${deviceStateDelay}ms is over): ${event.value}`);
 
         switch (event.value) {
         case NodePyATVDeviceState.playing:
-            this.service?.updateCharacteristic(
+            this.service!.updateCharacteristic(
                 this.platform.Characteristic.CurrentMediaState,
                 this.platform.Characteristic.CurrentMediaState.PLAY,
             );
             break;
         case NodePyATVDeviceState.paused:
-            this.service?.updateCharacteristic(
+            this.service!.updateCharacteristic(
                 this.platform.Characteristic.CurrentMediaState,
                 this.platform.Characteristic.CurrentMediaState.PAUSE,
             );
             break;
         case NodePyATVDeviceState.stopped:
-            this.service?.updateCharacteristic(
+            this.service!.updateCharacteristic(
                 this.platform.Characteristic.CurrentMediaState,
                 this.platform.Characteristic.CurrentMediaState.STOP,
             );
             break;
         case NodePyATVDeviceState.loading:
-            this.service?.updateCharacteristic(
+            this.service!.updateCharacteristic(
                 this.platform.Characteristic.CurrentMediaState,
                 this.platform.Characteristic.CurrentMediaState.LOADING,
             );
             break;
         case null:
-            this.service?.updateCharacteristic(
+            this.service!.updateCharacteristic(
                 this.platform.Characteristic.CurrentMediaState,
                 this.platform.Characteristic.CurrentMediaState.INTERRUPTED,
             );
@@ -621,7 +628,7 @@ ${deviceStateDelay}ms is over): ${event.value}`);
                 this.setCommonConfig('showAvadaKedavra', value as number);
             });
 
-        this.service?.addLinkedService(this.avadaKedavraService);
+        this.service!.addLinkedService(this.avadaKedavraService);
     }
 
     private createHomeInput(): void {
@@ -673,17 +680,50 @@ ${deviceStateDelay}ms is over): ${event.value}`);
                 this.setCommonConfig('showHomeInput', value as number);
             });
 
-        this.service?.addLinkedService(this.homeInputService);
+        this.service!.addLinkedService(this.homeInputService);
+    }
+
+    private createAirPlayInput(): void {
+        this.log.debug(`Adding ${AIR_PLAY_URI} as an input. (named: AirPlay)`);
+        this.airPlayInputService =
+            this.accessory.getService('AirPlay') || this.addServiceSave(this.platform.Service.InputSource, 'AirPlay', AIR_PLAY_URI)!
+                .setCharacteristic(this.platform.Characteristic.ConfiguredName, 'AirPlay')
+                .setCharacteristic(this.platform.Characteristic.InputSourceType, this.platform.Characteristic.InputSourceType.AIRPLAY)
+                .setCharacteristic(this.platform.Characteristic.IsConfigured, this.platform.Characteristic.IsConfigured.NOT_CONFIGURED)
+                .setCharacteristic(this.platform.Characteristic.Name, 'AirPlay')
+                .setCharacteristic(
+                    this.platform.Characteristic.CurrentVisibilityState,
+                    this.platform.Characteristic.CurrentVisibilityState.HIDDEN,
+                )
+                .setCharacteristic(this.platform.Characteristic.InputDeviceType, this.platform.Characteristic.InputDeviceType.OTHER)
+                .setCharacteristic(
+                    this.platform.Characteristic.TargetVisibilityState,
+                    this.platform.Characteristic.TargetVisibilityState.HIDDEN,
+                )
+                .setCharacteristic(this.platform.Characteristic.Identifier, AIR_PLAY_IDENTIFIER);
+
+        this.service!.addLinkedService(this.airPlayInputService!);
+    }
+
+    private airPlayInputUpdateName(event: NodePyATVDeviceEvent): void {
+        if (event.value === null || event.value === '') {
+            return;
+        }
+        const configuredName: string = event.value !== undefined
+            ? trimSpecialCharacters(trimToMaxLength(`AirPlay: ${event.value}`, 64))
+            : 'AirPlay';
+        this.log.debug(`AirPlay: Set dynamic input name to ${configuredName}.`);
+        this.airPlayInputService!.updateCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName);
     }
 
     private createInputs(apps: NodePyATVApp[], customURIs: string[]): void {
-        const appsAndCustomInputs: (ICustomInput | NodePyATVApp)[] = [...customURIs.map((uri) => {
+        const appsAndCustomInputs: NodePyATVApp[] = [...customURIs.map((uri) => {
             return { id: uri, name: uri };
         }), ...apps];
 
         const appConfigs: IAppConfigs = this.getAppConfigs();
 
-        appsAndCustomInputs.forEach((app: ICustomInput | NodePyATVApp) => {
+        appsAndCustomInputs.forEach((app: NodePyATVApp) => {
             if (!Object.keys(appConfigs).includes(app.id)) {
                 appConfigs[app.id] = {
                     configuredName: DEFAULT_APP_RENAME[app.id] || trimSpecialCharacters(trimToMaxLength(app.name, 64)),
@@ -706,7 +746,7 @@ ${deviceStateDelay}ms is over): ${event.value}`);
         });
 
         let addedApps: number = 0;
-        appsAndCustomInputs.slice().reverse().every((app: ICustomInput | NodePyATVApp) => {
+        appsAndCustomInputs.slice().reverse().every((app: NodePyATVApp) => {
             this.log.debug(`Adding ${app.id} as an input. (named: ${appConfigs[app.id].configuredName})`);
             const s: Service | undefined =
                 this.accessory.getService(app.name) || this.addServiceSave(this.platform.Service.InputSource, app.name, app.id);
@@ -723,6 +763,7 @@ The following services have been added:
 - ${Object.keys(this.remoteKeyServices).length.toString().padStart(2, '0')} switches for remote keys
 - 01 Avada Kedavra as an input
 - 01 Home as an input
+- 01 AirPlay as an dynamic input
 - ${addedApps.toString().padStart(2, '0')} apps as inputs have been added (${apps.length - addedApps} apps could not be added; including \
 custom Inputs)
 It might be a good idea to uninstall unused apps.`);
@@ -789,20 +830,23 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
 
     private async handleInputUpdate(event: NodePyATVDeviceEvent): Promise<void> {
         if (event.value === null || event.value === '') {
-            return;
-        }
-        if (event.value === event.oldValue) {
+            this.service!.updateCharacteristic(this.platform.Characteristic.ActiveIdentifier, HOME_IDENTIFIER);
             return;
         }
         const appId: NodePyATVEventValueType = event.value;
         this.log.info(`Current App: ${appId}`);
-        const appConfig: IAppConfig = this.getAppConfigs()[appId];
-        if (appConfig) {
-            const appIdentifier: number = appConfig.identifier;
-            this.setCommonConfig('activeIdentifier', appIdentifier);
-            this.service!.updateCharacteristic(this.platform.Characteristic.ActiveIdentifier, appIdentifier);
+
+        if (appId === AIR_PLAY_URI) {
+            this.service!.updateCharacteristic(this.platform.Characteristic.ActiveIdentifier, AIR_PLAY_IDENTIFIER);
         } else {
-            this.log.warn(`Could not update the input to ${appId} since the app is unknown.`);
+            const appConfig: IAppConfig = this.getAppConfigs()[appId];
+            if (appConfig) {
+                const appIdentifier: number = appConfig.identifier;
+                this.setCommonConfig('activeIdentifier', appIdentifier);
+                this.service!.updateCharacteristic(this.platform.Characteristic.ActiveIdentifier, appIdentifier);
+            } else {
+                this.log.warn(`Could not update the input to ${appId} since the app is unknown.`);
+            }
         }
     }
 
@@ -926,9 +970,6 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
 
     private handleActiveUpdate(event: NodePyATVDeviceEvent): void {
         if (event.value === null) {
-            return;
-        }
-        if (event.value === event.oldValue) {
             return;
         }
         const value: 0 | 1 =
