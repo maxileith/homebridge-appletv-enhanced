@@ -122,7 +122,7 @@
                 "required": true
             },
             "defaultAudioOutputs": {
-                "title": "Default Audio Outputs",
+                "title": "Default Audio Outputs (experimental)",
                 "description": "Set the AirPlay devices that the Apple TV should connect to on startup by adding their identifiers here. Instructions: https://github.com/maxileith/homebridge-appletv-enhanced/blob/develop/docs/md/defaultAudioOutputs.md.",
                 "type": "array",
                 "default": [],
@@ -349,13 +349,13 @@
                             "required": true
                         },
                         "overrideDefaultAudioOutputs": {
-                            "title": "Override: Default Audio Outputs",
+                            "title": "Override: Default Audio Outputs (experimental)",
                             "type": "boolean",
                             "default": false,
                             "required": true
                         },
                         "defaultAudioOutputs": {
-                            "title": "Default Audio Outputs",
+                            "title": "Default Audio Outputs (experimental)",
                             "type": "array",
                             "default": [],
                             "required": true,
