@@ -29,31 +29,31 @@ class LogLevelLogger {
 
     public verbose(message: string, ...parameters: any[]): void {
         if (this.level >= LogLevel.VERBOSE) {
-            this.log.info(`\u001B[90m${message}\u001B[39m`, ...parameters);
+            this.log.info(`\u001B[90m[V] ${message}\u001B[39m`, ...parameters);
         }
     }
 
     public debug(message: string, ...parameters: any[]): void {
         if (this.level >= LogLevel.DEBUG) {
-            this.log.info(`\u001B[90m${message}\u001B[39m`, ...parameters);
+            this.log.info(`\u001B[90m[D] ${message}\u001B[39m`, ...parameters);
         }
     }
 
     public info(message: string, ...parameters: any[]): void {
         if (this.level >= LogLevel.INFO) {
-            this.log.info(message, ...parameters);
+            this.log.info(`[I] ${message}`, ...parameters);
         }
     }
 
     public warn(message: string, ...parameters: any[]): void {
         if (this.level >= LogLevel.WARN) {
-            this.log.warn(message, ...parameters);
+            this.log.warn(`[W] ${message}`, ...parameters);
         }
     }
 
     public error(message: string, ...parameters: any[]): void {
         if (this.level >= LogLevel.ERROR) {
-            this.log.error(message, ...parameters);
+            this.log.error(`[E] ${message}`, ...parameters);
         }
     }
 
