@@ -63,6 +63,7 @@
                 "vlc://https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8"
             ],
             "disableVolumeControlRemote": false,
+            "setTopBox": false,
             "defaultAudioOutputs": ["FF:EE:DD:CC:BB:AA"],
             "deviceSpecificOverrides": [
                 {
@@ -89,6 +90,8 @@
                     ],
                     "overrideDisableVolumeControlRemote": true,
                     "disableVolumeControlRemote": true,
+                    "overrideSetTopBox": true,
+                    "setTopBox": true,
                     "overrideDefaultAudioOutputs": true,
                     "defaultAudioOutputs": [
                         "12345678-abcd-efgh-0123456789ab",

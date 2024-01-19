@@ -121,6 +121,13 @@
                 "default": false,
                 "required": true
             },
+            "setTopBox": {
+                "title": "Expose Set-Top Box Accessory",
+                "description": "Instead of exposing an Apple TV accessory, Apple TV Enhanced will expose a set-top box accessory.",
+                "type": "boolean",
+                "default": false,
+                "required": true
+            },
             "defaultAudioOutputs": {
                 "title": "Default Audio Outputs (experimental)",
                 "description": "Set the AirPlay devices that the Apple TV should connect to on startup by adding their identifiers here. Instructions: https://github.com/maxileith/homebridge-appletv-enhanced/blob/develop/docs/md/defaultAudioOutputs.md.",
@@ -348,6 +355,18 @@
                             "default": false,
                             "required": true
                         },
+                        "overrideSetTopBox": {
+                            "title": "Override: Expose Set-Top Box Accessory",
+                            "type": "boolean",
+                            "default": false,
+                            "required": true
+                        },
+                        "setTopBox": {
+                            "title": "Expose Set-Top Box Accessory",
+                            "type": "boolean",
+                            "default": false,
+                            "required": true
+                        },
                         "overrideDefaultAudioOutputs": {
                             "title": "Override: Default Audio Outputs (experimental)",
                             "type": "boolean",
@@ -392,6 +411,7 @@
                 },
                 "avadaKedavraAppAmount",
                 "disableVolumeControlRemote",
+                "setTopBox",
                 {
                     "key": "defaultAudioOutputs",
                     "type": "array",
@@ -500,6 +520,18 @@
                             "key": "deviceSpecificOverrides[].disableVolumeControlRemote",
                             "condition": {
                                 "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideDisableVolumeControlRemote === true;"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].overrideSetTopBox",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac);"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].setTopBox",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideSetTopBox === true;"
                             }
                         },
                         {

@@ -124,14 +124,15 @@ Also see [device specific overrides](https://github.com/maxileith/homebridge-app
         "volume_down",
         "volume_up"
     ],
+    "avadaKedavraAppAmount": 15,
     "customInputURIs": [
         "https://www.disneyplus.com/movies/rogue-one-a-star-wars-story/14CV6eSbygOA",
         "https://www.netflix.com/watch/81260280",
         "https://tv.apple.com/show/silo/umc.cmc.3yksgc857px0k0rqe5zd4jice",
         "vlc://https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8"
     ],
-    "avadaKedavraAppAmount": 15,
     "disableVolumeControlRemote": false,
+    "setTopBox": false,
     "defaultAudioOutputs": ["FF:EE:DD:CC:BB:AA"],
     "deviceSpecificOverrides": [
         {
@@ -158,6 +159,8 @@ Also see [device specific overrides](https://github.com/maxileith/homebridge-app
             ],
             "overrideDisableVolumeControlRemote": true,
             "disableVolumeControlRemote": true,
+            "disableVolumeControlRemote": true,
+            "overrideDefaultAudioOutputs": true,
             "overrideDefaultAudioOutputs": true,
             "defaultAudioOutputs": [
                 "12345678-abcd-efgh-0123456789ab",
@@ -185,6 +188,7 @@ Also see [device specific overrides](https://github.com/maxileith/homebridge-app
 | `avadaKedavraAppAmount`      | How many apps should be closed when selecting the Avada Kedavra Input? Avada Kedavra works by sending a sequence of remote control inputs to the Apple TV. The plugin therefore acts blindly and does not receive any feedback when all apps are closed. So if a high number is selected, the plugin presses the remote control until theoretically x apps are closed, although in reality all apps are already closed. | `integer`       | 5 - 35                                                                                                                                                                                                                                                        | `15`                |
 | `customInputURIs`            | Provide URIs for custom Inputs that open the URI on the Apple TV when selected.                                                                                                                                                                                                                                                                                                                                         | `array[string]` |                                                                                                                                                                                                                                                               | `[]`                |
 | `disableVolumeControlRemote` | Disables the volume control in the iOS remote. It is recommended to disable volume control when the audio setup that the Apple TV is connected to does not supports ARC since the Apple TV does not have any control over the volume in this scenario anyways.                                                                                                                                                          | `boolean`       |                                                                                                                                                                                                                                                               | `false`             |
+| `setTopBox`                  | Instead of exposing an Apple TV accessory, Apple TV Enhanced will expose a set-top box accessory.                                                                                                                                                                                                                                                                                                                       | `boolean`       |                                                                                                                                                                                                                                                               | `false`             |
 | `defaultAudioOutputs`        | Set the AirPlay devices that the Apple TV should connect to on startup by adding their identifiers here. Instructions: https://github.com/maxileith/homebridge-appletv-enhanced/blob/develop/docs/md/defaultAudioOutputs.md.                                                                                                                                                                                            | `array[string]` | MAC address / UUID                                                                                                                                                                                                                                            | `[]`                |
 | `discover.multicast`         | The default and recommended way to discover Apple TVs.                                                                                                                                                                                                                                                                                                                                                                  | `boolean`       |                                                                                                                                                                                                                                                               | `true`              |
 | `discover.unicast`           | Recommended for Apple TV devices that are not discovered by multicast discovery. Add the IPv4 addresses here. Remember that this requires the Apple TV to have a static IP.                                                                                                                                                                                                                                             | `array[string]` | valid IPv4 addresses                                                                                                                                                                                                                                          | `[]`                |

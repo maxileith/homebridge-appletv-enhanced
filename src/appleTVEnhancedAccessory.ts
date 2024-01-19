@@ -150,7 +150,11 @@ export class AppleTVEnhancedAccessory {
     }
 
     private async startUp(): Promise<void> {
-        this.accessory.category = this.platform.api.hap.Categories.APPLE_TV;
+        this.log.info(`Exposing Apple TV as accessory of type ${this.config.setTopBox === true ? 'set-top box' : 'Apple TV'}.`);
+
+        this.accessory.category = this.config.setTopBox === true
+            ? this.platform.api.hap.Categories.TV_SET_TOP_BOX
+            : this.platform.api.hap.Categories.APPLE_TV;
 
         // set accessory information
         this.accessory.getService(this.platform.Service.AccessoryInformation)!
@@ -1350,6 +1354,9 @@ remaining)`);
         }
         if (override.overrideDisableVolumeControlRemote === true) {
             config.disableVolumeControlRemote = override.disableVolumeControlRemote;
+        }
+        if (override.overrideSetTopBox === true) {
+            config.setTopBox = override.setTopBox;
         }
         if (override.overrideDefaultAudioOutputs === true) {
             config.defaultAudioOutputs = override.defaultAudioOutputs;
