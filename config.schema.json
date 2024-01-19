@@ -123,7 +123,7 @@
             },
             "setTopBox": {
                 "title": "Expose Set-Top Box Accessory",
-                "description": "Instead of exposing an Apple TV accessory, Apple TV Enhanced will expose a set-top box accessory.",
+                "description": "Instead of exposing an Apple TV accessory, the plugin will expose a set-top box accessory. You need to repair the accessory with your Home app in order to see the changes.",
                 "type": "boolean",
                 "default": false,
                 "required": true
