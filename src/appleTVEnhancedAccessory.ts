@@ -1334,6 +1334,8 @@ remaining)`);
             return config;
         }
 
+        config = structuredClone(config);
+
         if (override.overrideMediaTypes === true) {
             config.mediaTypes = override.mediaTypes;
         }
