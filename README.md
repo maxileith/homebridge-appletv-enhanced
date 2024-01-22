@@ -4,6 +4,7 @@
 [![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 [![npm](https://img.shields.io/npm/v/homebridge-appletv-enhanced)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
 [![npm](https://badgen.net/npm/dt/homebridge-appletv-enhanced)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
+[![npm](https://badgen.net/npm/dm/homebridge-appletv-enhanced)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
 [![donate](https://badgen.net/badge/donate/paypal/91BE09)](https://www.paypal.me/maxileith/EUR)
 [![PyPI pyversions](https://img.shields.io/badge/Python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue)](https://pypi.python.org/pypi/pyatv/)
 
