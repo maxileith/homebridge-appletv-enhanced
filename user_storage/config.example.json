@@ -19,13 +19,14 @@
         },
         {
             "name": "Apple TV Enhanced",
-            "mediaTypes": ["music", "tv", "unknown", "video"],
+            "platform": "AppleTVEnhanced",
+            "mediaTypes": ["music", "video", "tv", "unknown"],
             "deviceStates": [
                 "idle",
-                "loading",
-                "paused",
                 "playing",
+                "loading",
                 "seeking",
+                "paused",
                 "stopped"
             ],
             "deviceStateDelay": 1,
@@ -62,15 +63,43 @@
                 "vlc://https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8"
             ],
             "disableVolumeControlRemote": false,
+            "setTopBox": false,
+            "deviceSpecificOverrides": [
+                {
+                    "mac": "AA:BB:CC:DD:EE:FF",
+                    "overrideMediaTypes": true,
+                    "mediaTypes": ["music", "video"],
+                    "overrideDeviceStates": true,
+                    "deviceStates": ["paused", "playing"],
+                    "overrideDeviceStateDelay": true,
+                    "deviceStateDelay": 3,
+                    "overrideRemoteKeysAsSwitch": true,
+                    "remoteKeysAsSwitch": [
+                        "home",
+                        "play_pause",
+                        "stop",
+                        "volume_down",
+                        "volume_up"
+                    ],
+                    "overrideAvadaKedavraAppAmount": true,
+                    "avadaKedavraAppAmount": 15,
+                    "overrideCustomInputURIs": true,
+                    "customInputURIs": [
+                        "https://www.disneyplus.com/de-de/movies/avatar-the-way-of-water/6hlsDJnhiU30"
+                    ],
+                    "overrideDisableVolumeControlRemote": true,
+                    "disableVolumeControlRemote": true,
+                    "overrideSetTopBox": true,
+                    "setTopBox": true
+                }
+            ],
             "discover": {
                 "multicast": true,
                 "unicast": ["192.168.0.15"],
                 "blacklist": ["AA:BB:CC:DD:EE:FF", "192.168.0.42"]
             },
             "forceVenvRecreate": false,
-            "logLevel": 4,
-            "deviceSpecificOverrides": [],
-            "platform": "AppleTVEnhanced"
+            "logLevel": 4
         }
     ]
 }

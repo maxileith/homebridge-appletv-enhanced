@@ -2,7 +2,7 @@
     "pluginAlias": "AppleTVEnhanced",
     "pluginType": "platform",
     "singular": true,
-    "headerDisplay": "## Apple TV Enhanced\n\n Plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV integration of HomeKit. \n\n Made with ❤ by [maxileith](https://github.com/maxileith). \n\n [license of this plugin](https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/LICENSE) \n\n [open-source licenses](https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/LICENSES_OF_DEPENDENCIES)",
+    "headerDisplay": "## Apple TV Enhanced\n\n Plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV integration of HomeKit. \n\n Made with ❤ by [maxileith](https://github.com/maxileith). \n\n [license of this plugin](https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/LICENSE) \n\n [open-source licenses](https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/LICENSES_OF_DEPENDENCIES)",
     "schema": {
         "type": "object",
         "properties": {
@@ -117,6 +117,13 @@
             "disableVolumeControlRemote": {
                 "title": "Disable volume control in iOS remote",
                 "description": "Disables the volume control in the iOS remote. It is recommended to disable volume control when the audio setup that the Apple TV is connected to does not supports ARC since the Apple TV does not have any control over the volume in this scenario anyways.",
+                "type": "boolean",
+                "default": false,
+                "required": true
+            },
+            "setTopBox": {
+                "title": "Expose Set-Top Box Accessory",
+                "description": "Instead of exposing an Apple TV accessory, the plugin will expose a set-top box accessory. You need to repair the accessory with your Home app in order to see the changes.",
                 "type": "boolean",
                 "default": false,
                 "required": true
@@ -334,6 +341,18 @@
                             "type": "boolean",
                             "default": false,
                             "required": true
+                        },
+                        "overrideSetTopBox": {
+                            "title": "Override: Expose Set-Top Box Accessory",
+                            "type": "boolean",
+                            "default": false,
+                            "required": true
+                        },
+                        "setTopBox": {
+                            "title": "Expose Set-Top Box Accessory",
+                            "type": "boolean",
+                            "default": false,
+                            "required": true
                         }
                     }
                 }
@@ -360,7 +379,8 @@
                     }
                 },
                 "avadaKedavraAppAmount",
-                "disableVolumeControlRemote"
+                "disableVolumeControlRemote",
+                "setTopBox"
             ]
         },
         {
@@ -373,8 +393,7 @@
                 {
                     "type": "tabarray",
                     "key": "deviceSpecificOverrides",
-                    "title": "{{ value.mac || 'New Override' }}",
-                    "buttonText": "Add Override",
+                    "title": "{{ value.mac || 'Override' }}",
                     "items": [
                         "deviceSpecificOverrides[].mac",
                         {
@@ -449,11 +468,9 @@
                                 "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideCustomInputURIs === true;"
                             },
                             "type": "array",
-                            "items": [
-                                {
-                                    "key": "deviceSpecificOverrides[].customInputURIs[]"
-                                }
-                            ]
+                            "items": {
+                                "key": "deviceSpecificOverrides[].customInputURIs[]"
+                            }
                         },
                         {
                             "key": "deviceSpecificOverrides[].overrideDisableVolumeControlRemote",
@@ -465,6 +482,18 @@
                             "key": "deviceSpecificOverrides[].disableVolumeControlRemote",
                             "condition": {
                                 "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideDisableVolumeControlRemote === true;"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].overrideSetTopBox",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac);"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].setTopBox",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideSetTopBox === true;"
                             }
                         }
                     ]

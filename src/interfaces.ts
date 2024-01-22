@@ -6,7 +6,6 @@ import type { LogLevel } from './LogLevelLogger';
 export interface NodePyATVApp {
     id: string;
     name: string;
-    launch: () => Promise<void>;
 }
 
 export type IInputs = Record<string, Service>;
@@ -30,22 +29,24 @@ export interface ICommonConfig {
 }
 
 export interface DeviceConfigOverride {
-        mac?: string;
-        overrideMediaTypes?: boolean;
-        mediaTypes?: NodePyATVMediaType[];
-        overrideDeviceStates?: boolean;
-        deviceStates?: NodePyATVDeviceState[];
-        overrideDeviceStateDelay?: boolean;
-        deviceStateDelay?: number;
-        overrideRemoteKeysAsSwitch?: boolean;
-        remoteKeysAsSwitch?: RocketRemoteKey[];
-        overrideAvadaKedavraAppAmount?: boolean;
-        avadaKedavraAppAmount?: number;
-        overrideCustomInputURIs?: boolean;
-        customInputURIs?: string[];
-        overrideDisableVolumeControlRemote?: boolean;
-        disableVolumeControlRemote?: boolean;
-    }
+    mac?: string;
+    overrideMediaTypes?: boolean;
+    mediaTypes?: NodePyATVMediaType[];
+    overrideDeviceStates?: boolean;
+    deviceStates?: NodePyATVDeviceState[];
+    overrideDeviceStateDelay?: boolean;
+    deviceStateDelay?: number;
+    overrideRemoteKeysAsSwitch?: boolean;
+    remoteKeysAsSwitch?: RocketRemoteKey[];
+    overrideAvadaKedavraAppAmount?: boolean;
+    avadaKedavraAppAmount?: number;
+    overrideCustomInputURIs?: boolean;
+    customInputURIs?: string[];
+    overrideDisableVolumeControlRemote?: boolean;
+    disableVolumeControlRemote?: boolean;
+    overrideSetTopBox?: boolean;
+    setTopBox?: boolean;
+}
 
 export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_bridge' | 'name' | 'platform'> {
     mediaTypes?: NodePyATVMediaType[];
@@ -55,6 +56,7 @@ export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_br
     avadaKedavraAppAmount?: number;
     customInputURIs?: string[];
     disableVolumeControlRemote?: boolean;
+    setTopBox?: boolean;
     deviceSpecificOverrides?: DeviceConfigOverride[];
     discover?: {
         multicast?: boolean;
@@ -69,9 +71,4 @@ export interface AlternatePyATVDeviceOptions {
     mac: string;
     airplayCredentials?: string;
     companionCredentials?: string;
-}
-
-export interface ICustomInput {
-    id: string;
-    name: string;
 }

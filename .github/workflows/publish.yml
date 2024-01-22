@@ -28,6 +28,6 @@ jobs:
       - name: Publish Stable
         if: ${{ ! contains(github.ref_name, '-') }}
         shell: bash
-        run: npm publish
+        run: npm publish --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -62,22 +62,25 @@ This plugin automatically discovers Apple TV devices on the local network and ex
 8.  Every Apple TV is exposed as a Set-Top Box and is its own bridge. Therefore, we need to add every Apple TV seperatly to Apple Home. In order to do that, open the Home app, go to add devices > more options, then type in the pairing code from the logs (Logs: `Please add [Apple TV Wohnzimmer (2)] manually in
 Home app. Setup Code: xxxx-xxxx` this is not the code that you have seen on the Apple TV display).
 
-<img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/enterPIN.jpg" width=280/> <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/pinTransmitted.jpg" width=280/>
+<img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/docs/img/enterPIN.jpg" width=280/> <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/docs/img/pinTransmitted.jpg" width=280/>
 
 ## Screenshots
 
 The screenshots speak for themselves ...
 
-<img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/inputs.png" width=280/> <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/sensors.png" width=280/>
+<img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/docs/img/inputs.png" width=280/> <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/docs/img/sensors.png" width=280/>
 
 ## Avada Kedavra
 
-<img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/docs/img/avada-kedavra.gif" width=400/>
+<img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/docs/img/avada-kedavra.gif" width=400/>
 
 ## Configuration
 
-The easiest way to configure this plugin is to use [homebridge-config-ui-x](https://www.npmjs.com/package/homebridge-config-ui-x).  
+The easiest way to configure this plugin is to use [homebridge-config-ui-x](https://www.npmjs.com/package/homebridge-config-ui-x).
+
 To configure it manually, add the following to the `platforms` section of Homebridge's `config.json` after installing the plugin.
+
+Also see [device specific overrides](https://github.com/maxileith/homebridge-appletv-enhanced/blob/develop/docs/md/deviceSpecificOverrides.md).
 
 **`config.json`**
 
@@ -120,14 +123,15 @@ To configure it manually, add the following to the `platforms` section of Homebr
         "volume_down",
         "volume_up"
     ],
+    "avadaKedavraAppAmount": 15,
     "customInputURIs": [
         "https://www.disneyplus.com/movies/rogue-one-a-star-wars-story/14CV6eSbygOA",
         "https://www.netflix.com/watch/81260280",
         "https://tv.apple.com/show/silo/umc.cmc.3yksgc857px0k0rqe5zd4jice",
         "vlc://https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8"
     ],
-    "avadaKedavraAppAmount": 15,
     "disableVolumeControlRemote": false,
+    "setTopBox": false,
     "deviceSpecificOverrides": [
         {
             "mac": "AA:BB:CC:DD:EE:FF",
@@ -152,7 +156,9 @@ To configure it manually, add the following to the `platforms` section of Homebr
                 "https://www.disneyplus.com/de-de/movies/avatar-the-way-of-water/6hlsDJnhiU30"
             ],
             "overrideDisableVolumeControlRemote": true,
-            "disableVolumeControlRemote": true
+            "disableVolumeControlRemote": true,
+            "overrideSetTopBox": true,
+            "setTopBox": true
         }
     ],
     "discover": {
@@ -175,6 +181,7 @@ To configure it manually, add the following to the `platforms` section of Homebr
 | `avadaKedavraAppAmount`      | How many apps should be closed when selecting the Avada Kedavra Input? Avada Kedavra works by sending a sequence of remote control inputs to the Apple TV. The plugin therefore acts blindly and does not receive any feedback when all apps are closed. So if a high number is selected, the plugin presses the remote control until theoretically x apps are closed, although in reality all apps are already closed. | `integer`       | 5 - 35                                                                                                                                                                                                                                                        | `15`                |
 | `customInputURIs`            | Provide URIs for custom Inputs that open the URI on the Apple TV when selected.                                                                                                                                                                                                                                                                                                                                         | `array[string]` |                                                                                                                                                                                                                                                               | `[]`                |
 | `disableVolumeControlRemote` | Disables the volume control in the iOS remote. It is recommended to disable volume control when the audio setup that the Apple TV is connected to does not supports ARC since the Apple TV does not have any control over the volume in this scenario anyways.                                                                                                                                                          | `boolean`       |                                                                                                                                                                                                                                                               | `false`             |
+| `setTopBox`                  | Instead of exposing an Apple TV accessory, the plugin will expose a set-top box accessory. You need to repair the accessory with your Home app in order to see the changes.                                                                                                                                                                                                                                             | `boolean`       |                                                                                                                                                                                                                                                               | `false`             |
 | `discover.multicast`         | The default and recommended way to discover Apple TVs.                                                                                                                                                                                                                                                                                                                                                                  | `boolean`       |                                                                                                                                                                                                                                                               | `true`              |
 | `discover.unicast`           | Recommended for Apple TV devices that are not discovered by multicast discovery. Add the IPv4 addresses here. Remember that this requires the Apple TV to have a static IP.                                                                                                                                                                                                                                             | `array[string]` | valid IPv4 addresses                                                                                                                                                                                                                                          | `[]`                |
 | `discover.blacklist`         | Apple TVs that should not be added as a device. You can get the MAC-Address from the logs. When using IPv4 Addresses the regarding Apple TVs need to have a static IP.                                                                                                                                                                                                                                                  | `array[string]` | valid MAC addresses                                                                                                                                                                                                                                           | `[]`                |
