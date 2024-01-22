@@ -46,8 +46,6 @@ export interface DeviceConfigOverride {
     disableVolumeControlRemote?: boolean;
     overrideSetTopBox?: boolean;
     setTopBox?: boolean;
-    overrideDefaultAudioOutputs?: boolean;
-    defaultAudioOutputs?: string[];
 }
 
 export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_bridge' | 'name' | 'platform'> {
@@ -59,7 +57,6 @@ export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_br
     customInputURIs?: string[];
     disableVolumeControlRemote?: boolean;
     setTopBox?: boolean;
-    defaultAudioOutputs?: string[];
     deviceSpecificOverrides?: DeviceConfigOverride[];
     discover?: {
         multicast?: boolean;

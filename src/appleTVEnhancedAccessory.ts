@@ -90,7 +90,6 @@ export class AppleTVEnhancedAccessory {
     private lastTurningOnEvent: number = 0;
     private lastDeviceStateChange: number = 0;
     private lastDeviceState: NodePyATVDeviceState | null = null;
-    private defaultAudioOutputsApplied: boolean = false;
 
     private credentials: string | undefined = undefined;
 
@@ -408,37 +407,6 @@ export class AppleTVEnhancedAccessory {
         }
     }
 
-    private applyDefaultAudioOutputs(): void {
-        if (this.defaultAudioOutputsApplied === true) {
-            return;
-        }
-        if (this.config.defaultAudioOutputs !== undefined && this.config.defaultAudioOutputs.length !== 0) {
-            this.log.info('Applying default audio outputs ...');
-            this.rocketRemote!.setOutputDevices(this.config.defaultAudioOutputs, true);
-            this.defaultAudioOutputsApplied = true;
-        } else {
-            this.log.debug('Skip applying the audio output defaults, since they are not configured.');
-        }
-    }
-
-    private resetAudioOutputs(): void {
-        if (this.defaultAudioOutputsApplied === false) {
-            return;
-        }
-        if (this.config.defaultAudioOutputs !== undefined && this.config.defaultAudioOutputs.length !== 0) {
-            const uuid: string | undefined = this.getUUID();
-            this.log.info('Reset audio output ...');
-            if (uuid !== undefined) {
-                this.rocketRemote!.setOutputDevices([uuid], true);
-                this.defaultAudioOutputsApplied = false;
-            } else {
-                this.log.error('Could not determine the Apple TVs UUID to reset the audio output');
-            }
-        } else {
-            this.log.debug('Skip applying the audio output defaults, since they are not configured.');
-        }
-    }
-
     private async handleMediaTypeUpdate(event: NodePyATVDeviceEvent): Promise<void> {
         if (event.oldValue !== null && this.mediaTypeServices[event.oldValue]) {
             const s: Service = this.mediaTypeServices[event.oldValue];
@@ -507,18 +475,6 @@ export class AppleTVEnhancedAccessory {
             this.log.debug(`New Device State Draft discarded (since Apple TV is off): ${event.value}`);
             this.lastDeviceState = null;
             return;
-        }
-
-        // apply default audio outputs
-        if (event.value === NodePyATVDeviceState.playing) {
-            this.applyDefaultAudioOutputs();
-        } else {
-            const msUntilResetAudioOutput: number = 7500;
-            setTimeout(async () => {
-                if (this.lastDeviceStateChange + msUntilResetAudioOutput <= Date.now()) {
-                    this.resetAudioOutputs();
-                }
-            }, msUntilResetAudioOutput);
         }
 
         const deviceStateDelay: number = (this.config.deviceStateDelay || 0) * 1000;
@@ -1359,9 +1315,6 @@ remaining)`);
         }
         if (override.overrideSetTopBox === true) {
             config.setTopBox = override.setTopBox;
-        }
-        if (override.overrideDefaultAudioOutputs === true) {
-            config.defaultAudioOutputs = override.defaultAudioOutputs;
         }
 
         return config;

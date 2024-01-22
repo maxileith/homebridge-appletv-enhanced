@@ -26,7 +26,6 @@ This plugin automatically discovers Apple TV devices on the local network and ex
     -   Remote keys can also be exposed as switches.
 -   If you do not want all Apple TVs to be exposed, it is possible to blacklist them by providing the MAC-Address.
 -   "Avada Kedavra" which is exposed as an input to close all apps.
--   You can set any AirPlay 2 audio device as a default audio output, not only HomePods, see [here](https://github.com/maxileith/homebridge-appletv-enhanced/blob/develop/docs/md/defaultAudioOutputs.md).
 
 ## Requirements
 
@@ -133,7 +132,6 @@ Also see [device specific overrides](https://github.com/maxileith/homebridge-app
     ],
     "disableVolumeControlRemote": false,
     "setTopBox": false,
-    "defaultAudioOutputs": ["FF:EE:DD:CC:BB:AA"],
     "deviceSpecificOverrides": [
         {
             "mac": "AA:BB:CC:DD:EE:FF",
@@ -159,13 +157,8 @@ Also see [device specific overrides](https://github.com/maxileith/homebridge-app
             ],
             "overrideDisableVolumeControlRemote": true,
             "disableVolumeControlRemote": true,
-            "disableVolumeControlRemote": true,
-            "overrideDefaultAudioOutputs": true,
-            "overrideDefaultAudioOutputs": true,
-            "defaultAudioOutputs": [
-                "12345678-abcd-efgh-0123456789ab",
-                "11:22:33:44:55:66"
-            ]
+            "overrideSetTopBox": true,
+            "setTopBox": true
         }
     ],
     "discover": {
@@ -189,7 +182,6 @@ Also see [device specific overrides](https://github.com/maxileith/homebridge-app
 | `customInputURIs`            | Provide URIs for custom Inputs that open the URI on the Apple TV when selected.                                                                                                                                                                                                                                                                                                                                         | `array[string]` |                                                                                                                                                                                                                                                               | `[]`                |
 | `disableVolumeControlRemote` | Disables the volume control in the iOS remote. It is recommended to disable volume control when the audio setup that the Apple TV is connected to does not supports ARC since the Apple TV does not have any control over the volume in this scenario anyways.                                                                                                                                                          | `boolean`       |                                                                                                                                                                                                                                                               | `false`             |
 | `setTopBox`                  | Instead of exposing an Apple TV accessory, the plugin will expose a set-top box accessory. You need to repair the accessory with your Home app in order to see the changes.                                                                                                                                                                                                                                             | `boolean`       |                                                                                                                                                                                                                                                               | `false`             |
-| `defaultAudioOutputs`        | Set the AirPlay devices that the Apple TV should connect to on startup by adding their identifiers here. Instructions: https://github.com/maxileith/homebridge-appletv-enhanced/blob/develop/docs/md/defaultAudioOutputs.md.                                                                                                                                                                                            | `array[string]` | MAC address / UUID                                                                                                                                                                                                                                            | `[]`                |
 | `discover.multicast`         | The default and recommended way to discover Apple TVs.                                                                                                                                                                                                                                                                                                                                                                  | `boolean`       |                                                                                                                                                                                                                                                               | `true`              |
 | `discover.unicast`           | Recommended for Apple TV devices that are not discovered by multicast discovery. Add the IPv4 addresses here. Remember that this requires the Apple TV to have a static IP.                                                                                                                                                                                                                                             | `array[string]` | valid IPv4 addresses                                                                                                                                                                                                                                          | `[]`                |
 | `discover.blacklist`         | Apple TVs that should not be added as a device. You can get the MAC-Address from the logs. When using IPv4 Addresses the regarding Apple TVs need to have a static IP.                                                                                                                                                                                                                                                  | `array[string]` | valid MAC addresses                                                                                                                                                                                                                                           | `[]`                |
@@ -199,7 +191,7 @@ Also see [device specific overrides](https://github.com/maxileith/homebridge-app
 ## Known Issues
 
 -   Apple TVs report a MAC-Address that is different from the MAC-Address that you will see in the network settings of your Apple TV when scanning for devices. Therefore, when blacklisting Apple TVs use the MAC-Address from the logs.
--   If using external speakers like HomePods as the default, the Apple TV is always reported as powered on. This is a known issue of the dependency [pyatv](https://pyatv.dev), see [postlund/pyatv#1667](https://github.com/postlund/pyatv/issues/1667). As a result, the Apple TV device will only be shown as off in HomeKit when powered off via the Apple TV device in HomeKit. After restarting the plugin the device will always be shown as on. [Setting the default audio outputs](https://github.com/maxileith/homebridge-appletv-enhanced/blob/develop/docs/md/defaultAudioOutputs.md) via this plugin might be a valid workaround for you.
+-   If using external speakers like HomePods as the default, the Apple TV is always reported as powered on. This is a known issue of the dependency [pyatv](https://pyatv.dev), see [postlund/pyatv#1667](https://github.com/postlund/pyatv/issues/1667). As a result, the Apple TV device will only be shown as off in HomeKit when powered off via the Apple TV device in HomeKit. After restarting the plugin the device will always be shown as on.
 -   See also [open bugs](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aopen+label%3Abug).
 
 ## Versioning

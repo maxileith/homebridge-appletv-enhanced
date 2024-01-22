@@ -64,7 +64,6 @@
             ],
             "disableVolumeControlRemote": false,
             "setTopBox": false,
-            "defaultAudioOutputs": ["FF:EE:DD:CC:BB:AA"],
             "deviceSpecificOverrides": [
                 {
                     "mac": "AA:BB:CC:DD:EE:FF",
@@ -91,12 +90,7 @@
                     "overrideDisableVolumeControlRemote": true,
                     "disableVolumeControlRemote": true,
                     "overrideSetTopBox": true,
-                    "setTopBox": true,
-                    "overrideDefaultAudioOutputs": true,
-                    "defaultAudioOutputs": [
-                        "12345678-abcd-efgh-0123456789ab",
-                        "11:22:33:44:55:66"
-                    ]
+                    "setTopBox": true
                 }
             ],
             "discover": {
