@@ -669,7 +669,7 @@ ${deviceStateDelay}ms is over): ${event.value}`);
         if (event.value === null || event.value === '') {
             return;
         }
-        const configuredName: string = event.value !== undefined
+        const configuredName: string = event.value !== undefined && event.value !== 'AirPlay'
             ? trimSpecialCharacters(trimToMaxLength(`AirPlay: ${event.value}`, 64))
             : 'AirPlay';
         this.log.debug(`AirPlay: Set dynamic input name to ${configuredName}.`);
