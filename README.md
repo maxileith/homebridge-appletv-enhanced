@@ -45,6 +45,7 @@ This plugin automatically discovers Apple TV devices on the local network and ex
 -   The access of Speakers & TVs should be either set to "Everybody" or "Anybody On the Same Network" in the Home app
 -   Raspberry Pi 1, 2, 3 and Zero 1, 2 are not recommended for performance reasons. Recommended are 3B+, 4B, 5B.
 -   The homebridge instance and Apple TVs need to be on the same subnet.
+-   HOOBS is not supported.
 
 ## Pairing
 
