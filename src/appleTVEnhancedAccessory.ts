@@ -940,6 +940,18 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         this.log.info(`New Active State: ${event.value}`);
         if (value === this.platform.Characteristic.Active.ACTIVE) {
             this.lastTurningOnEvent = Date.now();
+        } else {
+            this.log.debug('Reset all motion sensors.');
+            // set all device state sensors to inactive
+            for (const deviceState of Object.keys(this.deviceStateServices)) {
+                const s: Service = this.deviceStateServices[deviceState];
+                s.updateCharacteristic(this.platform.Characteristic.MotionDetected, false);
+            }
+            // set all media type sensors to inactive
+            for (const mediaType of Object.keys(this.mediaTypeServices)) {
+                const s: Service = this.mediaTypeServices[mediaType];
+                s.updateCharacteristic(this.platform.Characteristic.MotionDetected, false);
+            }
         }
         this.service!.updateCharacteristic(this.platform.Characteristic.Active, value);
     }
