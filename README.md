@@ -4,6 +4,7 @@
 [![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 [![npm](https://img.shields.io/npm/v/homebridge-appletv-enhanced)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
 [![npm](https://badgen.net/npm/dt/homebridge-appletv-enhanced)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
+[![npm](https://badgen.net/npm/dm/homebridge-appletv-enhanced)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
 [![donate](https://badgen.net/badge/donate/paypal/91BE09)](https://www.paypal.me/maxileith/EUR)
 [![PyPI pyversions](https://img.shields.io/badge/Python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue)](https://pypi.python.org/pypi/pyatv/)
 
@@ -44,6 +45,7 @@ This plugin automatically discovers Apple TV devices on the local network and ex
 -   The access of Speakers & TVs should be either set to "Everybody" or "Anybody On the Same Network" in the Home app
 -   Raspberry Pi 1, 2, 3 and Zero 1, 2 are not recommended for performance reasons. Recommended are 3B+, 4B, 5B.
 -   The homebridge instance and Apple TVs need to be on the same subnet.
+-   HOOBS is not supported.
 
 ## Pairing
 
@@ -191,7 +193,7 @@ Also see [device specific overrides](https://github.com/maxileith/homebridge-app
 ## Known Issues
 
 -   Apple TVs report a MAC-Address that is different from the MAC-Address that you will see in the network settings of your Apple TV when scanning for devices. Therefore, when blacklisting Apple TVs use the MAC-Address from the logs.
--   If using external speakers like HomePods as the default, the Apple TV is always reported as powered on. This is a known issue of the dependency [pyatv](https://pyatv.dev), see [postlund/pyatv#1667](https://github.com/postlund/pyatv/issues/1667). As a result, the Apple TV device will only be shown as off in HomeKit when powered off via the Apple TV device in HomeKit. After restarting the plugin the device will always be shown as on.
+-   If using audio output devices other than the Apple TV itself, the Apple TV is always reported as powered on. This is a known issue of the dependency [pyatv](https://pyatv.dev), see [postlund/pyatv#1667](https://github.com/postlund/pyatv/issues/1667). As a result, the Apple TV device will only be shown as off in HomeKit when powered off via the Apple TV device in HomeKit. After restarting the plugin the device will always be shown as on.
 -   See also [open bugs](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aopen+label%3Abug).
 
 ## Versioning

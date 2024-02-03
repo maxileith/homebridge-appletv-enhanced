@@ -23,7 +23,7 @@ jobs:
       - name: Publish Beta
         if: ${{ contains(github.ref_name, '-') }}
         shell: bash
-        run: npm publish --tag beta
+        run: npm publish --tag beta --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
