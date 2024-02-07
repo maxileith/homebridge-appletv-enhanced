@@ -108,9 +108,10 @@ Recreating the virtual environment now ...`);
         const [stdout]: [string, string] = await this.runCommand('python3', ['-m', 'venv', this.venvPath, '--clear'], undefined, true);
         if (stdout.includes('not created successfully') || !this.isVenvCreated()) {
             while (true) {
-                this.log.error('virtualenv python module is not installed. You need to install the \
-python package virtualenv either by using \'python3 -m pip install virutalenv\' or installing it via system packages. \
-On debian based distributions this is usally \'sudo apt install python3-venv\'');
+                this.log.error('virtualenv python module is not installed. If you have installed homebridge via the apt package manager, \
+update the homebridge apt package to 1.1.4 or above (this applies for installations based on the Raspberry Pi OS iamge as well). When \
+using the official docker image, update the image to version 2023-11-28 or above. Otherwise install the python virtualenv module \
+manually.');
                 await delay(300000);
             }
         } else if (stdout.trim() !== '') {
