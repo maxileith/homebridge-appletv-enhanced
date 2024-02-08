@@ -1,0 +1,16 @@
+version: "2"
+services:
+    homebridge:
+        image: homebridge/homebridge:2024-01-08
+        network_mode: host
+        volumes:
+            - ./user_storage/accessories:/homebridge/accessories
+            - ./user_storage/appletv-enhanced:/homebridge/appletv-enhanced
+            - ./user_storage/appletv-enhanced/.docker-venv:/homebridge/appletv-enhanced/.venv
+            - ./user_storage/persist:/homebridge/persist
+            - ./user_storage/.uix-dashboard.json:/homebridge/.uix-dashboard.json:ro
+            - ./user_storage/.uix-secrets:/homebridge/.uix-secrets:ro
+            - ./user_storage/auth.json:/homebridge/auth.json:ro
+            - ./user_storage/config.json:/homebridge/config.json
+            - ./docker-startup.sh:/homebridge/startup.sh:ro
+            - ./package.json:/tmp/package.json:ro

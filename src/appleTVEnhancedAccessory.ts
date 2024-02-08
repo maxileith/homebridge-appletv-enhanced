@@ -1113,7 +1113,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
             const process: ChildProcessWithoutNullStreams = spawn(CustomPyAtvInstance.getAtvremotePath(), [
                 '--scan-hosts', ip,
                 '--protocol', 'companion',
-                '--remote-name', 'Homebridge Apple TV Enhanced',
+                '--remote-name', `Homebridge Apple TV Enhanced (${localIP})`,
                 '--storage', 'none',
                 'pair',
             ]);
