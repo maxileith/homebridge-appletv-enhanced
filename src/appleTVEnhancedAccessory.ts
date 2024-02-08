@@ -1133,7 +1133,8 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
                     goOn = true;
                     return;
                 }
-                if (data.toUpperCase().includes('ERROR') && !data.includes('Error=Authentication, SeqNo=M4')) {
+                if (data.toUpperCase().includes('ERROR')) {
+                    goOn = true;
                     this.log.error('stdout: ' + data);
                     return;
                 }
@@ -1152,8 +1153,9 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
             setTimeout(() => {
                 if (!processClosed) {
                     this.log.warn('Pairing request timed out, retrying ...');
-                    this.log.debug('Send \\n to the stdout of the atvremote process to terminate it.');
-                    process.stdin.write('\n');
+                    this.log.debug('Kill the pyatv pairing process.');
+                    process.kill();
+                    goOn = true;
                 }
             }, 32000);
 
