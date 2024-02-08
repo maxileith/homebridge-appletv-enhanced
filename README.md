@@ -204,3 +204,8 @@ Also see [device specific overrides](https://github.com/maxileith/homebridge-app
 2.  **Minor:** Introduces new features without breaking changes.
 3.  **Patch:** Bugfixes.
 4.  **Prerelease:** Prereleases of upcoming major, minor or patch versions. These versions are likely to have bugs. NPM packages of this kind are tagged as _beta_.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=maxileith/homebridge-appletv-enhanced&type=Date)](https://star-history.com/#maxileith/homebridge-appletv-enhanced&Date)
+
