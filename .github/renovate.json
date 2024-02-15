@@ -6,7 +6,7 @@
     "reviewers": ["maxileith"],
     "prConcurrentLimit": 0,
     "prHourlyLimit": 0,
-    "enabledManagers": ["nvm", "regex"],
+    "enabledManagers": ["nvm", "regex", "docker-compose"],
     "rangeStrategy": "bump",
     "semanticCommits": "disabled",
     "nvm": {
@@ -43,6 +43,10 @@
         {
             "matchDepNames": ["node-legacy"],
             "allowedVersions": "^18"
+        },
+        {
+            "matchDatasources": ["docker"],
+            "versioning": "loose"
         }
     ]
 }
