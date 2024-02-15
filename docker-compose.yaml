@@ -1,7 +1,7 @@
 version: "2"
 services:
     homebridge:
-        image: homebridge/homebridge:2023-12-30
+        image: homebridge/homebridge:2023-12-30-ubuntu
         network_mode: host
         volumes:
             - ./user_storage/accessories:/homebridge/accessories
