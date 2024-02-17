@@ -116,7 +116,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
         for (const appleTV of appleTVs) {
             this.log.debug(`Found Apple TV ${appleTV.name} (${appleTV.mac} / ${appleTV.host}).`);
 
-            if (appleTV.mac === undefined) {
+            if (appleTV.mac === undefined || appleTV.mac === null) {
                 this.log.debug(`${appleTV.name} (${appleTV.host}) is skipped since the MAC address could not be determined.`);
                 continue;
             }
@@ -127,11 +127,6 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
                 (this.config.discover.blacklist.includes(appleTV.mac!) || this.config.discover.blacklist.includes(appleTV.host))
             ) {
                 this.log.debug(`Apple TV ${appleTV.name} (${appleTV.mac} / ${appleTV.host}) is on the blacklist. Skipping.`);
-                continue;
-            }
-
-            if (!appleTV.mac) {
-                this.log.debug(`Apple TV ${appleTV.name} has no MAC address. Skipping.`);
                 continue;
             }
 
