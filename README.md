@@ -46,6 +46,8 @@ This plugin automatically discovers Apple TV devices on the local network and ex
 -   If you do not want all Apple TVs to be exposed, it is possible to blacklist them by providing the MAC-Address.
 -   "Avada Kedavra" which is exposed as an input to close all apps.
 
+It might also be a good idea to take a look at [this video](https://www.tiktok.com/@b_turner50/video/7330389563946339589) to get an idea what this plugin is all about.
+
 ## Requirements
 
 -   Only Linux will be supported by the maintainer (although since MacOS / UNIX is similar to Linux, it should run on MacOS just fine)
