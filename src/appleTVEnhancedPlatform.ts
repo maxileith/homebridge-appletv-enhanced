@@ -120,11 +120,15 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
                 this.log.debug(`${appleTV.name} (${appleTV.host}) is skipped since the MAC address could not be determined.`);
                 continue;
             }
+            const mac: string = appleTV.mac.toUpperCase();
 
             if (
                 this.config.discover &&
                 this.config.discover.blacklist &&
-                (this.config.discover.blacklist.includes(appleTV.mac!) || this.config.discover.blacklist.includes(appleTV.host))
+                (
+                    this.config.discover.blacklist.map((e) => e.toUpperCase()).includes(mac) ||
+                    this.config.discover.blacklist.includes(appleTV.host)
+                )
             ) {
                 this.log.debug(`Apple TV ${appleTV.name} (${appleTV.mac} / ${appleTV.host}) is on the blacklist. Skipping.`);
                 continue;
@@ -133,7 +137,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             // generate a unique id for the accessory this should be generated from
             // something globally unique, but constant, for example, the device serial
             // number or MAC address
-            const uuid: string = this.api.hap.uuid.generate(appleTV.mac!);
+            const uuid: string = this.api.hap.uuid.generate(mac);
             if (this.publishedUUIDs.includes(uuid)) {
                 this.log.debug(`Apple TV ${appleTV.name} (${appleTV.mac}) with UUID ${uuid} already exists. Skipping.`);
                 continue;
@@ -148,7 +152,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
 
             // store a copy of the device object in the `accessory.context`
             // the `context` property can be used to store any data about the accessory you may need
-            accessory.context.mac = appleTV.mac;
+            accessory.context.mac = mac;
 
             // create the accessory handler for the newly create accessory
             // this is imported from `platformAccessory.ts`
