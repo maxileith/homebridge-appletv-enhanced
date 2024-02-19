@@ -12,6 +12,24 @@
 
 This plugin automatically discovers Apple TV devices on the local network and exposes each one as a HomeKit Set-Top Box.
 
+> [!IMPORTANT]
+>
+> ### The following platforms are **not supported**:
+>
+> -   Anything other than Linux
+> -   32 bit systems
+> -   [HOOBS](https://github.com/hoobs-org/HOOBS)
+>
+> Further explanation in the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced?tab=readme-ov-file#requirements).
+>
+> ### Before opening a new issue ...
+>
+> -   Make sure all [requirements](https://github.com/maxileith/homebridge-appletv-enhanced?tab=readme-ov-file#requirements) are fulfilled.
+> -   Verify that your issue is not one of the [known issues](https://github.com/maxileith/homebridge-appletv-enhanced?tab=readme-ov-file#known-issues).
+> -   You may find a solution to your problem in [issues of the past](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue) or [discussions](https://github.com/maxileith/homebridge-appletv-enhanced/discussions).
+>
+> Otherwise, feel free to open an issue [here](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new/choose).
+
 ## Features
 
 -   Automatically discover Apple TVs in your local network.
@@ -27,6 +45,8 @@ This plugin automatically discovers Apple TV devices on the local network and ex
     -   Remote keys can also be exposed as switches.
 -   If you do not want all Apple TVs to be exposed, it is possible to blacklist them by providing the MAC-Address.
 -   "Avada Kedavra" which is exposed as an input to close all apps.
+
+It might also be a good idea to take a look at [this video](https://www.tiktok.com/@b_turner50/video/7330389563946339589) to get an idea what this plugin is all about.
 
 ## Requirements
 
@@ -45,7 +65,12 @@ This plugin automatically discovers Apple TV devices on the local network and ex
 -   The access of Speakers & TVs should be either set to "Everybody" or "Anybody On the Same Network" in the Home app
 -   Raspberry Pi 1, 2, 3 and Zero 1, 2 are not recommended for performance reasons. Recommended are 3B+, 4B, 5B.
 -   The homebridge instance and Apple TVs need to be on the same subnet.
--   HOOBS is not supported.
+-   32 bit systems are not supported
+    -   Certain python packages that are required are not available as 32 bit binaries. Thus, it is required to install tooling to compile the packages. This includes 32 bit systems in a 64 bit userspace. (If you know what you are doing, you can install build dependencies and compile the packages yourself. However, this is not supported by the plugin officially)
+    -   see [issue #236](https://github.com/maxileith/homebridge-appletv-enhanced/issues/236).
+-   [HOOBS](https://github.com/hoobs-org/HOOBS) is not supported.
+    -   HOOBS is a 32 bit architecture and suffers from the above limitations.
+    -   HOOBS has a different plugin system that prevents managing Apple TVs.
 
 ## Pairing
 
@@ -208,4 +233,3 @@ Also see [device specific overrides](https://github.com/maxileith/homebridge-app
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=maxileith/homebridge-appletv-enhanced&type=Date)](https://star-history.com/#maxileith/homebridge-appletv-enhanced&Date)
-

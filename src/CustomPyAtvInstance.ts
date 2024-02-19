@@ -25,7 +25,7 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
             .then(async (results) => {
                 for (const result of results) {
                     if (result.mac) {
-                        CustomPyATVInstance.cachedDevices[result.mac] = result;
+                        CustomPyATVInstance.cachedDevices[result.mac.toUpperCase()] = result;
                     }
                 }
                 return results;
@@ -36,14 +36,14 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
         options: AlternatePyATVDeviceOptions | nodePyatv.NodePyATVDeviceOptions,
     ): nodePyatv.NodePyATVDevice | undefined {
         if (options.mac) {
-            const cachedDevice: nodePyatv.NodePyATVDevice = CustomPyATVInstance.cachedDevices[options.mac];
+            const cachedDevice: nodePyatv.NodePyATVDevice = CustomPyATVInstance.cachedDevices[options.mac.toUpperCase()];
             if (cachedDevice === undefined) {
                 return undefined;
             }
             return super.device(this.extendOptions({
                 ...options,
                 host: cachedDevice.host,
-                mac: cachedDevice.mac,
+                mac: cachedDevice.mac?.toUpperCase(),
                 name: cachedDevice.name,
                 id: cachedDevice.id,
                 model: cachedDevice.model,
