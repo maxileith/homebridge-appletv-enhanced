@@ -8,6 +8,15 @@ import PythonChecker from './PythonChecker';
 import PrefixLogger from './PrefixLogger';
 import LogLevelLogger from './LogLevelLogger';
 
+// compatible model identifiers according to https://pyatv.dev/api/const/#pyatv.const.DeviceModel
+const ALLOWED_MODELS: string[] = [
+    'Gen4',
+    'Gen4K',
+    'AppleTVGen4', // future proof since they will be renamed in pyatv
+    'AppleTVGen4K',  // future proof since they will be renamed in pyatv
+    'AppleTV4KGen2',
+    'AppleTV4KGen3',
+];
 
 export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
     public readonly Service: typeof Service;
@@ -102,15 +111,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             }
         }
 
-        const appleTVs: NodePyATVDevice[] = scanResults.filter((d) =>
-            // compatible model identifiers according to https://pyatv.dev/api/const/#pyatv.const.DeviceModel
-            d.model === 'Gen4' ||
-            d.model === 'Gen4K' ||
-            d.model === 'AppleTVGen4' || // future proof since they will be renamed in pyatv
-            d.model === 'AppleTVGen4K' ||  // future proof since they will be renamed in pyatv
-            d.model === 'AppleTV4KGen2' ||
-            d.model === 'AppleTV4KGen3',
-        );
+        const appleTVs: NodePyATVDevice[] = scanResults.filter((d) => ALLOWED_MODELS.includes(d.model || ''));
 
         // loop over the discovered devices and register each one if it has not already been registered
         for (const appleTV of appleTVs) {
