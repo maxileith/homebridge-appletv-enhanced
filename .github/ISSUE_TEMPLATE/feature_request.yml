@@ -1,5 +1,7 @@
 name: 🚀 Feature Request
 description: Suggest an improvement or a new feature for this project.
+assignees:
+  - maxileith
 
 labels: ["enhancement"]
 
