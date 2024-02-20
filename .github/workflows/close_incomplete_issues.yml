@@ -1,0 +1,25 @@
+name: Stale
+
+on:
+  schedule:
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+jobs:
+  close-issues-prs:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/stale@v9
+        with:
+          days-before-issue-stale: 0
+          days-before-issue-close: 2
+          stale-issue-label: false
+          close-issue-message: "This issue was closed since it did not pass the pre-checks."
+          close-issue-reason: completed
+          only-issue-labels: bad request
+          days-before-pr-stale: -1
+          days-before-pr-close: -1

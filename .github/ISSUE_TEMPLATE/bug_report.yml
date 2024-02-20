@@ -1,5 +1,7 @@
 name: 🐞 Bug Report
 description: File a bug report.
+assignees:
+  - maxileith
 
 labels: ["bug"]
 
@@ -48,7 +50,7 @@ body:
     attributes:
       label: Logs
       description: |
-        Please provide relevant log output, from starting the plugin until the bug.
+        Please provide debug log output, from starting the plugin until the bug.
         Be sure to **remove any sensitive information** (MAC-Addresses and Airplay credentials).
         If you have a lengthy log message, please use the file upload functionality in the `Additional Context` section to supply log files.
       placeholder: Please paste logging output. Debug logging can be enabled in the plugin configuration.
@@ -67,42 +69,194 @@ body:
     validations:
       required: true
 
-  - type: textarea
-    id: environment
+  - type: dropdown
+    id: environment_os
     attributes:
-      label: Environment
+      label: Operating System
       description: |
-        Describe your Environment when running the plugin.
-        It should include Operating System version, runtime version and the version of the software itself.
+        On which operating system is your homebridge running?
+      options:
+        - Linux
+        - Mac Os
+        - Windows
+      default: 0
+    validations:
+      required: true
 
-        The environment description might look like the following:
-          - **OS**: Raspberry Pi OS Bookworm 12
-          - **Docker**: false
-            - **Image Version**: 2023-11-28 (this is the minimum version, see [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements))
-          - **Homebridge**: 1.7.0
-          - **Homebridge Config UI**: 4.54.2 (this is the minimum version, see [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements))
-          - **Storage Path**: `/var/lib/homebridge`
-          - **Apple TV Enhanced**: v1.0.1 (always install the latest version before opening an issue)
-          - **Node**: 20.9.0 (output of `node -v`)
-          - **npm**: 10.1.0 (output of `npm -v`)
-          - **Python**: 3.11.2 (output of `python3 --version`)
-          - **pip**: 23.3.3 (output of `python3 -m pip --version`)
-          - **HDMI hops**: AV Receiver / HDMI Hub / Hue Sync Box ... (name all HDMI devices that are between the Apple TV and television)
-          - **HomePod as default speaker**: false
-      value: |
-        - OS: 
-        - Docker: 
-          - Image Version: 
-        - Homebridge: 
-        - Homebridge Config UI: 
-        - Storage Path: 
-        - Apple TV Enhanced: 
-        - Node: 
-        - npm: 
-        - Python: 
-        - pip: 
-        - HDMI hops: 
-        - HomePod as default speaker:
+  - type: dropdown
+    id: environment_os_bit
+    attributes:
+      label: "Operating System: Bits"
+      description: Is your OS 32 or 64 bit?
+      options:
+        - 32-bit
+        - 64-bit
+      default: 1
+    validations:
+      required: true
+
+  - type: input
+    id: environment_os_distribution
+    attributes:
+      label: "Operating System: Distribution"
+      description: |
+        Which distribution are you using?
+        Command to find out: `cat /etc/*-release | grep "^NAME="`
+      placeholder: Raspberry Pi OS
+    validations:
+      required: true
+
+  - type: input
+    id: environment_os_distribution_version
+    attributes:
+      label: "Operating System: Distribution Version"
+      description: |
+        Which version of your are you using?
+        Command to find out: `cat /etc/*-release | grep "^VERSION="`
+      placeholder: 12 (bookworm)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment_docker
+    attributes:
+      label: Docker
+      description: |
+        Are you hosting homebridge with docker?
+        Command to find out: `docker container list | grep homebridge`
+      options:
+        - "yes"
+        - "no"
+      default: 1
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment_docker_image
+    attributes:
+      label: Docker Image
+      description: Which image are you using?
+      options:
+        - "homebridge/homebridge"
+        - "ozno/homebridge"
+
+  - type: input
+    id: environment_docker_image_version
+    attributes:
+      label: Docker Image Version
+      description: |
+        Which version of the image are you using? Please provide the exact image tag, not `latest`. (the minimum required version is specified in the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements))
+        Command to find out: `docker container list | grep homebridge`
+      placeholder: "2024-01-08"
+
+  - type: input
+    id: environment_homebridge_version
+    attributes:
+      label: Homebridge Version
+      description: Which version of homebridge are you using?
+      placeholder: "1.7.0"
+    validations:
+      required: true
+
+  - type: input
+    id: environment_homebridge_config_ui_version
+    attributes:
+      label: Homebridge Config UI Version
+      description: Which version of homebridge ui are you using? (the minimum required version is specified in the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements))
+      placeholder: v4.54.2
+    validations:
+      required: true
+
+  - type: input
+    id: environment_storage_path
+    attributes:
+      label: Homebridge Storage Path
+      description: What is your homebridge storage path?
+      placeholder: /var/lib/homebridge
+    validations:
+      required: true
+
+  - type: input
+    id: environment_appletv_enhanced_version
+    attributes:
+      label: Homebridge Apple TV Enhanced Version
+      description: What is your Apple TV Enhanced Version? (always install the latest version before opening an issue)
+      placeholder: "1.2.4"
+    validations:
+      required: true
+
+  - type: input
+    id: environment_node_version
+    attributes:
+      label: Node Version
+      description: |
+        What is your node version? (always install the latest version before opening an issue)
+        Command to find out: `node -v`
+      placeholder: v20.11.1
+    validations:
+      required: true
+
+  - type: input
+    id: environment_npm_version
+    attributes:
+      label: NPM Version
+      description: |
+        What is your npm version? (always install the latest version before opening an issue)
+        Command to find out: `npm -v`
+      placeholder: "10.2.4"
+    validations:
+      required: true
+
+  - type: input
+    id: environment_python_version
+    attributes:
+      label: Python Version
+      description: |
+        What is your Python version?
+        Command to find out: `python3 --version`
+      placeholder: "3.11.6"
+    validations:
+      required: true
+
+  - type: input
+    id: environment_pip_version
+    attributes:
+      label: PIP Version
+      description: |
+        What is your Pip version?
+        Command to find out: `python3 -m pip --version`
+      placeholder: "24.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: environment_hdmi_hops
+    attributes:
+      label: HDMI Hops
+      description: Name all HDMI devices that are between the Apple TV and television
+      placeholder: "AV Receiver / HDMI Hub / Hue Sync Box ..."
+
+  - type: dropdown
+    id: environment_audio_output
+    attributes:
+      label: Audio Output
+      description: Are you using any audio output other than the HDMI port of the Apple TV itself.
+      options:
+        - "yes"
+        - "no"
+      default: 1
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment_subnet
+    attributes:
+      label: Same Subnet
+      description: Is your Apple TV in the same subnet as your homebridge instance?
+      options:
+        - "yes"
+        - "no"
+      default: 0
     validations:
       required: true
 
