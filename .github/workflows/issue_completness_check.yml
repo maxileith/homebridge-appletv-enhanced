@@ -1,0 +1,53 @@
+name: Issue completeness check
+
+on:
+  issues:
+    types:
+      - opened
+      - edited
+
+jobs:
+  is_issue_complete:
+    name: Check if issue \#${{ github.event.issue.number }} is complete
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    if: contains(github.event.issue.labels.*.name, 'bug') || contains(github.event.issue.labels.*.name, 'question')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            package.json
+            .github/issue_completeness_check
+
+      - name: Use Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Print Python version
+        shell: bash
+        run: python3 --version
+
+      - name: Upgrade Pip
+        shell: bash
+        run: python3 -m pip install --upgrade pip
+
+      - name: Install dependencies
+        shell: bash
+        run: python3 -m pip install -r .github/issue_completeness_check/requirements.txt
+
+      - name: Print GitHub Actions context
+        shell: bash
+        run: echo "$GITHUB_CONTEXT"
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - name: Run check
+        shell: bash
+        run: python3 .github/issue_completeness_check/check.py ${{ github.event.issue.number }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
