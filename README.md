@@ -63,6 +63,7 @@ It might also be a good idea to take a look at [this video](https://www.tiktok.c
 -   [Homebridge Config UI >= 4.54.2](https://github.com/homebridge/homebridge-config-ui-x/releases/tag/4.54.2) when creating backups
 -   Apple TV Models with tvOS 15 and upwards are supported (all 4K ones and the latest HD one)
 -   The access of Speakers & TVs should be either set to "Everybody" or "Anybody On the Same Network" in the Home app
+    -   Additionally, make sure to check the TV's HomeKit settings.
 -   Raspberry Pi 1, 2, 3 and Zero 1, 2 are not recommended for performance reasons. Recommended are 3B+, 4B, 5B.
 -   The homebridge instance and Apple TVs need to be on the same subnet.
 -   32 bit systems are not supported
