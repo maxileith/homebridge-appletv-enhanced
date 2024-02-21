@@ -82,3 +82,25 @@ updates:
     commit-message:
       # Prefix all commit messages with "ci: "
       prefix: "ci"
+
+  # Enable version updates for pip
+  - package-ecosystem: pip
+    # Look for a `requirements.txt` in the `root` directory
+    directory: .github/issue_completeness_check/
+    # Check the pip registry for updates every day (weekdays)
+    schedule:
+      interval: daily
+      time: "04:00"
+      # Use CET
+      timezone: Europe/Berlin
+    target-branch: develop
+    labels:
+      - dependency
+    reviewers:
+      - maxileith
+    assignees:
+      - maxileith
+    commit-message:
+      # Prefix all commit messages with "pip: "
+      prefix: pip (ici)
+    versioning-strategy: increase
