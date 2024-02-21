@@ -6,6 +6,9 @@ on:
       - opened
       - edited
       - reopened
+  issue_comment:
+    types:
+      - created
 
 jobs:
   is_issue_complete:
@@ -14,7 +17,7 @@ jobs:
     permissions:
       issues: write
 
-    if: contains(github.event.issue.labels.*.name, 'bug') || contains(github.event.issue.labels.*.name, 'question')
+    if: (github.event_name == 'issues' && (contains(github.event.issue.labels.*.name, 'bug') || contains(github.event.issue.labels.*.name, 'question'))) || (github.event_name == 'issue_comment' && github.event.comment.body == '/check')
 
     steps:
       - name: Checkout metadata (main)
