@@ -1234,7 +1234,7 @@ media-src * \'self\'');
                     while (true) {
                         this.log.warn('The plugin is receiving errors that look like you have not set the access level of Speakers & TVs \
 in your home app to "Everybody" or "Anybody On the Same Network". Fix this and restart the plugin to continue initializing the Apple TV \
-device. Enable debug logging to see the original errors.');
+device. If this does not work, make sure to check the TV\'s HomeKit settings as well. Enable debug logging to see the original errors.');
                         await delay(300000);
                     }
                 }
