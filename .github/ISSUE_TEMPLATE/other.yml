@@ -1,0 +1,33 @@
+name: 🤷🏼‍♂️ Other
+description: Submit an issue that is not covered by any other template (bug report, support request, feature request).
+assignees:
+  - maxileith
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Hi!
+
+        Thanks for taking the time to submit an issue. This issue template should only be used if non of the following issue templates is a good fit for the issue that you want to submit:
+
+        - [bug report](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new?template=bug_report.yml)
+        - [support request](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new?template=support_request.yml)
+        - [feature request](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new?template=feature_request.yml)
+
+        **Do not** use this template just because the bug report / support request template asks for too much information. That's just lazy 😉
+
+  - type: checkboxes
+    attributes:
+      label: Preconditions
+      options:
+        - label: The issue is not covered by any of the other issue templates
+          required: true
+
+  - type: textarea
+    id: analysis
+    attributes:
+      label: Issue
+      description: Please provide a concise description of the issue.
+    validations:
+      required: true
