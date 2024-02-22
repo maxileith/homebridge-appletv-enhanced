@@ -24,9 +24,11 @@ This plugin automatically discovers Apple TV devices on the local network and ex
 >
 > ### Before opening a new issue ...
 >
-> -   Make sure all [requirements](https://github.com/maxileith/homebridge-appletv-enhanced?tab=readme-ov-file#requirements) are fulfilled.
-> -   Verify that your issue is not one of the [known issues](https://github.com/maxileith/homebridge-appletv-enhanced?tab=readme-ov-file#known-issues).
-> -   You may find a solution to your problem in [issues of the past](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue) or [discussions](https://github.com/maxileith/homebridge-appletv-enhanced/discussions).
+> -   Review the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements) to ensure you are not missing any.
+> -   Please take a look at the [known issues](https://github.com/maxileith/homebridge-appletv-enhanced?tab=readme-ov-file#known-issues) as well. The problem you are having might be already known.
+> -   Check wether or not the problem you are having was already solved in the past. To check that, search through the [resolved issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aclosed+label%3Abug).
+> -   Check wether or not the bug you have found is already in the [open issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aopen+label%3Abug).
+> -   You may find a solution in the [discussions](https://github.com/maxileith/homebridge-appletv-enhanced/discussions).
 >
 > Otherwise, feel free to open an issue [here](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new/choose).
 

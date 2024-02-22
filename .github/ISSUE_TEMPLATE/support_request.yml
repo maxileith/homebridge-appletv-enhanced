@@ -9,11 +9,38 @@ body:
   - type: markdown
     attributes:
       value: |
+        ### Hi!
+
+        Thanks for taking the time to fill out this bug report! :heart:
+
         Hi. Before you start filling out this form be aware of the following points:
         - Review our **Troubleshooting** and **FAQ** pages in the Wiki to ensure your issue isn't already solved by those steps.
         - Search through **existing issues** (resolved or open) which might provide a solution to your problem already.
         - If your issue is **plugin specific**, raise an issue with the plugin author on their GitHub page instead.
         - **Ask the community**: We have a Discord and a Reddit. Active community members might provide help quicker on those platforms.
+
+  - type: checkboxes
+    attributes:
+      label: Preconditions
+      description: |
+        Before we start, be sure you are aware of the following points:
+
+        - Review the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements) to ensure you are not missing any.
+        - Please take a look at the [known issues](https://github.com/maxileith/homebridge-appletv-enhanced?tab=readme-ov-file#known-issues) as well. The problem you are having might be already known.
+        - Check wether or not the question that is on your mind has already been answered in the past. To check that, search through the [resolved issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aclosed).
+        - Check wether or not the question that is on your mind is already in the [open issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aopen).
+        - You may find an answer in the [discussions](https://github.com/maxileith/homebridge-appletv-enhanced/discussions).
+      options:
+        - label: Requirements fulfilled
+          required: true
+        - label: The known issues did not answer my question
+          required: true
+        - label: The question has not been asked in the past or the answer does not satisfy me
+          required: true
+        - label: There is currently no other opened issue that matches my question
+          required: true
+        - label: I cannot find any answer to my question in GitHub discussions
+          required: true
 
   - type: textarea
     id: problem
@@ -29,10 +56,10 @@ body:
     attributes:
       label: Logs
       description: |
-        Please provide debug log output, from starting the plugin until the bug.
+        Please provide debug log output (loglevel 4), from starting the plugin until the bug.
         Be sure to **remove any sensitive information** (MAC-Addresses and Airplay credentials).
         If you have a lengthy log message, please use the file upload functionality in the `Additional Context` section to supply log files.
-      placeholder: Please paste logging output. Debug logging can be enabled in the plugin configuration.
+      placeholder: Please paste the logging output here ...
       render: console
     validations:
       required: true
@@ -100,9 +127,7 @@ body:
     id: environment_docker
     attributes:
       label: Docker
-      description: |
-        Are you hosting homebridge with docker?
-        Command to find out: `docker container list | grep homebridge`
+      description: Are you hosting homebridge with docker?
       options:
         - "yes"
         - "no"

@@ -9,11 +9,43 @@ body:
   - type: markdown
     attributes:
       value: |
-        Hi. Thanks for taking the time to fill out this bug report!
+        ### Hi!
 
+        Thanks for taking the time to fill out this bug report! :heart:
+
+  - type: checkboxes
+    attributes:
+      label: Preconditions
+      description: |
         Before we start, be sure you are aware of the following points:
-        - Review the requirements in the README to ensure you are not missing any.
-        - Search through **existing issues** (resolved or open) which might provide a solution to your problem already.
+
+        - Review the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements) to ensure you are not missing any.
+        - Please take a look at the [known issues](https://github.com/maxileith/homebridge-appletv-enhanced?tab=readme-ov-file#known-issues) as well. The problem you are having might be already known.
+        - Check wether or not the problem you are having was already solved in the past. To check that, search through the [resolved issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aclosed+label%3Abug).
+        - Check wether or not the bug you have found is already in the [open issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aopen+label%3Abug).
+        - You may find a solution in the [discussions](https://github.com/maxileith/homebridge-appletv-enhanced/discussions).
+        - Are you sure that the problem you are having is a bug? If not, open a [support request](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new?assignees=maxileith&labels=question&projects=&template=support_request.yml).
+          - Bugs cause the plugin to behave unexpectedly.
+          - Bugs are issues of the plugin that are reproducible.
+          - These are some issues that are reported as a bug most of the time but usually aren't:
+            - Issues during the installation of Apple TV Enhanced (especially regarding the python module virtualenv).
+            - The Apple TV cannot be paired because the Apple TV does not accept pairing attempts until a timer expires (warning: `Too many attempts. Waiting for 212 seconds before retrying.`).
+          - Sometimes it is not easy to say from a user perspective if a problem is a bug. If you are unsure, open a [support request](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new?assignees=maxileith&labels=question&projects=&template=support_request.yml). The maintainer will change the type of the issue to bug if it is a bug.
+
+      options:
+        - label: Requirements fulfilled
+          required: true
+        - label: The bug is not a known issue
+          required: true
+        - label: The bug has not been solved in the past or the solution that was provided in the past does not work on my system
+          required: true
+        - label: There is currently no other opened issue that describes this bug
+          required: true
+        - label: I cannot find any solution to the problem in GitHub discussions
+          required: true
+        - label: I am certain that the problem that I am having is a bug
+          required: true
+
   - type: textarea
     id: analysis
     attributes:
@@ -39,6 +71,7 @@ body:
       description: Please provide a description of how to reproduce the issue.
       placeholder: |
         A description of how to reproduce the bug.
+
         1. In this setup or under those conditions ...
         2. Run ...
         3. Encounter error ...
@@ -50,10 +83,10 @@ body:
     attributes:
       label: Logs
       description: |
-        Please provide debug log output, from starting the plugin until the bug.
+        Please provide debug log output (loglevel 4), from starting the plugin until the bug.
         Be sure to **remove any sensitive information** (MAC-Addresses and Airplay credentials).
         If you have a lengthy log message, please use the file upload functionality in the `Additional Context` section to supply log files.
-      placeholder: Please paste logging output. Debug logging can be enabled in the plugin configuration.
+      placeholder: Please paste the logging output here ...
       render: console
     validations:
       required: true
@@ -121,9 +154,7 @@ body:
     id: environment_docker
     attributes:
       label: Docker
-      description: |
-        Are you hosting homebridge with docker?
-        Command to find out: `docker container list | grep homebridge`
+      description: Are you hosting homebridge with docker?
       options:
         - "yes"
         - "no"
