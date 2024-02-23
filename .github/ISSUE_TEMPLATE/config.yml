@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: GitHub Community Support
+  - name: 👥 GitHub Community Support
     url: https://github.com/maxileith/homebridge-appletv-enhanced/discussions
-    about: If your question is not specific enough to fill out a support request or you do not expect an answer of the maintainer, please ask the question in GitHub discussions.
+    about: If you do not expect an answer of the maintainer but rather want a discussion with the community, please open a GitHub discussions.

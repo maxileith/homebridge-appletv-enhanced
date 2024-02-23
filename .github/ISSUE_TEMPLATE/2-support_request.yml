@@ -1,9 +1,9 @@
-name: ❓ Support Request
-description: Get help when you encounter problems with Apple TV Enhanced. Or simply ask a question.
+name: 🔧 Support Request
+description: Get help when you encounter a technical problem with Apple TV Enhanced.
 assignees:
   - maxileith
-
-labels: ["question"]
+labels:
+  - support request
 
 body:
   - type: markdown
@@ -11,13 +11,7 @@ body:
       value: |
         ### Hi!
 
-        Thanks for taking the time to fill out this bug report! :heart:
-
-        Hi. Before you start filling out this form be aware of the following points:
-        - Review our **Troubleshooting** and **FAQ** pages in the Wiki to ensure your issue isn't already solved by those steps.
-        - Search through **existing issues** (resolved or open) which might provide a solution to your problem already.
-        - If your issue is **plugin specific**, raise an issue with the plugin author on their GitHub page instead.
-        - **Ask the community**: We have a Discord and a Reddit. Active community members might provide help quicker on those platforms.
+        Thanks for taking the time to fill out this support request report. :heart:
 
   - type: checkboxes
     attributes:
@@ -27,8 +21,8 @@ body:
 
         - Review the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements) to ensure you are not missing any.
         - Please take a look at the [known issues](https://github.com/maxileith/homebridge-appletv-enhanced?tab=readme-ov-file#known-issues) as well. The problem you are having might be already known.
-        - Check whether or not the question that is on your mind has already been answered in the past. To check that, search through the [resolved issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aclosed).
-        - Check whether or not the question that is on your mind is already in the [open issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aopen).
+        - Check whether or not the support request that is on your mind has already been answered in the past. To check that, search through the [resolved issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aclosed).
+        - Check whether or not the support request that is on your mind is already in the [open issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aopen).
         - You may find an answer in the [discussions](https://github.com/maxileith/homebridge-appletv-enhanced/discussions).
       options:
         - label: Requirements fulfilled

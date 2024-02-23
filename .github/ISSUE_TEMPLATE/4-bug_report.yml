@@ -2,8 +2,8 @@ name: 🐞 Bug Report
 description: File a bug report.
 assignees:
   - maxileith
-
-labels: ["bug"]
+labels:
+  - bug
 
 body:
   - type: markdown
@@ -24,13 +24,13 @@ body:
         - Check whether or not the problem you are having was already solved in the past. To check that, search through the [resolved issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aclosed+label%3Abug).
         - Check whether or not the bug you have found is already in the [open issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aopen+label%3Abug).
         - You may find a solution in the [discussions](https://github.com/maxileith/homebridge-appletv-enhanced/discussions).
-        - Are you sure that the problem you are having is a bug? If not, open a [support request](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new?template=support_request.yml).
+        - Are you sure that the problem you are having is a bug? If not, open a [support request](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new?template=2-support_request.yml).
           - Bugs cause the plugin to behave unexpectedly.
           - Bugs are issues of the plugin that are reproducible.
           - These are some issues that are reported as a bug most of the time but usually aren't:
             - Issues during the installation of Apple TV Enhanced (especially regarding the python module virtualenv).
             - The Apple TV cannot be paired because the Apple TV does not accept pairing attempts until a timer expires (warning: `Too many attempts. Waiting for 212 seconds before retrying.`).
-          - Sometimes it is not easy to say from a user perspective if a problem is a bug. If you are unsure, open a [support request](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new?template=support_request.yml). The maintainer will change the type of the issue to bug if it is a bug.
+          - Sometimes it is not easy to say from a user perspective if a problem is a bug. If you are unsure, open a [support request](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new?template=2-support_request.yml). The maintainer will change the type of the issue to bug if it is a bug.
 
       options:
         - label: Requirements fulfilled

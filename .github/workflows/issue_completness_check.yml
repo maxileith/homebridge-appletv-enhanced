@@ -17,7 +17,7 @@ jobs:
     permissions:
       issues: write
 
-    if: (github.event_name == 'issues' && (contains(github.event.issue.labels.*.name, 'bug') || contains(github.event.issue.labels.*.name, 'question'))) || (github.event_name == 'issue_comment' && github.event.comment.body == '/check')
+    if: (github.event_name == 'issues' && (contains(github.event.issue.labels.*.name, 'bug') || contains(github.event.issue.labels.*.name, 'support request'))) || (github.event_name == 'issue_comment' && github.event.comment.body == '/check')
 
     steps:
       - name: Checkout metadata (main)

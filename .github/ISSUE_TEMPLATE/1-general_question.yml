@@ -1,0 +1,31 @@
+name: ❓ General Question
+description: Submit a general question.
+assignees:
+  - maxileith
+labels:
+  - support request
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Hi!
+
+        Before we start. Make sure that the question you are having is not a [support request](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new?template=2-support_request.yml).
+
+        **Do not** use this template just because the support request template asks for too much information. That's just lazy 😉
+
+  - type: checkboxes
+    attributes:
+      label: Preconditions
+      options:
+        - label: The support request template is not a better fit to my question
+          required: true
+
+  - type: textarea
+    id: analysis
+    attributes:
+      label: Issue
+      description: Please provide a concise description of the issue.
+    validations:
+      required: true
