@@ -58,7 +58,7 @@
         "url": "http://github.com/maxileith/homebridge-appletv-enhanced/issues"
     },
     "devDependencies": {
-        "@types/node": "^18.19.17",
+        "@types/node": "^18.19.18",
         "@typescript-eslint/eslint-plugin": "^7.0.2",
         "@typescript-eslint/parser": "^7.0.2",
         "@types/md5": "^2.3.5",
