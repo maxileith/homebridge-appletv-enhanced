@@ -197,7 +197,8 @@ Also see [device specific overrides](https://github.com/maxileith/homebridge-app
         "blacklist": ["AA:BB:CC:DD:EE:FF", "192.168.0.42"]
     },
     "forceVenvRecreate": false,
-    "logLevel": 3
+    "logLevel": 3,
+    "updateCheckLevel": "stable"
 }
 ```
 
@@ -217,6 +218,7 @@ Also see [device specific overrides](https://github.com/maxileith/homebridge-app
 | `discover.blacklist`         | Apple TVs that should not be added as a device. You can get the MAC-Address from the logs. When using IPv4 Addresses the regarding Apple TVs need to have a static IP.                                                                                                                                                                                                                                                  | `array[string]` | valid MAC addresses                                                                                                                                                                                                                                           | `[]`                |
 | `forceVenvRecreate`          | Set this to force to recreate the virtual python environment with the next restart of the plugin. Remember to set this option to false after the virtual environment has been recreated.                                                                                                                                                                                                                                | `boolean`       |                                                                                                                                                                                                                                                               | `false`             |
 | `logLevel`                   | Set the log level. (0 - None; 1 - Error; 2 - Warn; 3 - Info; 4 - Debug; 5 - Verbose)                                                                                                                                                                                                                                                                                                                                    | `integer`       | 0 - 5                                                                                                                                                                                                                                                         | `3`                 |
+| `updateCheckLevel`           | Apple TV Enhanced is regularly checking if there is an update available and printing it to the logs. You can select whether you want to check for stable or beta updates.                                                                                                                                                                                                                                               | `string`        | `stable`, `beta`                                                                                                                                                                                                                                              | `stable`            |
 
 ## Known Issues
 

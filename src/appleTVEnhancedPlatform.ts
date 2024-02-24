@@ -7,6 +7,7 @@ import type { NodePyATVDevice } from '@sebbo2002/node-pyatv';
 import PythonChecker from './PythonChecker';
 import PrefixLogger from './PrefixLogger';
 import LogLevelLogger from './LogLevelLogger';
+import UpdateChecker from './UpdateChecker';
 
 // compatible model identifiers according to https://pyatv.dev/api/const/#pyatv.const.DeviceModel
 const ALLOWED_MODELS: string[] = [
@@ -49,6 +50,10 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
 
             // make sure the Python environment is ready
             await new PythonChecker(this.logLevelLogger, this.api.user.storagePath()).allInOne(this.config.forceVenvRecreate);
+
+            // enable update check
+            const updateChecker: UpdateChecker = new UpdateChecker(this.logLevelLogger, this.config.updateCheckLevel === 'beta', 60);
+            updateChecker.start();
 
             // run the method to discover / register your devices as accessories
             this.log.debug(`Setting the storage path of the PyATV instance to ${this.api.user.storagePath()}`);

@@ -58,22 +58,23 @@
         "url": "http://github.com/maxileith/homebridge-appletv-enhanced/issues"
     },
     "devDependencies": {
+        "@types/md5": "^2.3.5",
         "@types/node": "^18.19.18",
         "@typescript-eslint/eslint-plugin": "^7.0.2",
         "@typescript-eslint/parser": "^7.0.2",
-        "@types/md5": "^2.3.5",
         "eslint": "^8.56.0",
         "homebridge": "^1.7.0",
+        "homebridge-config-ui-x": "^4.55.1",
         "nodemon": "^3.1.0",
         "rimraf": "^5.0.5",
         "standard-version": "^9.5.0",
         "ts-node": "^10.9.2",
-        "typescript": "^5.3.3",
-        "homebridge-config-ui-x": "^4.55.1"
+        "typescript": "^5.3.3"
     },
     "dependencies": {
         "@sebbo2002/node-pyatv": "^7.3.0",
         "axios": "^1.6.7",
+        "compare-versions": "^6.1.0",
         "md5": "^2.3.0"
     },
     "homepage": "https://github.com/maxileith/homebridge-appletv-enhanced#readme",
