@@ -1267,7 +1267,7 @@ the plugin after you have fixed the root cause.');
         let identifiersTLV: Buffer = Buffer.alloc(0);
         listOfIdentifiers.forEach((identifier: number, index: number) => {
             if (index !== 0) {
-                identifiersTLV= Buffer.concat([
+                identifiersTLV = Buffer.concat([
                     identifiersTLV,
                     this.platform.api.hap.encode(DisplayOrderTypes.ARRAY_ELEMENT_END, Buffer.alloc(0)),
                 ]);
@@ -1332,15 +1332,5 @@ remaining)`);
         }
 
         return config;
-    }
-
-    private getUUID(): string | undefined {
-        this.log.verbose(`All IDs: ${this.device.allIDs}`);
-        for (const id of this.device.allIDs || []) {
-            if (/^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/.test(id)) {
-                return id;
-            }
-        }
-        return undefined;
     }
 }
