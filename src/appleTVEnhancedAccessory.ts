@@ -245,6 +245,7 @@ export class AppleTVEnhancedAccessory {
                 });
         }
 
+        this.service!.addLinkedService(this.televisionSpeakerService);
     }
 
     private createListeners(): void {
