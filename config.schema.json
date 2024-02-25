@@ -64,7 +64,6 @@
                     "title": "Key",
                     "type": "string",
                     "enum": [
-                        { "title": "beta", "enum": ["beta"] },
                         "channel_down",
                         "channel_up",
                         "down",
