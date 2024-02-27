@@ -379,7 +379,7 @@ if __name__ == "__main__":
     print("---- Comment ----")
 
     if valid:
-        md = "## ✔️ Take a coffee ☕\n\n"
+        md = "## ✔️ Have a coffee ☕\n\n"
         md += "Your opened issue fulfills all requirements validated in the pre-checks 🎉\n\n"
         md += "My master will take a look at the problem as soon as he has the time for it 🤖\n\n"
         md += "Time to get a coffee ☕"
