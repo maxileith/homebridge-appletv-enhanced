@@ -3,7 +3,7 @@ description: Submit a general question.
 assignees:
   - maxileith
 labels:
-  - support request
+  - general question
 
 body:
   - type: markdown
