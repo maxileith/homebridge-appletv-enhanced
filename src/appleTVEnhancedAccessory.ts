@@ -1197,7 +1197,8 @@ media-src * \'self\'');
             server.close();
 
             if (backOffSeconds !== 0) {
-                this.log.warn(`Apple TV ${appleTVName}: Too many attempts. Waiting for ${backOffSeconds} seconds before retrying.`);
+                this.log.warn(`Apple TV ${appleTVName}: Too many attempts. Waiting for ${backOffSeconds} seconds before retrying. \
+The webpage to pair the Apple TV will become available again when the plugin is attempting the next pairing attempt.`);
                 for (; backOffSeconds > 0; backOffSeconds--) {
                     this.log.debug(`${backOffSeconds} seconds remaining.`);
                     await delay(1000);
