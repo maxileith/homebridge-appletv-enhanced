@@ -1,0 +1,76 @@
+name: Issue completeness check
+
+on:
+  issues:
+    types:
+      - opened
+      - edited
+      - reopened
+  issue_comment:
+    types:
+      - created
+
+jobs:
+  is_issue_complete:
+    name: "Check if issue #${{ github.event.issue.number }} is complete"
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    if: (github.event_name == 'issues' && (contains(github.event.issue.labels.*.name, 'bug') || contains(github.event.issue.labels.*.name, 'support request'))) || (github.event_name == 'issue_comment' && github.event.comment.body == '/check')
+
+    steps:
+      - name: Checkout metadata (main)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main
+          sparse-checkout: |
+            package.json
+            src/PythonChecker.ts
+
+      - name: Checkout issue completeness check (develop)
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          path: develop
+          sparse-checkout: |
+            .github/issue_completeness_check
+
+      - name: Move files from main branch
+        shell: bash
+        run: |
+          mkdir develop/src
+          mv main/package.json develop/package.json
+          mv main/src/PythonChecker.ts develop/src/PythonChecker.ts
+
+      - name: Use Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Print Python version
+        shell: bash
+        run: python3 --version
+
+      - name: Upgrade Pip
+        shell: bash
+        run: python3 -m pip install --upgrade pip
+
+      - name: Install dependencies
+        shell: bash
+        run: python3 -m pip install -r .github/issue_completeness_check/requirements.txt
+        working-directory: develop
+
+      - name: Print GitHub Actions context
+        shell: bash
+        run: echo "$GITHUB_CONTEXT"
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - name: Run check
+        shell: bash
+        run: python3 .github/issue_completeness_check/check.py ${{ github.event.issue.number }}
+        working-directory: develop
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

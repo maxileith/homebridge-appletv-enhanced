@@ -24,9 +24,11 @@ This plugin automatically discovers Apple TV devices on the local network and ex
 >
 > ### Before opening a new issue ...
 >
-> -   Make sure all [requirements](https://github.com/maxileith/homebridge-appletv-enhanced?tab=readme-ov-file#requirements) are fulfilled.
-> -   Verify that your issue is not one of the [known issues](https://github.com/maxileith/homebridge-appletv-enhanced?tab=readme-ov-file#known-issues).
-> -   You may find a solution to your problem in [issues of the past](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue) or [discussions](https://github.com/maxileith/homebridge-appletv-enhanced/discussions).
+> -   Review the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements) to ensure you are not missing any.
+> -   Please take a look at the [known issues](https://github.com/maxileith/homebridge-appletv-enhanced?tab=readme-ov-file#known-issues) as well. The problem you are having might be already known.
+> -   Check whether or not the problem you are having was already solved in the past. To check that, search through the [resolved issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aclosed+label%3Abug).
+> -   Check whether or not the bug you have found is already in the [open issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aopen+label%3Abug).
+> -   You may find a solution in the [discussions](https://github.com/maxileith/homebridge-appletv-enhanced/discussions).
 >
 > Otherwise, feel free to open an issue [here](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new/choose).
 
@@ -63,6 +65,7 @@ It might also be a good idea to take a look at [this video](https://www.tiktok.c
 -   [Homebridge Config UI >= 4.54.2](https://github.com/homebridge/homebridge-config-ui-x/releases/tag/4.54.2) when creating backups
 -   Apple TV Models with tvOS 15 and upwards are supported (all 4K ones and the latest HD one)
 -   The access of Speakers & TVs should be either set to "Everybody" or "Anybody On the Same Network" in the Home app
+    -   Additionally, make sure to check the TV's HomeKit settings.
 -   Raspberry Pi 1, 2, 3 and Zero 1, 2 are not recommended for performance reasons. Recommended are 3B+, 4B, 5B.
 -   The homebridge instance and Apple TVs need to be on the same subnet.
 -   32 bit systems are not supported
@@ -86,7 +89,7 @@ It might also be a good idea to take a look at [this video](https://www.tiktok.c
     4. If the pairing page says that transmitting the PIN was successful (see second image below), pairing was probably successful (Logs: `Paring was successful. Add it to your home in the Home app: com.apple.home://launch`). To be sure, take a look into the logs, you may have entered the PIN wrong too often or let the pairing request time out too many times (Logs: `Too many attempts. Waiting for x seconds before retrying.`). If you are requested to enter a PIN again (see first image below) you have most probably entered the wrong PIN ... the plugin will attempt a new pairing attempt. Enter the new PIN displayed on the Apple TV again.
     5. Done ... do this with all your Apple TVs.
 7.  You have paired all Apple TVs (with the plugin, not with Apple Home yet).
-8.  Every Apple TV is exposed as a Set-Top Box and is its own bridge. Therefore, we need to add every Apple TV seperatly to Apple Home. In order to do that, open the Home app, go to add devices > more options, then type in the pairing code from the logs (Logs: `Please add [Apple TV Wohnzimmer (2)] manually in
+8.  Every Apple TV is exposed as a Set-Top Box and is its own bridge. Therefore, we need to add every Apple TV separately to Apple Home. In order to do that, open the Home app, go to add devices > more options, then type in the pairing code from the logs (Logs: `Please add [Apple TV Wohnzimmer (2)] manually in
 Home app. Setup Code: xxxx-xxxx` this is not the code that you have seen on the Apple TV display).
 
 <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/docs/img/enterPIN.jpg" width=280/> <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/docs/img/pinTransmitted.jpg" width=280/>
@@ -194,7 +197,8 @@ Also see [device specific overrides](https://github.com/maxileith/homebridge-app
         "blacklist": ["AA:BB:CC:DD:EE:FF", "192.168.0.42"]
     },
     "forceVenvRecreate": false,
-    "logLevel": 3
+    "logLevel": 3,
+    "updateCheckLevel": "stable"
 }
 ```
 
@@ -214,6 +218,7 @@ Also see [device specific overrides](https://github.com/maxileith/homebridge-app
 | `discover.blacklist`         | Apple TVs that should not be added as a device. You can get the MAC-Address from the logs. When using IPv4 Addresses the regarding Apple TVs need to have a static IP.                                                                                                                                                                                                                                                  | `array[string]` | valid MAC addresses                                                                                                                                                                                                                                           | `[]`                |
 | `forceVenvRecreate`          | Set this to force to recreate the virtual python environment with the next restart of the plugin. Remember to set this option to false after the virtual environment has been recreated.                                                                                                                                                                                                                                | `boolean`       |                                                                                                                                                                                                                                                               | `false`             |
 | `logLevel`                   | Set the log level. (0 - None; 1 - Error; 2 - Warn; 3 - Info; 4 - Debug; 5 - Verbose)                                                                                                                                                                                                                                                                                                                                    | `integer`       | 0 - 5                                                                                                                                                                                                                                                         | `3`                 |
+| `updateCheckLevel`           | Apple TV Enhanced is regularly checking if there is an update available and printing it to the logs. You can select whether you want to check for stable or beta updates.                                                                                                                                                                                                                                               | `string`        | `stable`, `beta`                                                                                                                                                                                                                                              | `stable`            |
 
 ## Known Issues
 

@@ -7,7 +7,17 @@ import type { NodePyATVDevice } from '@sebbo2002/node-pyatv';
 import PythonChecker from './PythonChecker';
 import PrefixLogger from './PrefixLogger';
 import LogLevelLogger from './LogLevelLogger';
+import UpdateChecker from './UpdateChecker';
 
+// compatible model identifiers according to https://pyatv.dev/api/const/#pyatv.const.DeviceModel
+const ALLOWED_MODELS: string[] = [
+    'Gen4',
+    'Gen4K',
+    'AppleTVGen4', // future proof since they will be renamed in pyatv
+    'AppleTVGen4K',  // future proof since they will be renamed in pyatv
+    'AppleTV4KGen2',
+    'AppleTV4KGen3',
+];
 
 export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
     public readonly Service: typeof Service;
@@ -40,6 +50,10 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
 
             // make sure the Python environment is ready
             await new PythonChecker(this.logLevelLogger, this.api.user.storagePath()).allInOne(this.config.forceVenvRecreate);
+
+            // enable update check
+            const updateChecker: UpdateChecker = new UpdateChecker(this.logLevelLogger, this.config.updateCheckLevel === 'beta', 60);
+            updateChecker.start();
 
             // run the method to discover / register your devices as accessories
             this.log.debug(`Setting the storage path of the PyATV instance to ${this.api.user.storagePath()}`);
@@ -102,15 +116,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             }
         }
 
-        const appleTVs: NodePyATVDevice[] = scanResults.filter((d) =>
-            // compatible model identifiers according to https://pyatv.dev/api/const/#pyatv.const.DeviceModel
-            d.model === 'Gen4' ||
-            d.model === 'Gen4K' ||
-            d.model === 'AppleTVGen4' || // future proof since they will be renamed in pyatv
-            d.model === 'AppleTVGen4K' ||  // future proof since they will be renamed in pyatv
-            d.model === 'AppleTV4KGen2' ||
-            d.model === 'AppleTV4KGen3',
-        );
+        const appleTVs: NodePyATVDevice[] = scanResults.filter((d) => ALLOWED_MODELS.includes(d.model || ''));
 
         // loop over the discovered devices and register each one if it has not already been registered
         for (const appleTV of appleTVs) {

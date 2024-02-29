@@ -1,0 +1,302 @@
+name: 🐞 Bug Report
+description: File a bug report.
+assignees:
+  - maxileith
+labels:
+  - bug
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Hi!
+
+        Thanks for taking the time to fill out this bug report! :heart:
+
+  - type: checkboxes
+    attributes:
+      label: Preconditions
+      description: |
+        Before we start, be sure you are aware of the following points:
+
+        - Review the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements) to ensure you are not missing any.
+        - Please take a look at the [known issues](https://github.com/maxileith/homebridge-appletv-enhanced?tab=readme-ov-file#known-issues) as well. The problem you are having might be already known.
+        - Check whether or not the problem you are having was already solved in the past. To check that, search through the [resolved issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aclosed+label%3Abug).
+        - Check whether or not the bug you have found is already in the [open issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aopen+label%3Abug).
+        - You may find a solution in the [discussions](https://github.com/maxileith/homebridge-appletv-enhanced/discussions).
+        - Are you sure that the problem you are having is a bug? If not, open a [support request](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new?template=2-support_request.yml).
+          - Bugs cause the plugin to behave unexpectedly.
+          - Bugs are issues of the plugin that are reproducible.
+          - These are some issues that are reported as a bug most of the time but usually aren't:
+            - Issues during the installation of Apple TV Enhanced (especially regarding the python module virtualenv).
+            - The Apple TV cannot be paired because the Apple TV does not accept pairing attempts until a timer expires (warning: `Too many attempts. Waiting for 212 seconds before retrying.`).
+          - Sometimes it is not easy to say from a user perspective if a problem is a bug. If you are unsure, open a [support request](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new?template=2-support_request.yml). The maintainer will change the type of the issue to bug if it is a bug.
+
+      options:
+        - label: Requirements fulfilled
+          required: true
+        - label: The bug is not a known issue
+          required: true
+        - label: The bug has not been solved in the past or the solution that was provided in the past does not work on my system
+          required: true
+        - label: There is currently no other opened issue that describes this bug
+          required: true
+        - label: I cannot find any solution to the problem in GitHub discussions
+          required: true
+        - label: I am certain that the problem that I am having is a bug
+          required: true
+
+  - type: textarea
+    id: analysis
+    attributes:
+      label: Analysis
+      description: Please provide a concise description of the bug or issue you encounter.
+      placeholder: A clear and concise description of what the bug is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: Please provide a clear and concise description of what you expected to happen.
+      placeholder: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps To Reproduce
+      description: Please provide a description of how to reproduce the issue.
+      placeholder: |
+        A description of how to reproduce the bug.
+
+        1. In this setup or under those conditions ...
+        2. Run ...
+        3. Encounter error ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        Please provide debug log output (loglevel 4), from starting the plugin until the bug.
+        Be sure to **remove any sensitive information** (MAC-Addresses and Airplay credentials).
+        If you have a lengthy log message, please use the file upload functionality in the `Additional Context` section to supply log files.
+      placeholder: Please paste the logging output here ...
+      render: console
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Configuration
+      description: |
+        Please provide the Apple TV Enhanced plugin configuration from your `config.json`.
+      placeholder: Please paste configuration ...
+      render: JSON
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment_os
+    attributes:
+      label: Operating System
+      description: |
+        On which operating system is your homebridge running?
+      options:
+        - Linux
+        - Mac Os
+        - Windows
+      default: 0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment_os_bit
+    attributes:
+      label: "Operating System: Bits"
+      description: Is your OS 32 or 64 bit?
+      options:
+        - 32-bit
+        - 64-bit
+      default: 1
+    validations:
+      required: true
+
+  - type: input
+    id: environment_os_distribution
+    attributes:
+      label: "Operating System: Distribution"
+      description: |
+        Which distribution are you using?
+        Command to find out: `cat /etc/*-release | grep "^NAME="`
+      placeholder: Raspberry Pi OS
+    validations:
+      required: true
+
+  - type: input
+    id: environment_os_distribution_version
+    attributes:
+      label: "Operating System: Distribution Version"
+      description: |
+        Which version of your are you using?
+        Command to find out: `cat /etc/*-release | grep "^VERSION="`
+      placeholder: 12 (bookworm)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment_docker
+    attributes:
+      label: Docker
+      description: Are you hosting homebridge with docker?
+      options:
+        - "yes"
+        - "no"
+      default: 1
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment_docker_image
+    attributes:
+      label: Docker Image
+      description: Which image are you using?
+      options:
+        - "homebridge/homebridge"
+        - "ozno/homebridge"
+
+  - type: input
+    id: environment_docker_image_version
+    attributes:
+      label: Docker Image Version
+      description: |
+        Which version of the image are you using? Please provide the exact image tag, not `latest`. (the minimum required version is specified in the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements))
+        Command to find out: `docker container list | grep homebridge`
+      placeholder: "2024-01-08"
+
+  - type: input
+    id: environment_homebridge_version
+    attributes:
+      label: Homebridge Version
+      description: Which version of homebridge are you using?
+      placeholder: "1.7.0"
+    validations:
+      required: true
+
+  - type: input
+    id: environment_homebridge_config_ui_version
+    attributes:
+      label: Homebridge Config UI Version
+      description: Which version of homebridge ui are you using? (the minimum required version is specified in the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements))
+      placeholder: v4.54.2
+    validations:
+      required: true
+
+  - type: input
+    id: environment_storage_path
+    attributes:
+      label: Homebridge Storage Path
+      description: What is your homebridge storage path?
+      placeholder: /var/lib/homebridge
+    validations:
+      required: true
+
+  - type: input
+    id: environment_appletv_enhanced_version
+    attributes:
+      label: Homebridge Apple TV Enhanced Version
+      description: What is your Apple TV Enhanced Version? (always install the latest version before opening an issue)
+      placeholder: "1.2.4"
+    validations:
+      required: true
+
+  - type: input
+    id: environment_node_version
+    attributes:
+      label: Node Version
+      description: |
+        What is your node version? (always install the latest version before opening an issue)
+        Command to find out: `node -v`
+      placeholder: v20.11.1
+    validations:
+      required: true
+
+  - type: input
+    id: environment_npm_version
+    attributes:
+      label: NPM Version
+      description: |
+        What is your npm version? (always install the latest version before opening an issue)
+        Command to find out: `npm -v`
+      placeholder: "10.2.4"
+    validations:
+      required: true
+
+  - type: input
+    id: environment_python_version
+    attributes:
+      label: Python Version
+      description: |
+        What is your Python version?
+        Command to find out: `python3 --version`
+      placeholder: "3.11.6"
+    validations:
+      required: true
+
+  - type: input
+    id: environment_pip_version
+    attributes:
+      label: PIP Version
+      description: |
+        What is your Pip version?
+        Command to find out: `python3 -m pip --version`
+      placeholder: "24.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: environment_hdmi_hops
+    attributes:
+      label: HDMI Hops
+      description: Name all HDMI devices that are between the Apple TV and television
+      placeholder: "AV Receiver / HDMI Hub / Hue Sync Box ..."
+
+  - type: dropdown
+    id: environment_audio_output
+    attributes:
+      label: Audio Output
+      description: Are you using any audio output other than the HDMI port of the Apple TV itself.
+      options:
+        - "yes"
+        - "no"
+      default: 1
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment_subnet
+    attributes:
+      label: Same Subnet
+      description: Is your Apple TV in the same subnet as your homebridge instance?
+      options:
+        - "yes"
+        - "no"
+      default: 0
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: |
+        Please provide any additional context that might be relevant for your bug report.
+
+        It might include screenshots, configuration (files) or log output.
+      placeholder: Any additional context that might be relevant for your bug report.

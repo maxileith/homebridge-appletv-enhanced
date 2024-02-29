@@ -1,0 +1,269 @@
+name: 🔧 Support Request
+description: Get help when you encounter a technical problem with Apple TV Enhanced.
+assignees:
+  - maxileith
+labels:
+  - support request
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Hi!
+
+        Thanks for taking the time to fill out this support request report. :heart:
+
+  - type: checkboxes
+    attributes:
+      label: Preconditions
+      description: |
+        Before we start, be sure you are aware of the following points:
+
+        - Review the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements) to ensure you are not missing any.
+        - Please take a look at the [known issues](https://github.com/maxileith/homebridge-appletv-enhanced?tab=readme-ov-file#known-issues) as well. The problem you are having might be already known.
+        - Check whether or not the support request that is on your mind has already been answered in the past. To check that, search through the [resolved issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aclosed).
+        - Check whether or not the support request that is on your mind is already in the [open issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aopen).
+        - You may find an answer in the [discussions](https://github.com/maxileith/homebridge-appletv-enhanced/discussions).
+      options:
+        - label: Requirements fulfilled
+          required: true
+        - label: The known issues did not answer my question
+          required: true
+        - label: The question has not been asked in the past or the answer does not satisfy me
+          required: true
+        - label: There is currently no other opened issue that matches my question
+          required: true
+        - label: I cannot find any answer to my question in GitHub discussions
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Current Situation
+      description: Please provide an overview of the current situation and illustrate potential problems or shortcomings.
+      placeholder: A clear and concise description of the problem or situation that should be addressed.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        Please provide debug log output (loglevel 4), from starting the plugin until the bug.
+        Be sure to **remove any sensitive information** (MAC-Addresses and Airplay credentials).
+        If you have a lengthy log message, please use the file upload functionality in the `Additional Context` section to supply log files.
+      placeholder: Please paste the logging output here ...
+      render: console
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Configuration
+      description: |
+        Please provide the Apple TV Enhanced plugin configuration from your `config.json`.
+      placeholder: Please paste configuration ...
+      render: JSON
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment_os
+    attributes:
+      label: Operating System
+      description: |
+        On which operating system is your homebridge running?
+      options:
+        - Linux
+        - Mac Os
+        - Windows
+      default: 0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment_os_bit
+    attributes:
+      label: "Operating System: Bits"
+      description: Is your OS 32 or 64 bit?
+      options:
+        - 32-bit
+        - 64-bit
+      default: 1
+    validations:
+      required: true
+
+  - type: input
+    id: environment_os_distribution
+    attributes:
+      label: "Operating System: Distribution"
+      description: |
+        Which distribution are you using?
+        Command to find out: `cat /etc/*-release | grep "^NAME="`
+      placeholder: Raspberry Pi OS
+    validations:
+      required: true
+
+  - type: input
+    id: environment_os_distribution_version
+    attributes:
+      label: "Operating System: Distribution Version"
+      description: |
+        Which version of your are you using?
+        Command to find out: `cat /etc/*-release | grep "^VERSION="`
+      placeholder: 12 (bookworm)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment_docker
+    attributes:
+      label: Docker
+      description: Are you hosting homebridge with docker?
+      options:
+        - "yes"
+        - "no"
+      default: 1
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment_docker_image
+    attributes:
+      label: Docker Image
+      description: Which image are you using?
+      options:
+        - "homebridge/homebridge"
+        - "ozno/homebridge"
+
+  - type: input
+    id: environment_docker_image_version
+    attributes:
+      label: Docker Image Version
+      description: |
+        Which version of the image are you using? Please provide the exact image tag, not `latest`. (the minimum required version is specified in the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements))
+        Command to find out: `docker container list | grep homebridge`
+      placeholder: "2024-01-08"
+
+  - type: input
+    id: environment_homebridge_version
+    attributes:
+      label: Homebridge Version
+      description: Which version of homebridge are you using?
+      placeholder: "1.7.0"
+    validations:
+      required: true
+
+  - type: input
+    id: environment_homebridge_config_ui_version
+    attributes:
+      label: Homebridge Config UI Version
+      description: Which version of homebridge ui are you using? (the minimum required version is specified in the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements))
+      placeholder: v4.54.2
+    validations:
+      required: true
+
+  - type: input
+    id: environment_storage_path
+    attributes:
+      label: Homebridge Storage Path
+      description: What is your homebridge storage path?
+      placeholder: /var/lib/homebridge
+    validations:
+      required: true
+
+  - type: input
+    id: environment_appletv_enhanced_version
+    attributes:
+      label: Homebridge Apple TV Enhanced Version
+      description: What is your Apple TV Enhanced Version? (always install the latest version before opening an issue)
+      placeholder: "1.2.4"
+    validations:
+      required: true
+
+  - type: input
+    id: environment_node_version
+    attributes:
+      label: Node Version
+      description: |
+        What is your node version? (always install the latest version before opening an issue)
+        Command to find out: `node -v`
+      placeholder: v20.11.1
+    validations:
+      required: true
+
+  - type: input
+    id: environment_npm_version
+    attributes:
+      label: NPM Version
+      description: |
+        What is your npm version? (always install the latest version before opening an issue)
+        Command to find out: `npm -v`
+      placeholder: "10.2.4"
+    validations:
+      required: true
+
+  - type: input
+    id: environment_python_version
+    attributes:
+      label: Python Version
+      description: |
+        What is your Python version?
+        Command to find out: `python3 --version`
+      placeholder: "3.11.6"
+    validations:
+      required: true
+
+  - type: input
+    id: environment_pip_version
+    attributes:
+      label: PIP Version
+      description: |
+        What is your Pip version?
+        Command to find out: `python3 -m pip --version`
+      placeholder: "24.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: environment_hdmi_hops
+    attributes:
+      label: HDMI Hops
+      description: Name all HDMI devices that are between the Apple TV and television
+      placeholder: "AV Receiver / HDMI Hub / Hue Sync Box ..."
+
+  - type: dropdown
+    id: environment_audio_output
+    attributes:
+      label: Audio Output
+      description: Are you using any audio output other than the HDMI port of the Apple TV itself.
+      options:
+        - "yes"
+        - "no"
+      default: 1
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment_subnet
+    attributes:
+      label: Same Subnet
+      description: Is your Apple TV in the same subnet as your homebridge instance?
+      options:
+        - "yes"
+        - "no"
+      default: 0
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: |
+        Please provide any additional context that might be relevant for your request.
+
+        It might include screenshots, configuration (files) or log output.
+      placeholder: Any additional context that might be relevant for your request.

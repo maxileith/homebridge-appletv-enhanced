@@ -245,6 +245,7 @@ export class AppleTVEnhancedAccessory {
                 });
         }
 
+        this.service!.addLinkedService(this.televisionSpeakerService);
     }
 
     private createListeners(): void {
@@ -1196,7 +1197,8 @@ media-src * \'self\'');
             server.close();
 
             if (backOffSeconds !== 0) {
-                this.log.warn(`Apple TV ${appleTVName}: Too many attempts. Waiting for ${backOffSeconds} seconds before retrying.`);
+                this.log.warn(`Apple TV ${appleTVName}: Too many attempts. Waiting for ${backOffSeconds} seconds before retrying. \
+The webpage to pair the Apple TV will become available again when the plugin is attempting the next pairing attempt.`);
                 for (; backOffSeconds > 0; backOffSeconds--) {
                     this.log.debug(`${backOffSeconds} seconds remaining.`);
                     await delay(1000);
@@ -1234,7 +1236,7 @@ media-src * \'self\'');
                     while (true) {
                         this.log.warn('The plugin is receiving errors that look like you have not set the access level of Speakers & TVs \
 in your home app to "Everybody" or "Anybody On the Same Network". Fix this and restart the plugin to continue initializing the Apple TV \
-device. Enable debug logging to see the original errors.');
+device. Additionally, make sure to check the TV\'s HomeKit settings. Enable debug logging to see the original errors.');
                         await delay(300000);
                     }
                 }
@@ -1267,7 +1269,7 @@ the plugin after you have fixed the root cause.');
         let identifiersTLV: Buffer = Buffer.alloc(0);
         listOfIdentifiers.forEach((identifier: number, index: number) => {
             if (index !== 0) {
-                identifiersTLV= Buffer.concat([
+                identifiersTLV = Buffer.concat([
                     identifiersTLV,
                     this.platform.api.hap.encode(DisplayOrderTypes.ARRAY_ELEMENT_END, Buffer.alloc(0)),
                 ]);
@@ -1332,15 +1334,5 @@ remaining)`);
         }
 
         return config;
-    }
-
-    private getUUID(): string | undefined {
-        this.log.verbose(`All IDs: ${this.device.allIDs}`);
-        for (const id of this.device.allIDs || []) {
-            if (/^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/.test(id)) {
-                return id;
-            }
-        }
-        return undefined;
     }
 }

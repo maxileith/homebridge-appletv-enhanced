@@ -1,13 +1,30 @@
 name: 🚀 Feature Request
 description: Suggest an improvement or a new feature for this project.
-
-labels: ["enhancement"]
+assignees:
+  - maxileith
+labels:
+  - enhancement
 
 body:
   - type: markdown
     attributes:
       value: |
-        Hi. Thanks for taking the time to contribute to Apple TV Enhanced!
+        ### Hi!
+
+        Thanks for taking the time to contribute to Apple TV Enhanced! :heart:
+
+  - type: checkboxes
+    attributes:
+      label: Preconditions
+      description: |
+        Before we start, be sure you are aware of the following points:
+
+        - Check whether or not the feature you are having on your mind has been suggested in the past: [closed feature requests](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aclosed+label%3Aenhancement)
+          - If not, please explain why this improvement makes sense nowadays.
+
+      options:
+        - label: The feature has not been suggested in the past or it makes sense nowadays.
+          required: true
 
   - type: textarea
     id: problem
