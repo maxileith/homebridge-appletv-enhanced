@@ -74,7 +74,7 @@ def check_docker(b: str) -> list[str]:
 
 
 def check_docker_image(b: str) -> list[str]:
-    image = b.split("### Docker Image", 1)[1].split('### Docker Image Version')[0].strip()
+    image = b.split("### Docker Image", 1)[1].split('### Docker Image Tag')[0].strip()
 
     output = []
 
@@ -85,7 +85,7 @@ def check_docker_image(b: str) -> list[str]:
 
 
 def check_docker_image_version(b: str) -> list[str]:
-    version = b.split("### Docker Image Version", 1)[1].split('### Homebridge Version')[0].strip()
+    version = b.split("### Docker Image Tag", 1)[1].split('### Homebridge Version')[0].strip()
 
     output = []
 
@@ -388,7 +388,8 @@ if __name__ == "__main__":
         md += "There are a few problems with your opened issue. Please fix them by editing the issue:\n\n"
         for todo in todos:
             md += f"- {todo}\n"
-        md += "\n---\n\n"
+        md += "\nOften the problem you are experiencing will be solved by simply making your environment compliant with the requirements (fulfilling the pre-checks).\n\n"
+        md += "## 🔁 Rerun\n\n"
         md += "After editing the issue, the checks will be run again.\n\n"
         md += "**Under no circumstances** should the issue be adjusted untruthfully. If the issue cannot fulfill the pre-checks, your environment is simply not supported.\n\n"
         md += "If you do not adjust the issue accordingly, the issue will be **automatically closed after 14 days of inactivity**."
