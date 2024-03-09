@@ -82,7 +82,7 @@ It might also be a good idea to take a look at [this video](https://www.tiktok.c
 3.  Restart the homebridge.
 4.  (optional) If the plugin is running as a child bridge, the child bridge will now be exposed. You can add it to your Home App if you want to. However, there is no real benefit to it since this bridge will not expose any devices (Apple TVs will be exposed as their own bridges).
 5.  The plugin will start the discovery of Apple TVs in your local network.
-6.  For every discovered Apple TV you have to do the following steps:
+6.  For every discovered Apple TV you have to do the following steps. Make sure you are in front of your TV. The paring process is the same that is used to pair iPhones and iPads and will timeout after 30 seconds. Pairing will be retried until the Apple TV is paired.
     1. In the logs there will be a message thats says `You need to pair your Apple TV before the plugin can connect to it. Enter the PIN that is currently displayed on the device here: http://192.168.0.12:42015/` where the link http://192.168.0.12:42015 is different in your log and distinct for one Apple TV if you are connecting multiple.
     2. Open the link. A pairing page will open (see first image below).
     3. In the meantime there should already be a pairing code displayed on your Apple TV. Enter the 4-digit code into the pairing page.
