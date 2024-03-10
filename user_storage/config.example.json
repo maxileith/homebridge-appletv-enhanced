@@ -100,7 +100,8 @@
             },
             "forceVenvRecreate": false,
             "logLevel": 4,
-            "updateCheckLevel": "beta"
+            "updateCheckLevel": "beta",
+            "autoUpdate": false
         }
     ]
 }

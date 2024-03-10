@@ -48,12 +48,14 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
         this.api.on('didFinishLaunching', async () => {
             this.log.debug('Executed didFinishLaunching callback');
 
+            // enable update check
+            const updateChecker: UpdateChecker =
+                new UpdateChecker(this.logLevelLogger, this.config.autoUpdate === true, this.config.updateCheckLevel === 'beta', 60);
+            await updateChecker.check();
+            updateChecker.startInterval(true);
+
             // make sure the Python environment is ready
             await new PythonChecker(this.logLevelLogger, this.api.user.storagePath()).allInOne(this.config.forceVenvRecreate);
-
-            // enable update check
-            const updateChecker: UpdateChecker = new UpdateChecker(this.logLevelLogger, this.config.updateCheckLevel === 'beta', 60);
-            updateChecker.start();
 
             // run the method to discover / register your devices as accessories
             this.log.debug(`Setting the storage path of the PyATV instance to ${this.api.user.storagePath()}`);
