@@ -165,7 +165,7 @@ def get_all_npm_package_versions(package: str) -> list[str]:
 def check_storage_path(b: str) -> list[str]:
     path = b.split("### Homebridge Storage Path", 1)[1].split('### Homebridge Apple TV Enhanced Version')[0].strip()
 
-    path_pattern = re.compile("^(\/([a-zA-Z0-9_\-]|\\\\\s)+)+$")
+    path_pattern = re.compile("^(\/([a-zA-Z0-9_\-\.]|\\\\\s)+)+$")
 
     output = []
 
