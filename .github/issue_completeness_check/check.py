@@ -270,7 +270,7 @@ def check_python_version(b: str) -> list[str]:
         output.append(f"The Python version {version} does not match the expected version pattern of Python. Please provide a version that exists.")
     else:
         accepted_versions = []
-        with open("src/PythonChecker.ts", "r") as f:
+        with open("src/PythonChecker.ts", "r", encoding="utf-8") as f:
             content = f.read()
             # extract the lines where the versions are specified
             content = content.split("const SUPPORTED_PYTHON_VERSIONS: string[] = [", 1)[1].split("];", 1)[0]
@@ -348,7 +348,7 @@ def hide_outdated_comments(issue):
 if __name__ == "__main__":
     issue_id = int(sys.argv[1])
 
-    with open("package.json", "r") as f:
+    with open("package.json", "r", encoding="utf-8") as f:
         package_json = json.loads(f.read())
 
     auth = Auth.Token(GH_TOKEN)
