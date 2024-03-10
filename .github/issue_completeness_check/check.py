@@ -300,7 +300,7 @@ def check_pip_version(b: str) -> list[str]:
 
     output = []
 
-    version_pattern = re.compile("^\d+\.\d+\.\d+$")
+    version_pattern = re.compile("^\d+\.\d+(\.\d+)?$")
 
     if not version_pattern.match(version):
         output.append(f"The PIP version {version} does not match the expected version pattern of PIP. Please provide a version that exists.")
