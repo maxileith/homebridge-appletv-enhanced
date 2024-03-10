@@ -51,7 +51,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             // enable update check
             const updateChecker: UpdateChecker =
                 new UpdateChecker(this.logLevelLogger, this.config.autoUpdate === true, this.config.updateCheckLevel === 'beta', 60);
-            await updateChecker.check();
+            await updateChecker.check('info');
             updateChecker.startInterval(true);
 
             // make sure the Python environment is ready

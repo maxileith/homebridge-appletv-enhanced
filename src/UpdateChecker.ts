@@ -162,7 +162,7 @@ class UpdateChecker {
         }
     }
 
-    public async check(): Promise<void> {
+    public async check(infoOrDebugLogLevel: 'debug' | 'info' = 'debug'): Promise<void> {
         const latestVersion: string | undefined = await this.getLatestVersion();
         if (latestVersion === undefined) {
             return;
@@ -176,7 +176,11 @@ You are currently using ${currentVersion}`);
                 await this.update(latestVersion);
             }
         } else {
-            this.log.debug(`You are using the latest version of AppleTV Enhanced (${currentVersion})`);
+            if (infoOrDebugLogLevel === 'debug') {
+                this.log.debug(`You are using the latest version of AppleTV Enhanced (${currentVersion})`);
+            } else {
+                this.log.info(`You are using the latest version of AppleTV Enhanced (${currentVersion})`);
+            }
         }
     }
 
