@@ -416,9 +416,14 @@
                 {
                     "key": "customInputURIs",
                     "type": "array",
-                    "items": {
-                        "key": "customInputURIs[]"
-                    }
+                    "items": [
+                        {
+                            "key": "customInputURIs[].uri"
+                        },
+                        {
+                            "key": "customInputURIs[].name"
+                        }
+                    ]
                 },
                 "avadaKedavraAppAmount",
                 "disableVolumeControlRemote",
@@ -502,7 +507,16 @@
                             "key": "deviceSpecificOverrides[].overrideCustomInputURIs",
                             "condition": {
                                 "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac);"
-                            }
+                            },
+                            "type": "array",
+                            "items": [
+                                {
+                                    "key": "customInputURIs[].uri"
+                                },
+                                {
+                                    "key": "customInputURIs[].name"
+                                }
+                            ]
                         },
                         {
                             "key": "deviceSpecificOverrides[].customInputURIs",
