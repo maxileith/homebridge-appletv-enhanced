@@ -4,7 +4,7 @@ charset-normalizer==3.3.2
 cryptography==42.0.5
 Deprecated==1.2.14
 idna==3.6
-packaging==23.2
+packaging==24.0
 pycparser==2.21
 PyGithub==2.2.0
 PyJWT==2.8.0
