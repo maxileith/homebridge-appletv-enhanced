@@ -57,10 +57,22 @@
             ],
             "avadaKedavraAppAmount": 15,
             "customInputURIs": [
-                "https://www.disneyplus.com/movies/rogue-one-a-star-wars-story/14CV6eSbygOA",
-                "https://www.netflix.com/watch/81260280",
-                "https://tv.apple.com/show/silo/umc.cmc.3yksgc857px0k0rqe5zd4jice",
-                "vlc://https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8"
+                {
+                    "uri": "https://www.disneyplus.com/movies/rogue-one-a-star-wars-story/14CV6eSbygOA",
+                    "name": "Rogue One: A Star Wars Story"
+                },
+                {
+                    "uri": "https://www.netflix.com/watch/81260280",
+                    "name": "All Quiet on the Western Front"
+                },
+                {
+                    "uri": "https://tv.apple.com/show/silo/umc.cmc.3yksgc857px0k0rqe5zd4jice",
+                    "name": "Silo"
+                },
+                {
+                    "uri": "vlc://https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8",
+                    "name": "VLC Example"
+                }
             ],
             "disableVolumeControlRemote": false,
             "setTopBox": false,
@@ -85,7 +97,10 @@
                     "avadaKedavraAppAmount": 15,
                     "overrideCustomInputURIs": true,
                     "customInputURIs": [
-                        "https://www.disneyplus.com/de-de/movies/avatar-the-way-of-water/6hlsDJnhiU30"
+                        {
+                            "uri": "https://www.disneyplus.com/de-de/movies/avatar-the-way-of-water/6hlsDJnhiU30",
+                            "name": "Avatar: The Way of Water"
+                        }
                     ],
                     "overrideDisableVolumeControlRemote": true,
                     "disableVolumeControlRemote": true,

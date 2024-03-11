@@ -28,6 +28,11 @@ export interface ICommonConfig {
     homeInputName?: string;
 }
 
+export interface CustomInputURIConfiguration {
+    uri: string;
+    name: string;
+}
+
 export interface DeviceConfigOverride {
     mac?: string;
     overrideMediaTypes?: boolean;
@@ -41,7 +46,7 @@ export interface DeviceConfigOverride {
     overrideAvadaKedavraAppAmount?: boolean;
     avadaKedavraAppAmount?: number;
     overrideCustomInputURIs?: boolean;
-    customInputURIs?: string[];
+    customInputURIs?: (CustomInputURIConfiguration | string)[];
     overrideDisableVolumeControlRemote?: boolean;
     disableVolumeControlRemote?: boolean;
     overrideSetTopBox?: boolean;
@@ -54,7 +59,7 @@ export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_br
     deviceStateDelay?: number;
     remoteKeysAsSwitch?: RocketRemoteKey[];
     avadaKedavraAppAmount?: number;
-    customInputURIs?: string[];
+    customInputURIs?: (CustomInputURIConfiguration | string)[];
     disableVolumeControlRemote?: boolean;
     setTopBox?: boolean;
     deviceSpecificOverrides?: DeviceConfigOverride[];

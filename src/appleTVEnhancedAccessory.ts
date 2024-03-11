@@ -18,7 +18,7 @@ import {
     trimToMaxLength,
 } from './utils';
 import type {
-    AppleTVEnhancedPlatformConfig,
+    AppleTVEnhancedPlatformConfig, CustomInputURIConfiguration,
     DeviceConfigOverride,
     IAppConfig,
     IAppConfigs,
@@ -677,9 +677,12 @@ ${deviceStateDelay}ms is over): ${event.value}`);
         this.airPlayInputService!.updateCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName);
     }
 
-    private createInputs(apps: NodePyATVApp[], customURIs: string[]): void {
+    private createInputs(apps: NodePyATVApp[], customURIs: (CustomInputURIConfiguration | string)[]): void {
         const appsAndCustomInputs: NodePyATVApp[] = [...customURIs.map((uri) => {
-            return { id: uri, name: uri };
+            if (typeof uri === 'string') {
+                return { id: uri, name: uri };
+            }
+            return { id: uri.uri, name: uri.name };
         }), ...apps];
 
         const appConfigs: IAppConfigs = this.getAppConfigs();

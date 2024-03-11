@@ -108,10 +108,22 @@
                 "default": [],
                 "required": true,
                 "items": {
-                    "type": "string",
-                    "title": "URI",
-                    "pattern": "^(([^:\\/?#]+):)?(\\/\\/([^\\/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$",
-                    "placeholder": "https://www.disneyplus.com/movies/rogue-one-a-star-wars-story/14CV6eSbygOA"
+                    "type": "object",
+                    "properties": {
+                        "uri": {
+                            "required": true,
+                            "type": "string",
+                            "title": "URI",
+                            "pattern": "^(([^:\\/?#]+):)?(\\/\\/([^\\/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$",
+                            "placeholder": "https://www.disneyplus.com/movies/rogue-one-a-star-wars-story/14CV6eSbygOA"
+                        },
+                        "name": {
+                            "required": true,
+                            "type": "string",
+                            "title": "Name",
+                            "placeholder": "Rogue One: A Star Wars Story"
+                        }
+                    }
                 }
             },
             "disableVolumeControlRemote": {
@@ -342,10 +354,22 @@
                             "default": [],
                             "required": true,
                             "items": {
-                                "type": "string",
-                                "title": "URI",
-                                "pattern": "^(([^:\\/?#]+):)?(\\/\\/([^\\/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$",
-                                "placeholder": "https://www.disneyplus.com/movies/rogue-one-a-star-wars-story/14CV6eSbygOA"
+                                "type": "object",
+                                "properties": {
+                                    "uri": {
+                                        "required": true,
+                                        "type": "string",
+                                        "title": "URI",
+                                        "pattern": "^(([^:\\/?#]+):)?(\\/\\/([^\\/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$",
+                                        "placeholder": "https://www.disneyplus.com/movies/rogue-one-a-star-wars-story/14CV6eSbygOA"
+                                    },
+                                    "name": {
+                                        "required": true,
+                                        "type": "string",
+                                        "title": "Name",
+                                        "placeholder": "Rogue One: A Star Wars Story"
+                                    }
+                                }
                             }
                         },
                         "overrideDisableVolumeControlRemote": {
