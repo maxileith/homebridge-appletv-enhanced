@@ -50,7 +50,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
 
             // enable update check
             const updateChecker: UpdateChecker =
-                new UpdateChecker(this.logLevelLogger, this.config.autoUpdate === true, this.config.updateCheckLevel === 'beta', 60);
+                new UpdateChecker(this.logLevelLogger, this.isAutoUpdateOn(), this.config.updateCheckLevel === 'beta', 60);
             await updateChecker.check('info');
             updateChecker.startInterval(true);
 
@@ -181,6 +181,18 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
         if (this.publishedUUIDs.length === 0) {
             this.log.warn('The device discovery could not find any Apple TV devices until now. Are you sure that you have a compatible \
 Apple TV and the Apple TV is in the same subnet? (see https://github.com/maxileith/homebridge-appletv-enhanced#requirements)');
+        }
+    }
+
+    private isAutoUpdateOn(): boolean {
+        switch (this.config.autoUpdate) {
+        case 'on':
+            return true;
+        case 'off':
+            return false;
+        default:
+            // by default, autoUpdate should be turned on when the plugin is running as a child bridge
+            return this.config._bridge !== undefined;
         }
     }
 }

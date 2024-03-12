@@ -146,10 +146,15 @@ class UpdateChecker {
         this.intervalMs = intervalMinutes * 60000;
         this.includeBetas = includeBetas;
         this.autoUpdate = autoUpdate;
+
+        this.log.info(`The update checker is configured to check for updates every ${intervalMinutes} minutes, \
+${includeBetas ? 'including' : 'excluding'} betas. Auto updating is turned ${autoUpdate ? 'on' : 'off'}.`);
     }
 
     public startInterval(skipInitialCheck: boolean = false): void {
+        this.log.debug('Starting update check interval.');
         if (skipInitialCheck === false) {
+            this.log.debug('Skipping initial update check.');
             this.check();
         }
         this.interval = setInterval(this.check.bind(this), this.intervalMs);
@@ -157,8 +162,11 @@ class UpdateChecker {
 
     public stopInterval(): void {
         if (this.interval !== undefined) {
+            this.log.debug('Stopping update check interval.');
             clearInterval(this.interval);
             this.interval = undefined;
+        } else {
+            this.log.warn('Could not stop update check interval since there is no active update check interval.');
         }
     }
 
@@ -170,16 +178,18 @@ class UpdateChecker {
 
         const currentVersion: string = this.getCurrentVersion();
         if (compareVersions(latestVersion, currentVersion) === 1) {
-            this.log.warn(`There is a new version of AppleTV Enhanced available: ${latestVersion}. \
-You are currently using ${currentVersion}`);
+            this.log.warn(`There is a new version of AppleTV Enhanced available (${this.includeBetas ? 'including' : 'excluding'} \
+betas): ${latestVersion}. You are currently using ${currentVersion}`);
             if (this.autoUpdate) {
                 await this.update(latestVersion);
             }
         } else {
+            const msg: string = `You are using the latest version of AppleTV Enhanced (${this.includeBetas ? 'including' : 'excluding'} \
+betas): ${currentVersion}`;
             if (infoOrDebugLogLevel === 'debug') {
-                this.log.debug(`You are using the latest version of AppleTV Enhanced (${currentVersion})`);
+                this.log.debug(msg);
             } else {
-                this.log.info(`You are using the latest version of AppleTV Enhanced (${currentVersion})`);
+                this.log.info(msg);
             }
         }
     }
@@ -212,7 +222,7 @@ You are currently using ${currentVersion}`);
             }
         }
 
-        this.log.debug(`The latest AppleTV Enhanced version ${this.includeBetas && ('(including betas)')} is ${outputVersion}`);
+        this.log.debug(`The latest AppleTV Enhanced version (${this.includeBetas ? 'including' : 'excluding'} betas) is ${outputVersion}`);
 
         return outputVersion;
     }
@@ -250,7 +260,7 @@ variable UIX_CUSTOM_PLUGIN_PATH) does not exist. Therefore updating the plugin a
         const [, , exitCode]: [string, string, number | null] = await runCommand(this.log, cmd, args);
 
         if (exitCode === 0) {
-            this.log.info(`AppleTV Enhanced has successfully been updated to ${version}. Restarting now ...`);
+            this.log.warn(`AppleTV Enhanced has successfully been updated to ${version}. Restarting now ...`);
         } else {
             this.log.error(`An error has occurred while updating AppleTV Enhanced. Exit code: ${exitCode}`);
         }

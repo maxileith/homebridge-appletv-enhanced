@@ -197,10 +197,13 @@
             },
             "autoUpdate": {
                 "title": "Update Automatically",
-                "description": "Apple TV Enhanced will update itself automatically once there is an update available. Change the \"Update Check Level\" to install or leave out betas. It is recommended to operate this plugin as a child bridge if enabling this functionality since the plugin will automatically restart the bridge after updating (the whole homebridge if it the plugin is not running as its own child bridge).",
-                "type": "boolean",
-                "default": false,
-                "required": true
+                "description": "Apple TV Enhanced will update itself automatically once there is an update available. Change the \"Update Check Level\" to install or leave out betas. It is recommended to operate this plugin as a child bridge if enabling this functionality since the plugin will automatically restart the bridge after updating (the whole homebridge if it the plugin is not running as its own child bridge). When selecting \"Default\" auto updating is turned on when operating AppleTV Enhanced as a child bridge.",
+                "type": "string",
+                "oneOf": [
+                    { "title": "On", "enum": ["on"] },
+                    { "title": "Off", "enum": ["off"] }
+                ],
+                "required": false
             },
             "deviceSpecificOverrides": {
                 "title": "Device Specific Overrides",

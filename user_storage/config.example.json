@@ -101,7 +101,7 @@
             "forceVenvRecreate": false,
             "logLevel": 4,
             "updateCheckLevel": "beta",
-            "autoUpdate": false
+            "autoUpdate": "on"
         }
     ]
 }

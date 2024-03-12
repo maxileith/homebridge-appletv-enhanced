@@ -66,7 +66,7 @@ export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_br
     forceVenvRecreate?: boolean;
     logLevel?: LogLevel;
     updateCheckLevel?: 'beta' | 'stable';
-    autoUpdate?: boolean;
+    autoUpdate?: 'off' | 'on';
 }
 
 export interface AlternatePyATVDeviceOptions {
