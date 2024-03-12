@@ -74,7 +74,7 @@ def check_docker(b: str) -> list[str]:
 
 
 def check_docker_image(b: str) -> list[str]:
-    image = b.split("### Docker Image", 1)[1].split('### Docker Image Version')[0].strip()
+    image = b.split("### Docker Image", 1)[1].split('### Docker Image Tag')[0].strip()
 
     output = []
 
@@ -85,7 +85,7 @@ def check_docker_image(b: str) -> list[str]:
 
 
 def check_docker_image_version(b: str) -> list[str]:
-    version = b.split("### Docker Image Version", 1)[1].split('### Homebridge Version')[0].strip()
+    version = b.split("### Docker Image Tag", 1)[1].split('### Homebridge Version')[0].strip()
 
     output = []
 
@@ -165,7 +165,7 @@ def get_all_npm_package_versions(package: str) -> list[str]:
 def check_storage_path(b: str) -> list[str]:
     path = b.split("### Homebridge Storage Path", 1)[1].split('### Homebridge Apple TV Enhanced Version')[0].strip()
 
-    path_pattern = re.compile("^(\/([a-zA-Z0-9_\-]|\\\\\s)+)+$")
+    path_pattern = re.compile("^(\/([a-zA-Z0-9_\-\.]|\\\\\s)+)+$")
 
     output = []
 
@@ -270,7 +270,7 @@ def check_python_version(b: str) -> list[str]:
         output.append(f"The Python version {version} does not match the expected version pattern of Python. Please provide a version that exists.")
     else:
         accepted_versions = []
-        with open("src/PythonChecker.ts", "r") as f:
+        with open("src/PythonChecker.ts", "r", encoding="utf-8") as f:
             content = f.read()
             # extract the lines where the versions are specified
             content = content.split("const SUPPORTED_PYTHON_VERSIONS: string[] = [", 1)[1].split("];", 1)[0]
@@ -300,7 +300,7 @@ def check_pip_version(b: str) -> list[str]:
 
     output = []
 
-    version_pattern = re.compile("^\d+\.\d+\.\d+$")
+    version_pattern = re.compile("^\d+\.\d+(\.\d+)?$")
 
     if not version_pattern.match(version):
         output.append(f"The PIP version {version} does not match the expected version pattern of PIP. Please provide a version that exists.")
@@ -348,7 +348,7 @@ def hide_outdated_comments(issue):
 if __name__ == "__main__":
     issue_id = int(sys.argv[1])
 
-    with open("package.json", "r") as f:
+    with open("package.json", "r", encoding="utf-8") as f:
         package_json = json.loads(f.read())
 
     auth = Auth.Token(GH_TOKEN)
@@ -388,7 +388,9 @@ if __name__ == "__main__":
         md += "There are a few problems with your opened issue. Please fix them by editing the issue:\n\n"
         for todo in todos:
             md += f"- {todo}\n"
-        md += "\n---\n\n"
+        md += "\nOften the problem you are experiencing will be solved by simply making your environment compliant with the requirements (fulfilling the pre-checks).\n\n"
+        md += "Don't expect a reply of a maintainer until you have solved the above mentioned action items.\n\n"
+        md += "## 🔁 Rerun\n\n"
         md += "After editing the issue, the checks will be run again.\n\n"
         md += "**Under no circumstances** should the issue be adjusted untruthfully. If the issue cannot fulfill the pre-checks, your environment is simply not supported.\n\n"
         md += "If you do not adjust the issue accordingly, the issue will be **automatically closed after 14 days of inactivity**."

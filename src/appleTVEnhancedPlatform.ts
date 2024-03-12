@@ -1,4 +1,4 @@
-import type { API, DynamicPlatformPlugin, Logger, PlatformAccessory, Service, Characteristic } from 'homebridge';
+import type { API, DynamicPlatformPlugin, Logger, PlatformAccessory, Service, Characteristic, HomebridgeConfig } from 'homebridge';
 import { PLUGIN_NAME } from './settings';
 import { AppleTVEnhancedAccessory } from './appleTVEnhancedAccessory';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
@@ -8,6 +8,7 @@ import PythonChecker from './PythonChecker';
 import PrefixLogger from './PrefixLogger';
 import LogLevelLogger from './LogLevelLogger';
 import UpdateChecker from './UpdateChecker';
+import fs from 'fs';
 
 // compatible model identifiers according to https://pyatv.dev/api/const/#pyatv.const.DeviceModel
 const ALLOWED_MODELS: string[] = [
@@ -48,12 +49,14 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
         this.api.on('didFinishLaunching', async () => {
             this.log.debug('Executed didFinishLaunching callback');
 
+            // enable update check
+            const updateChecker: UpdateChecker =
+                new UpdateChecker(this.logLevelLogger, this.isAutoUpdateOn(), this.config.updateCheckLevel === 'beta', 60);
+            await updateChecker.check('info');
+            updateChecker.startInterval(true);
+
             // make sure the Python environment is ready
             await new PythonChecker(this.logLevelLogger, this.api.user.storagePath()).allInOne(this.config.forceVenvRecreate);
-
-            // enable update check
-            const updateChecker: UpdateChecker = new UpdateChecker(this.logLevelLogger, this.config.updateCheckLevel === 'beta', 60);
-            updateChecker.start();
 
             // run the method to discover / register your devices as accessories
             this.log.debug(`Setting the storage path of the PyATV instance to ${this.api.user.storagePath()}`);
@@ -179,6 +182,28 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
         if (this.publishedUUIDs.length === 0) {
             this.log.warn('The device discovery could not find any Apple TV devices until now. Are you sure that you have a compatible \
 Apple TV and the Apple TV is in the same subnet? (see https://github.com/maxileith/homebridge-appletv-enhanced#requirements)');
+        }
+    }
+
+    private isAutoUpdateOn(): boolean {
+        switch (this.config.autoUpdate) {
+        case 'on':
+            return true;
+        case 'off':
+            return false;
+        default:
+            // by default, autoUpdate should be turned on when the plugin is running as a child bridge
+            const ogConfig: HomebridgeConfig = JSON.parse(fs.readFileSync(this.api.user.configPath(), 'utf-8'));
+            const ogAppleTVEnhancedConfig: AppleTVEnhancedPlatformConfig | undefined =
+                ogConfig.platforms.find((p) => p.platform === 'AppleTVEnhanced');
+            if (ogAppleTVEnhancedConfig !== undefined) {
+                return ogAppleTVEnhancedConfig._bridge !== undefined;
+            } else {
+                this.log.warn('Could not determine whether or not the plugin is running as a child bridge. Therefore, the default setting \
+for automatic updates could not be determined. Falling back to "off". You can enable or disable automatic updates in the configuration \
+explicitly.');
+                return false;
+            }
         }
     }
 }

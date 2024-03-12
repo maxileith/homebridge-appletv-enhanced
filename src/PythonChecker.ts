@@ -1,8 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import type { ChildProcessWithoutNullStreams } from 'child_process';
-import { type SpawnOptionsWithoutStdio, spawn } from 'child_process';
-import { delay } from './utils';
+import { delay, runCommand } from './utils';
 import PrefixLogger from './PrefixLogger';
 import type LogLevelLogger from './LogLevelLogger';
 import type { AxiosResponse } from 'axios';
@@ -105,7 +103,8 @@ Recreating the virtual environment now ...`);
     }
 
     private async createVenv(): Promise<void> {
-        const [stdout]: [string, string] = await this.runCommand('python3', ['-m', 'venv', this.venvPath, '--clear'], undefined, true);
+        const [stdout]: [string, string, number | null] =
+            await runCommand(this.log, 'python3', ['-m', 'venv', this.venvPath, '--clear'], undefined, true);
         if (stdout.includes('not created successfully') || !this.isVenvCreated()) {
             while (true) {
                 this.log.error('virtualenv python module is not installed. If you have installed homebridge via the apt package manager, \
@@ -134,7 +133,7 @@ manually.');
     }
 
     private async updatePip(): Promise<void> {
-        await this.runCommand(this.venvPipPath, ['install', '--upgrade', 'pip']);
+        await runCommand(this.log, this.venvPipPath, ['install', '--upgrade', 'pip']);
     }
 
     private async ensureVenvRequirementsSatisfied(): Promise<void> {
@@ -147,7 +146,7 @@ manually.');
     }
 
     private async areRequirementsSatisfied(): Promise<boolean> {
-        const [freezeStdout]: [string, string] = await this.runCommand(this.venvPipPath, ['freeze'], undefined, true);
+        const [freezeStdout]: [string, string, number | null] = await runCommand(this.log, this.venvPipPath, ['freeze'], undefined, true);
         const freeze: Record<string, string> = this.freezeStringToObject(freezeStdout);
         const requirements: Record<string, string> = this.freezeStringToObject(fs.readFileSync(this.requirementsPath).toString());
         for (const pkg in requirements) {
@@ -169,16 +168,16 @@ manually.');
     }
 
     private async installRequirements(): Promise<void> {
-        await this.runCommand(this.venvPipPath, ['install', '-r', this.requirementsPath]);
+        await runCommand(this.log, this.venvPipPath, ['install', '-r', this.requirementsPath]);
     }
 
     private async getSystemPythonVersion(): Promise<string> {
-        const [version]: [string, string] = await this.runCommand('python3', ['--version'], undefined, true);
+        const [version]: [string, string, number | null] = await runCommand(this.log, 'python3', ['--version'], undefined, true);
         return version.trim().replace('Python ', '');
     }
 
     private async getVenvPipVersion(): Promise<string> {
-        const [version]: [string, string] = await this.runCommand(this.venvPipPath, ['--version'], undefined, true);
+        const [version]: [string, string, number | null] = await runCommand(this.log, this.venvPipPath, ['--version'], undefined, true);
         return version.trim().replace('pip ', '').split(' ')[0];
     }
 
@@ -190,48 +189,6 @@ manually.');
             this.log.error(e as string);
             return 'error';
         }
-    }
-
-    private async runCommand(
-        command: string,
-        args?: readonly string[],
-        options?: SpawnOptionsWithoutStdio,
-        hideStdout: boolean = false,
-        hideStderr: boolean = false,
-    ): Promise<[string, string]> {
-        let running: boolean = true;
-        let stdout: string = '';
-        let stderr: string = '';
-
-        const p: ChildProcessWithoutNullStreams = spawn(command, args, options);
-        p.stdout.setEncoding('utf8');
-        p.stdout.on('data', (data: string) => {
-            stdout += data;
-            data = data.trim();
-            if (!hideStdout && data !== '') {
-                this.log.info(data);
-            }
-        });
-        p.stderr.setEncoding('utf8');
-        p.stderr.on('data', (data: string) => {
-            stderr += data;
-            if (!hideStderr) {
-                if (data.startsWith('WARNING')) {
-                    this.log.warn(data.replaceAll('\n', ''));
-                } else {
-                    this.log.error(data);
-                }
-            }
-        });
-        p.on('close', () => {
-            running = false;
-        });
-
-        while (running) {
-            await delay(100);
-        }
-
-        return [stdout, stderr];
     }
 }
 

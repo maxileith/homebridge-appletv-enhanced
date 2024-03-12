@@ -5,6 +5,9 @@ import PrefixLogger from './PrefixLogger';
 import type LogLevelLogger from './LogLevelLogger';
 import { compareVersions } from 'compare-versions';
 import packageJson from '../package.json';
+import path from 'path';
+import fs from 'fs';
+import { runCommand } from './utils';
 
 interface INpmPublishConfig {
     access: string;
@@ -120,6 +123,9 @@ interface INpmResponse {
     readmeFilename: string;
 }
 
+const UIX_CUSTOM_PLUGIN_PATH: string | undefined = process.env.UIX_CUSTOM_PLUGIN_PATH;
+const UIX_USE_PNPM: boolean = process.env.UIX_USE_PNPM === '1';
+
 class UpdateChecker {
 
     private readonly log: PrefixLogger;
@@ -127,27 +133,44 @@ class UpdateChecker {
     private intervalMs: number;
     private includeBetas: boolean;
     private interval: NodeJS.Timeout | undefined;
+    private autoUpdate: boolean;
 
-    public constructor(logger: LogLevelLogger | PrefixLogger, includeBetas: boolean = false, intervalMinutes: number = 60) {
+    public constructor(
+        logger: LogLevelLogger | PrefixLogger,
+        autoUpdate: boolean = false,
+        includeBetas: boolean = false,
+        intervalMinutes: number = 60,
+    ) {
         this.log = new PrefixLogger(logger, 'Update check');
 
         this.intervalMs = intervalMinutes * 60000;
         this.includeBetas = includeBetas;
+        this.autoUpdate = autoUpdate;
+
+        this.log.info(`The update checker is configured to check for updates every ${intervalMinutes} minutes, \
+${includeBetas ? 'including' : 'excluding'} betas. Auto updating is turned ${autoUpdate ? 'on' : 'off'}.`);
     }
 
-    public start(): void {
-        this.check();
+    public startInterval(skipInitialCheck: boolean = false): void {
+        this.log.debug('Starting update check interval.');
+        if (skipInitialCheck === false) {
+            this.log.debug('Skipping initial update check.');
+            this.check();
+        }
         this.interval = setInterval(this.check.bind(this), this.intervalMs);
     }
 
-    public stop(): void {
+    public stopInterval(): void {
         if (this.interval !== undefined) {
+            this.log.debug('Stopping update check interval.');
             clearInterval(this.interval);
             this.interval = undefined;
+        } else {
+            this.log.warn('Could not stop update check interval since there is no active update check interval.');
         }
     }
 
-    private async check(): Promise<void> {
+    public async check(infoOrDebugLogLevel: 'debug' | 'info' = 'debug'): Promise<void> {
         const latestVersion: string | undefined = await this.getLatestVersion();
         if (latestVersion === undefined) {
             return;
@@ -155,10 +178,19 @@ class UpdateChecker {
 
         const currentVersion: string = this.getCurrentVersion();
         if (compareVersions(latestVersion, currentVersion) === 1) {
-            this.log.warn(`There is a new version of Apple TV Enhanced available: ${latestVersion}. \
-You are currently using ${currentVersion}`);
+            this.log.warn(`There is a new version of AppleTV Enhanced available (${this.includeBetas ? 'including' : 'excluding'} \
+betas): ${latestVersion}. You are currently using ${currentVersion}`);
+            if (this.autoUpdate) {
+                await this.update(latestVersion);
+            }
         } else {
-            this.log.debug(`You are using the latest version of Apple TV Enhanced (${currentVersion})`);
+            const msg: string = `You are using the latest version of AppleTV Enhanced (${this.includeBetas ? 'including' : 'excluding'} \
+betas): ${currentVersion}`;
+            if (infoOrDebugLogLevel === 'debug') {
+                this.log.debug(msg);
+            } else {
+                this.log.info(msg);
+            }
         }
     }
 
@@ -190,13 +222,49 @@ You are currently using ${currentVersion}`);
             }
         }
 
-        this.log.debug(`The latest Apple TV Enhanced version ${this.includeBetas && ('(including betas)')} is ${outputVersion}`);
+        this.log.debug(`The latest AppleTV Enhanced version (${this.includeBetas ? 'including' : 'excluding'} betas) is ${outputVersion}`);
 
         return outputVersion;
     }
 
     private getCurrentVersion(): string {
         return packageJson.version;
+    }
+
+    // update process according to hb-service
+    // https://github.com/homebridge/homebridge-config-ui-x/blob/1b52f15984374ab5a244dec8761c15a701de0cea/src/bin/hb-service.ts#L1327-L1381
+    private async update(version: string): Promise<void> {
+        this.log.info(`Attempting to update AppleTV Enhanced to version ${version}`);
+
+        if (UIX_CUSTOM_PLUGIN_PATH === undefined) {
+            this.log.error('Could not determine the path where to install the plugin since the environment variable UIX_CUSTOM_PLUGIN_PATH \
+is not set.');
+            return;
+        }
+
+        const cwd: string = path.dirname(UIX_CUSTOM_PLUGIN_PATH);
+        if (fs.existsSync(cwd) === false) {
+            this.log.error(`The path ${cwd} (parent of the directory ${UIX_CUSTOM_PLUGIN_PATH} which is specified in the environment \
+variable UIX_CUSTOM_PLUGIN_PATH) does not exist. Therefore updating the plugin automatically is not possible.`);
+            return;
+        }
+
+        const cmd: string = UIX_USE_PNPM
+            ? 'pnpm'
+            : 'npm';
+        const args: string[] = UIX_USE_PNPM
+            ? ['-C', cwd, 'add', `homebridge-appletv-enhanced@${version}`]
+            : ['--prefix', cwd, '--no-audit', '--no-fund', 'add', `homebridge-appletv-enhanced@${version}`];
+
+        this.log.info(`CMD: ${cmd} "${args.join('" "')}"`);
+        const [, , exitCode]: [string, string, number | null] = await runCommand(this.log, cmd, args);
+
+        if (exitCode === 0) {
+            this.log.warn(`AppleTV Enhanced has successfully been updated to ${version}. Restarting now ...`);
+        } else {
+            this.log.error(`An error has occurred while updating AppleTV Enhanced. Exit code: ${exitCode}`);
+        }
+        process.exit(exitCode === null ? 1 : exitCode);
     }
 }
 

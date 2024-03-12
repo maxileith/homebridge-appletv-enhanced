@@ -169,12 +169,12 @@ body:
       description: Which image are you using?
       options:
         - "homebridge/homebridge"
-        - "ozno/homebridge"
+        - "oznu/homebridge"
 
   - type: input
     id: environment_docker_image_version
     attributes:
-      label: Docker Image Version
+      label: Docker Image Tag
       description: |
         Which version of the image are you using? Please provide the exact image tag, not `latest`. (the minimum required version is specified in the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements))
         Command to find out: `docker container list | grep homebridge`
