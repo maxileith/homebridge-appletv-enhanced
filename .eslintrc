@@ -30,6 +30,7 @@
         "no-console": ["warn"], // use the provided Homebridge log method instead
         "no-empty-function": "off",
         "no-implied-eval": "off",
+        "no-case-declarations": "off",
         "no-non-null-assertion": ["off"],
         "no-multi-spaces": ["warn", { "ignoreEOLComments": true }],
         "no-trailing-spaces": ["warn"],

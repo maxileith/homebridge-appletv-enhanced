@@ -1,4 +1,4 @@
-import type { API, DynamicPlatformPlugin, Logger, PlatformAccessory, Service, Characteristic } from 'homebridge';
+import type { API, DynamicPlatformPlugin, Logger, PlatformAccessory, Service, Characteristic, HomebridgeConfig } from 'homebridge';
 import { PLUGIN_NAME } from './settings';
 import { AppleTVEnhancedAccessory } from './appleTVEnhancedAccessory';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
@@ -8,6 +8,7 @@ import PythonChecker from './PythonChecker';
 import PrefixLogger from './PrefixLogger';
 import LogLevelLogger from './LogLevelLogger';
 import UpdateChecker from './UpdateChecker';
+import fs from 'fs';
 
 // compatible model identifiers according to https://pyatv.dev/api/const/#pyatv.const.DeviceModel
 const ALLOWED_MODELS: string[] = [
@@ -192,7 +193,17 @@ Apple TV and the Apple TV is in the same subnet? (see https://github.com/maxilei
             return false;
         default:
             // by default, autoUpdate should be turned on when the plugin is running as a child bridge
-            return this.config._bridge !== undefined;
+            const ogConfig: HomebridgeConfig = JSON.parse(fs.readFileSync(this.api.user.configPath(), 'utf-8'));
+            const ogAppleTVEnhancedConfig: AppleTVEnhancedPlatformConfig | undefined =
+                ogConfig.platforms.find((p) => p.platform === 'AppleTVEnhanced');
+            if (ogAppleTVEnhancedConfig !== undefined) {
+                return ogAppleTVEnhancedConfig._bridge !== undefined;
+            } else {
+                this.log.warn('Could not determine whether or not the plugin is running as a child bridge. Therefore, the default setting \
+for automatic updates could not be determined. Falling back to "off". You can enable or disable automatic updates in the configuration \
+explicitly.');
+                return false;
+            }
         }
     }
 }
