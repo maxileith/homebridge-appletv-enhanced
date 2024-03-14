@@ -16,8 +16,6 @@ body:
         - [feature request](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new?template=3-feature_request.yml)
         - [general question](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new?template=1-general_question.yml)
 
-        **Do not** use this template just because the bug report / support request template asks for too much information. That's just lazy 😉
-
   - type: checkboxes
     attributes:
       label: Preconditions
