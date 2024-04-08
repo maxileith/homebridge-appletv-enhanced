@@ -62,12 +62,6 @@ jobs:
         run: python3 -m pip install -r .github/issue_completeness_check/requirements.txt
         working-directory: develop
 
-      - name: Print GitHub Actions context
-        shell: bash
-        run: echo "$GITHUB_CONTEXT"
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
       - name: Run check
         shell: bash
         run: python3 .github/issue_completeness_check/check.py ${{ github.event.issue.number }}
