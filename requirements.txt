@@ -9,7 +9,7 @@ chacha20poly1305-reuseable==0.12.1
 charset-normalizer==3.3.2
 cryptography==42.0.5
 frozenlist==1.4.1
-idna==3.6
+idna==3.7
 ifaddr==0.2.0
 mediafile==0.12.0
 miniaudio==1.59
