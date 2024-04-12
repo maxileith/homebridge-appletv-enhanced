@@ -3,7 +3,7 @@ cffi==1.16.0
 charset-normalizer==3.3.2
 cryptography==42.0.5
 Deprecated==1.2.14
-idna==3.6
+idna==3.7
 packaging==24.0
 pycparser==2.22
 PyGithub==2.3.0
