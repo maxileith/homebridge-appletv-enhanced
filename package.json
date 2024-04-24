@@ -63,7 +63,7 @@
         "@typescript-eslint/eslint-plugin": "^7.7.1",
         "@typescript-eslint/parser": "^7.7.1",
         "eslint": "^8.57.0",
-        "homebridge": "^1.7.0",
+        "homebridge": "^1.8.0",
         "homebridge-config-ui-x": "^4.56.1",
         "nodemon": "^3.1.0",
         "rimraf": "^5.0.5",
