@@ -46,7 +46,7 @@ class PythonChecker {
 
     private ensurePluginDir(): void {
         if (!fs.existsSync(this.pluginDirPath)) {
-            this.log.warn('creating plugin dir ...');
+            this.log.info('creating plugin dir ...');
             fs.mkdirSync(this.pluginDirPath);
             this.log.info('plugin dir created');
         } else {
@@ -83,7 +83,7 @@ Recreating the virtual environment now ...`);
             if (forceVenvRecreate) {
                 this.log.warn('Forcing the python virtual environment to be recreated ...');
             } else {
-                this.log.warn('Virtual python environment is not present. Creating now ...');
+                this.log.info('Virtual python environment is not present. Creating now ...');
             }
             await this.createVenv();
         }
