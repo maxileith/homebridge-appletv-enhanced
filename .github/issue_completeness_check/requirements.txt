@@ -9,7 +9,7 @@ pycparser==2.22
 PyGithub==2.3.0
 PyJWT==2.8.0
 PyNaCl==1.5.0
-requests==2.31.0
+requests==2.32.2
 typing_extensions==4.11.0
 urllib3==2.2.1
 wrapt==1.16.0
