@@ -261,10 +261,10 @@ variable UIX_CUSTOM_PLUGIN_PATH) does not exist. Therefore updating the plugin a
 
         if (exitCode === 0) {
             this.log.success(`AppleTV Enhanced has successfully been updated to ${version}. Restarting now ...`);
+            process.exit(0);
         } else {
-            this.log.error(`An error has occurred while updating AppleTV Enhanced. Exit code: ${exitCode}`);
+            this.log.error(`An error has occurred while updating AppleTV Enhanced. Exit code: ${exitCode}.`);
         }
-        process.exit(exitCode === null ? 1 : exitCode);
     }
 }
 
