@@ -256,7 +256,7 @@ variable UIX_CUSTOM_PLUGIN_PATH) does not exist. Therefore updating the plugin a
             ? ['-C', cwd, 'add', `homebridge-appletv-enhanced@${version}`]
             : ['--prefix', cwd, '--no-audit', '--no-fund', 'add', `homebridge-appletv-enhanced@${version}`];
 
-        this.log.info(`CMD: ${cmd} "${args.join('" "')}"`);
+        this.log.debug(`CMD: ${cmd} "${args.join('" "')}"`);
         const [, , exitCode]: [string, string, number | null] = await runCommand(this.log, cmd, args);
 
         if (exitCode === 0) {
