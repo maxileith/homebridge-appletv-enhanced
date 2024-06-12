@@ -17,20 +17,24 @@ class PythonChecker {
 
     private readonly log: PrefixLogger;
 
+    private readonly pythonExecutable: string;
     private readonly pluginDirPath: string;
     private readonly venvPath: string;
-    private readonly venvPipPath: string;
-    private readonly venvPythonPath: string;
+    private readonly venvPipExecutable: string;
+    private readonly venvPythonExecutable: string;
     private readonly venvConfigPath: string;
     private readonly requirementsPath: string = path.join(__dirname, '..', 'requirements.txt');
 
-    public constructor(logger: LogLevelLogger | PrefixLogger, storagePath: string) {
+    public constructor(logger: LogLevelLogger | PrefixLogger, storagePath: string, pythonExecutable?: string) {
         this.log = new PrefixLogger(logger, 'Python check');
+
+        this.pythonExecutable = pythonExecutable || 'python3';
+        this.log.debug(`Using ${this.pythonExecutable} as the python executable`);
 
         this.pluginDirPath = path.join(storagePath, 'appletv-enhanced');
         this.venvPath = path.join(this.pluginDirPath, '.venv');
-        this.venvPythonPath = path.join(this.venvPath, 'bin', 'python3');
-        this.venvPipPath = path.join(this.venvPath, 'bin', 'pip3');
+        this.venvPythonExecutable = path.join(this.venvPath, 'bin', 'python3');
+        this.venvPipExecutable = path.join(this.venvPath, 'bin', 'pip3');
         this.venvConfigPath = path.join(this.venvPath, 'pyvenv.cfg');
     }
 
@@ -39,6 +43,7 @@ class PythonChecker {
         this.ensurePluginDir();
         await this.ensurePythonVersion();
         await this.ensureVenvCreated(forceVenvRecreate);
+        await this.ensureVenvUsesCorrectPythonHome();
         await this.ensureVenvPipUpToDate();
         await this.ensureVenvRequirementsSatisfied();
         this.log.info('Finished');
@@ -48,7 +53,7 @@ class PythonChecker {
         if (!fs.existsSync(this.pluginDirPath)) {
             this.log.info('creating plugin dir ...');
             fs.mkdirSync(this.pluginDirPath);
-            this.log.info('plugin dir created');
+            this.log.success('plugin dir created');
         } else {
             this.log.info('plugin dir exists.');
         }
@@ -68,43 +73,26 @@ ${SUPPORTED_PYTHON_VERSIONS[0]} to ${SUPPORTED_PYTHON_VERSIONS[SUPPORTED_PYTHON_
     }
 
     private async ensureVenvCreated(forceVenvRecreate: boolean): Promise<void> {
-        if (forceVenvRecreate === false && this.isVenvCreated()) {
-            this.log.info('Virtual environment already exists.');
-            const [venvVersionIsSystemVersion, systemVersion, venvVersion]: [boolean, string, string] =
-                await this.isVenvPythonSystemPython();
-            if (venvVersionIsSystemVersion) {
-                this.log.info(`Venv is using current system python version (${systemVersion}).`);
-            } else {
-                this.log.warn(`Venv (${venvVersion}) is not using current system python version (${systemVersion}). \
-Recreating the virtual environment now ...`);
-                await this.createVenv();
-            }
-        } else {
-            if (forceVenvRecreate) {
-                this.log.warn('Forcing the python virtual environment to be recreated ...');
-            } else {
-                this.log.info('Virtual python environment is not present. Creating now ...');
-            }
+        if (forceVenvRecreate) {
+            this.log.warn('Forcing the python virtual environment to be recreated ...');
             await this.createVenv();
+        } else if (this.isVenvCreated() === false) {
+            this.log.info('Virtual python environment is not present. Creating now ...');
+            await this.createVenv();
+        } else {
+            this.log.info('Virtual environment already exists.');
         }
     }
 
     private isVenvCreated(): boolean {
-        return fs.existsSync(this.venvPipPath) &&
+        return fs.existsSync(this.venvPipExecutable) &&
             fs.existsSync(this.venvConfigPath) &&
-            fs.existsSync(this.venvPythonPath);
-    }
-
-    private async isVenvPythonSystemPython(): Promise<[boolean, string, string]> {
-        const fileContent: string = fs.readFileSync(this.venvConfigPath).toString().replaceAll(' ', '');
-        const venvVersion: string = fileContent.split('version=')[1].split('\n')[0];
-        const systemVersion: string = await this.getSystemPythonVersion();
-        return [venvVersion === systemVersion, systemVersion, venvVersion];
+            fs.existsSync(this.venvPythonExecutable);
     }
 
     private async createVenv(): Promise<void> {
         const [stdout]: [string, string, number | null] =
-            await runCommand(this.log, 'python3', ['-m', 'venv', this.venvPath, '--clear'], undefined, true);
+            await runCommand(this.log, this.pythonExecutable, ['-m', 'venv', this.venvPath, '--clear'], undefined, true);
         if (stdout.includes('not created successfully') || !this.isVenvCreated()) {
             while (true) {
                 this.log.error('virtualenv python module is not installed. If you have installed homebridge via the apt package manager, \
@@ -116,7 +104,26 @@ manually.');
         } else if (stdout.trim() !== '') {
             this.log.warn(stdout);
         }
-        this.log.info('Virtual python environment created');
+        this.log.success('Virtual python environment (re)created');
+    }
+
+    private async ensureVenvUsesCorrectPythonHome(): Promise<void> {
+        const venvPythonHome: string = await this.getPythonHome(this.venvPythonExecutable);
+        const pythonHome: string = await this.getPythonHome(this.pythonExecutable);
+        if (venvPythonHome !== pythonHome) {
+            this.log.warn('The virtual environment does not use the systems default python environment. Recreating virtual \
+environment ...');
+            this.log.debug(`System Python ${pythonHome}; Venv Python ${venvPythonHome}`);
+            await this.createVenv();
+        } else {
+            this.log.info('Virtual environment is using the systems default python environment. Continuing ...');
+        }
+    }
+
+    private async getPythonHome(executable: string): Promise<string> {
+        const [venvPythonHome]: [string, string, number | null] =
+            await runCommand(this.log, executable, [path.join(__dirname, 'determinePythonHome.py')], undefined, true);
+        return venvPythonHome.trim();
     }
 
     private async ensureVenvPipUpToDate(): Promise<void> {
@@ -128,12 +135,12 @@ manually.');
         } else {
             this.log.warn('Venv pip is outdated. Updating now ...');
             await this.updatePip();
-            this.log.info('Venv pip updated');
+            this.log.success('Venv pip updated');
         }
     }
 
     private async updatePip(): Promise<void> {
-        await runCommand(this.log, this.venvPipPath, ['install', '--upgrade', 'pip']);
+        await runCommand(this.log, this.venvPipExecutable, ['install', '--upgrade', 'pip']);
     }
 
     private async ensureVenvRequirementsSatisfied(): Promise<void> {
@@ -146,7 +153,8 @@ manually.');
     }
 
     private async areRequirementsSatisfied(): Promise<boolean> {
-        const [freezeStdout]: [string, string, number | null] = await runCommand(this.log, this.venvPipPath, ['freeze'], undefined, true);
+        const [freezeStdout]: [string, string, number | null] =
+            await runCommand(this.log, this.venvPipExecutable, ['freeze'], undefined, true);
         const freeze: Record<string, string> = this.freezeStringToObject(freezeStdout);
         const requirements: Record<string, string> = this.freezeStringToObject(fs.readFileSync(this.requirementsPath).toString());
         for (const pkg in requirements) {
@@ -168,16 +176,19 @@ manually.');
     }
 
     private async installRequirements(): Promise<void> {
-        await runCommand(this.log, this.venvPipPath, ['install', '-r', this.requirementsPath]);
+        await runCommand(this.log, this.venvPipExecutable, ['install', '-r', this.requirementsPath]);
+        this.log.success('Python requirement installed.');
     }
 
     private async getSystemPythonVersion(): Promise<string> {
-        const [version]: [string, string, number | null] = await runCommand(this.log, 'python3', ['--version'], undefined, true);
+        const [version]: [string, string, number | null] =
+            await runCommand(this.log, this.pythonExecutable, ['--version'], undefined, true);
         return version.trim().replace('Python ', '');
     }
 
     private async getVenvPipVersion(): Promise<string> {
-        const [version]: [string, string, number | null] = await runCommand(this.log, this.venvPipPath, ['--version'], undefined, true);
+        const [version]: [string, string, number | null] =
+            await runCommand(this.log, this.venvPipExecutable, ['--version'], undefined, true);
         return version.trim().replace('pip ', '').split(' ')[0];
     }
 

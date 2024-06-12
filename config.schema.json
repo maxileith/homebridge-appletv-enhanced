@@ -205,6 +205,13 @@
                 ],
                 "required": false
             },
+            "pythonExecutable": {
+                "title": "Python Executable",
+                "description": "Here you can specify a path that points to a python executable. The plugin uses the systems default python as default. Setting a specific python executable here may be required if your systems default python version is too current for the plugin.",
+                "type": "string",
+                "placeholder": "/path/to/python3",
+                "required": false
+            },
             "deviceSpecificOverrides": {
                 "title": "Device Specific Overrides",
                 "type": "array",
@@ -558,7 +565,8 @@
                 "forceVenvRecreate",
                 "logLevel",
                 "updateCheckLevel",
-                "autoUpdate"
+                "autoUpdate",
+                "pythonExecutable"
             ]
         }
     ],

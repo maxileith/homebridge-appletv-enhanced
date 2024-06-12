@@ -41,7 +41,7 @@ class LogLevelLogger {
 
     public success(message: string, ...parameters: any[]): void {
         if (this.level >= LogLevel.INFO) {
-            this.log.info(`[S] ${message}`, ...parameters);
+            this.log.success(`[S] ${message}`, ...parameters);
         }
     }
 
