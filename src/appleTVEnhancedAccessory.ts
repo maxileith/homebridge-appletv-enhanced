@@ -1245,9 +1245,11 @@ device. Additionally, make sure to check the TV\'s HomeKit settings. Enable debu
                     error instanceof Error &&
                     error.message.includes('Could not find any Apple TV on current network')
                 ) {
+                    this.log.debug(error.message);
+                    this.log.debug(error.stack as string);
                     while (true) {
                         this.log.warn('Apple TV can be reached on OSI Layer 2 but not on 3. This is likely a network problem. Restart \
-the plugin after you have fixed the root cause.');
+the plugin after you have fixed the root cause. Enable debug logging to see the original errors.');
                         await delay(300000);
                     }
                 }
