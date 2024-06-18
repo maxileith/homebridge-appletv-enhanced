@@ -122,7 +122,7 @@ export class AppleTVEnhancedAccessory {
                     airplayCredentials: c,
                     companionCredentials: c,
                 })!;
-                this.log.warn('Paring was successful. Add it to your home in the Home app: com.apple.home://launch');
+                this.log.success('Paring was successful. Add it to your home in the Home app: com.apple.home://launch');
             });
         };
 

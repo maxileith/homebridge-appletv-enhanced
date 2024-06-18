@@ -101,7 +101,8 @@
             "forceVenvRecreate": false,
             "logLevel": 4,
             "updateCheckLevel": "beta",
-            "autoUpdate": "on"
+            "autoUpdate": "on",
+            "pythonExecutable": "/path/to/python3"
         }
     ]
 }

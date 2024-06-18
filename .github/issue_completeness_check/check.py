@@ -15,8 +15,8 @@ def check_logs(b: str) -> list[str]:
 
     output = []
 
-    if "[I] Platform: Finished initializing platform: Apple TV Enhanced" not in logs:
-        output.append("Provide the **logs from the start** of the plugin, starting with `[I] Platform: Finished initializing platform: Apple TV Enhanced`")
+    # if "[I] Platform: Finished initializing platform: Apple TV Enhanced" not in logs:
+    #     output.append("Provide the **logs from the start** of the plugin, starting with `[I] Platform: Finished initializing platform: Apple TV Enhanced`")
     
     if "[D]" not in logs:
         output.append("Enable **debug logging** (loglevel 4)")

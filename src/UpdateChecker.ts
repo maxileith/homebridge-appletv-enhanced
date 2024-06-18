@@ -256,15 +256,15 @@ variable UIX_CUSTOM_PLUGIN_PATH) does not exist. Therefore updating the plugin a
             ? ['-C', cwd, 'add', `homebridge-appletv-enhanced@${version}`]
             : ['--prefix', cwd, '--no-audit', '--no-fund', 'add', `homebridge-appletv-enhanced@${version}`];
 
-        this.log.info(`CMD: ${cmd} "${args.join('" "')}"`);
+        this.log.debug(`CMD: ${cmd} "${args.join('" "')}"`);
         const [, , exitCode]: [string, string, number | null] = await runCommand(this.log, cmd, args);
 
         if (exitCode === 0) {
-            this.log.warn(`AppleTV Enhanced has successfully been updated to ${version}. Restarting now ...`);
+            this.log.success(`AppleTV Enhanced has successfully been updated to ${version}. Restarting now ...`);
+            process.exit(0);
         } else {
-            this.log.error(`An error has occurred while updating AppleTV Enhanced. Exit code: ${exitCode}`);
+            this.log.error(`An error has occurred while updating AppleTV Enhanced. Exit code: ${exitCode}.`);
         }
-        process.exit(exitCode === null ? 1 : exitCode);
     }
 }
 

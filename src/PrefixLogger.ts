@@ -16,6 +16,10 @@ class PrefixLogger {
         this.log.debug(this.extendMessage(message), ...parameters);
     }
 
+    public success(message: string, ...parameters: any[]): void {
+        this.log.success(this.extendMessage(message), ...parameters);
+    }
+
     public info(message: string, ...parameters: any[]): void {
         this.log.info(this.extendMessage(message), ...parameters);
     }
