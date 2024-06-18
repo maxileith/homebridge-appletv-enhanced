@@ -392,7 +392,7 @@ if __name__ == "__main__":
         md += "## 🔁 Rerun\n\n"
         md += "After editing the issue, the checks will be run again.\n\n"
         md += "**Under no circumstances** should the issue be adjusted untruthfully. If the issue cannot fulfill the pre-checks, your environment is simply not supported.\n\n"
-        md += "If you do not adjust the issue accordingly, the issue will be **automatically closed after 14 days of inactivity**."
+        md += "If you do not adjust the issue accordingly, the issue will be **automatically closed after 60 days of inactivity**."
 
     print(md)
 
