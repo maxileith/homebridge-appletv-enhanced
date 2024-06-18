@@ -389,7 +389,6 @@ if __name__ == "__main__":
         for todo in todos:
             md += f"- {todo}\n"
         md += "\nOften the problem you are experiencing will be solved by simply making your environment compliant with the requirements (fulfilling the pre-checks).\n\n"
-        md += "Don't expect a reply of a maintainer until you have solved the above mentioned action items.\n\n"
         md += "## 🔁 Rerun\n\n"
         md += "After editing the issue, the checks will be run again.\n\n"
         md += "**Under no circumstances** should the issue be adjusted untruthfully. If the issue cannot fulfill the pre-checks, your environment is simply not supported.\n\n"
