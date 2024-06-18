@@ -120,7 +120,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             }
         }
 
-        const appleTVs: NodePyATVDevice[] = scanResults.filter((d) => ALLOWED_MODELS.includes(d.model || ''));
+        const appleTVs: NodePyATVDevice[] = scanResults.filter((d) => ALLOWED_MODELS.includes(d.model || '') && d.os === 'TvOS');
 
         // loop over the discovered devices and register each one if it has not already been registered
         for (const appleTV of appleTVs) {
