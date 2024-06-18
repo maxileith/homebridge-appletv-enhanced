@@ -59,7 +59,7 @@
     },
     "devDependencies": {
         "@types/md5": "^2.3.5",
-        "@types/node": "^18.19.34",
+        "@types/node": "^18.19.36",
         "@typescript-eslint/eslint-plugin": "^7.13.0",
         "@typescript-eslint/parser": "^7.13.0",
         "eslint": "^8.57.0",
