@@ -7,6 +7,11 @@ import type LogLevelLogger from './LogLevelLogger';
 
 type ICache = Record<string, nodePyatv.NodePyATVDevice>;
 
+export interface NodePyATVFindResponseObject {
+    devices: nodePyatv.NodePyATVDevice[];
+    errors: Record<string, unknown>[];
+}
+
 class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
 
     private static cachedDevices: ICache = {};
@@ -20,12 +25,14 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
         super(options);
     }
 
-    public static async find(options?: nodePyatv.NodePyATVFindAndInstanceOptions): Promise<nodePyatv.NodePyATVDevice[]> {
-        return nodePyatv.NodePyATVInstance.find(this.extendOptions(options))
+    public static async customFind(
+        options: nodePyatv.NodePyATVFindAndInstanceOptions = {},
+    ): Promise<NodePyATVFindResponseObject> {
+        return nodePyatv.NodePyATVInstance.find(this.extendOptions(options), true)
             .then(async (results) => {
-                for (const result of results) {
-                    if (result.mac) {
-                        CustomPyATVInstance.cachedDevices[result.mac.toUpperCase()] = result;
+                for (const device of results.devices) {
+                    if (device.mac) {
+                        CustomPyATVInstance.cachedDevices[device.mac.toUpperCase()] = device;
                     }
                 }
                 return results;
@@ -76,7 +83,7 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
         return CustomPyATVInstance.atvremotePath || 'atvscript';
     }
 
-    private static extendOptions<T extends nodePyatv.NodePyATVDeviceOptions | nodePyatv.NodePyATVInstanceOptions | undefined>(
+    private static extendOptions<T extends nodePyatv.NodePyATVDeviceOptions | nodePyatv.NodePyATVInstanceOptions>(
         options: T,
     ): T {
         const debug = (msg: string): void => {
