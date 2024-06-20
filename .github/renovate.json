@@ -3,7 +3,6 @@
     "labels": ["dependency"],
     "assignees": ["maxileith"],
     "baseBranches": ["develop"],
-    "reviewers": ["maxileith"],
     "prConcurrentLimit": 0,
     "prHourlyLimit": 0,
     "enabledManagers": ["nvm", "regex", "docker-compose"],
