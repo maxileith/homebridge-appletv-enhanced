@@ -1080,8 +1080,25 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         }
         const filePath: string = path.join(dir, file);
         try {
-            fs.writeFileSync(filePath, defaultContent, { encoding:'utf8', flag: 'wx' });
-        } catch (err) { /* empty */ }
+            this.log.verbose(`Trying to set the file ${filePath} to its default content`);
+            fs.writeFileSync(filePath, defaultContent, { encoding: 'utf8', flag: 'wx' });
+            this.log.verbose(`File ${filePath} has been set to its default content`);
+        } catch (err) {
+            if (typeof err === 'object' && err !== null && 'code' in err && err.code === 'EEXIST') {
+                this.log.verbose(`File ${filePath} already exists.`);
+                return filePath;
+            }
+            if (typeof err === 'object' && err !== null && 'code' in err && err.code === 'EACCES') {
+                this.log.error(`File ${filePath} is not accessible by homebridge due to insufficient permissions.`);
+            } else {
+                this.log.error(`Error while accessing file ${filePath}: ${err}`);
+            }
+            // FIXME: stop from running
+            // while (true) {
+            //     this.log.warn('Please fix the file error above and restart the plugin afterwards');
+            //     delaySync(10000);
+            // }
+        }
         return filePath;
     }
 

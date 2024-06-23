@@ -106,7 +106,6 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
                 } else {
                     this.log.error(JSON.stringify(error, undefined, 2));
                 }
-                this.log.debug(JSON.stringify(error, undefined, 2));
             });
             scanResults = multicastResults.devices;
             this.log.debug('finished multicast device discovery');
@@ -126,7 +125,6 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
                 } else {
                     this.log.error(JSON.stringify(error, undefined, 2));
                 }
-                this.log.debug(JSON.stringify(error, undefined, 2));
             });
             scanResults = [ ...scanResults, ...unicastResults.devices];
             this.log.debug('finished unicast device discovery');
