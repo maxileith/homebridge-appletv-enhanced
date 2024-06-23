@@ -831,7 +831,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         if (this.commonConfig === undefined) {
             const jsonPath: string = this.getPath('common.json');
             this.log.debug(`Loading common config from ${jsonPath}`);
-            this.commonConfig = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IAppConfigs;
+            this.commonConfig = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as ICommonConfig;
         }
         return this.commonConfig;
     }
