@@ -178,7 +178,7 @@ body:
       description: |
         Which version of the image are you using? Please provide the exact image tag, not `latest`. (the minimum required version is specified in the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements))
         Command to find out: `docker container list | grep homebridge`
-      placeholder: "2024-01-08"
+      placeholder: "2024-12-31"
 
   - type: input
     id: environment_homebridge_version
