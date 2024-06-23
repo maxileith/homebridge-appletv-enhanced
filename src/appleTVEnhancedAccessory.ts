@@ -814,6 +814,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
     private getAppConfigs(): IAppConfigs {
         if (this.appConfigs === undefined) {
             const jsonPath: string = this.getPath('apps.json');
+            this.log.debug(`Loading app config from ${jsonPath}`);
             this.appConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IAppConfigs;
         }
         return this.appConfigs;
@@ -822,12 +823,14 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
     private setAppConfigs(value: IAppConfigs): void {
         this.appConfigs = value;
         const jsonPath: string = this.getPath('apps.json');
+        this.log.debug(`Updating app config at ${jsonPath}`);
         fs.writeFileSync(jsonPath, JSON.stringify(value, null, 4), { encoding:'utf8', flag:'w' });
     }
 
     private getCommonConfig(): ICommonConfig {
         if (this.commonConfig === undefined) {
             const jsonPath: string = this.getPath('common.json');
+            this.log.debug(`Loading common config from ${jsonPath}`);
             this.commonConfig = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IAppConfigs;
         }
         return this.commonConfig;
@@ -839,12 +842,14 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         }
         this.commonConfig[key] = value;
         const jsonPath: string = this.getPath('common.json');
+        this.log.debug(`Updating common config at ${jsonPath}`);
         fs.writeFileSync(jsonPath, JSON.stringify(this.commonConfig, null, 4), { encoding:'utf8', flag:'w' });
     }
 
     private getMediaConfigs(): TMediaConfigs {
         if (this.mediaConfigs === undefined) {
             const jsonPath: string = this.getPath('mediaTypes.json');
+            this.log.debug(`Loading media types config from ${jsonPath}`);
             this.mediaConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TMediaConfigs;
         }
         return this.mediaConfigs;
@@ -856,12 +861,14 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         }
         this.mediaConfigs[key] = value;
         const jsonPath: string = this.getPath('mediaTypes.json');
+        this.log.debug(`Updating media types config at ${jsonPath}`);
         fs.writeFileSync(jsonPath, JSON.stringify(this.mediaConfigs, null, 4), { encoding:'utf8', flag:'w' });
     }
 
     private getDeviceStateConfigs(): TDeviceStateConfigs {
         if (this.deviceStateConfigs === undefined) {
             const jsonPath: string = this.getPath('deviceStates.json');
+            this.log.debug(`Loading device states config from ${jsonPath}`);
             this.deviceStateConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TDeviceStateConfigs;
         }
         return this.deviceStateConfigs;
@@ -873,12 +880,14 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         }
         this.deviceStateConfigs[key] = value;
         const jsonPath: string = this.getPath('deviceStates.json');
+        this.log.debug(`Updating devices states config at ${jsonPath}`);
         fs.writeFileSync(jsonPath, JSON.stringify(this.deviceStateConfigs, null, 4), { encoding:'utf8', flag:'w' });
     }
 
     private getRemoteKeyAsSwitchConfigs(): TRemoteKeysAsSwitchConfigs {
         if (this.remoteKeyAsSwitchConfigs === undefined) {
             const jsonPath: string = this.getPath('remoteKeySwitches.json');
+            this.log.debug(`Loading remote key as switches config from ${jsonPath}`);
             this.remoteKeyAsSwitchConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TRemoteKeysAsSwitchConfigs;
         }
         return this.remoteKeyAsSwitchConfigs;
@@ -890,6 +899,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         }
         this.remoteKeyAsSwitchConfigs[key] = value;
         const jsonPath: string = this.getPath('remoteKeySwitches.json');
+        this.log.debug(`Updating remote keys as switches config at ${jsonPath}`);
         fs.writeFileSync(jsonPath, JSON.stringify(this.remoteKeyAsSwitchConfigs, null, 4), { encoding:'utf8', flag:'w' });
     }
 
