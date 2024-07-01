@@ -7,11 +7,6 @@ import type LogLevelLogger from './LogLevelLogger';
 
 type ICache = Record<string, nodePyatv.NodePyATVDevice>;
 
-export interface NodePyATVFindResponseObject {
-    devices: nodePyatv.NodePyATVDevice[];
-    errors: Record<string, unknown>[];
-}
-
 class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
 
     private static cachedDevices: ICache = {};
@@ -27,7 +22,7 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
 
     public static async customFind(
         options: nodePyatv.NodePyATVFindAndInstanceOptions = {},
-    ): Promise<NodePyATVFindResponseObject> {
+    ): Promise<nodePyatv.NodePyATVFindResponseObject> {
         return nodePyatv.NodePyATVInstance.find(this.extendOptions(options), true)
             .then(async (results) => {
                 for (const device of results.devices) {

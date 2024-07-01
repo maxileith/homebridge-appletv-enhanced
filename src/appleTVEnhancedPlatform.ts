@@ -1,10 +1,9 @@
 import type { API, DynamicPlatformPlugin, Logger, PlatformAccessory, Service, Characteristic, HomebridgeConfig } from 'homebridge';
 import { PLUGIN_NAME } from './settings';
 import { AppleTVEnhancedAccessory } from './appleTVEnhancedAccessory';
-import type { NodePyATVFindResponseObject } from './CustomPyAtvInstance';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
 import type { AppleTVEnhancedPlatformConfig } from './interfaces';
-import type { NodePyATVDevice } from '@sebbo2002/node-pyatv';
+import type { NodePyATVDevice, NodePyATVFindResponseObject } from '@sebbo2002/node-pyatv';
 import PythonChecker from './PythonChecker';
 import PrefixLogger from './PrefixLogger';
 import LogLevelLogger from './LogLevelLogger';

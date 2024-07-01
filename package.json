@@ -72,7 +72,7 @@
         "typescript": "^5.4.5"
     },
     "dependencies": {
-        "@sebbo2002/node-pyatv": "^7.4.0-develop.1",
+        "@sebbo2002/node-pyatv": "^7.4.0-develop.2",
         "axios": "^1.7.2",
         "compare-versions": "^6.1.0",
         "md5": "^2.3.0"
