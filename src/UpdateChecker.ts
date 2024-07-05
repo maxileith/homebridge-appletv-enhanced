@@ -7,6 +7,7 @@ import { compareVersions } from 'compare-versions';
 import packageJson from '../package.json';
 import path from 'path';
 import fs from 'fs';
+import { pathExists } from 'fs-extra';
 import { runCommand } from './utils';
 
 interface INpmPublishConfig {
@@ -123,7 +124,9 @@ interface INpmResponse {
     readmeFilename: string;
 }
 
-const UIX_CUSTOM_PLUGIN_PATH: string | undefined = process.env.UIX_CUSTOM_PLUGIN_PATH;
+const UIX_CUSTOM_PLUGIN_PATH: string | undefined = process.env.UIX_CUSTOM_PLUGIN_PATH !== undefined
+    ? fs.realpathSync(process.env.UIX_CUSTOM_PLUGIN_PATH)
+    : undefined;
 const UIX_USE_PNPM: boolean = process.env.UIX_USE_PNPM === '1';
 
 class UpdateChecker {
@@ -242,22 +245,31 @@ is not set.');
             return;
         }
 
-        const cwd: string = path.dirname(UIX_CUSTOM_PLUGIN_PATH);
-        if (fs.existsSync(cwd) === false) {
-            this.log.error(`The path ${cwd} (parent of the directory ${UIX_CUSTOM_PLUGIN_PATH} which is specified in the environment \
-variable UIX_CUSTOM_PLUGIN_PATH) does not exist. Therefore updating the plugin automatically is not possible.`);
-            return;
+        const npm: string = UIX_USE_PNPM ? 'pnpm' : 'npm';
+
+        let installPath: string = path.resolve(__dirname, '..', '..');
+        this.log.debug(`custom plugin path - ${UIX_CUSTOM_PLUGIN_PATH}`);
+        this.log.debug(`install path - ${installPath}`);
+
+        const installOptions: string[] = !UIX_USE_PNPM ? [
+            '--no-audit',
+            '--no-fund',
+            '--global-style',
+        ] : [];
+
+        if (
+            installPath === UIX_CUSTOM_PLUGIN_PATH &&
+            pathExists(path.resolve(installPath, '../package.json'))
+        ) {
+            installOptions.push('--save');
         }
 
-        const cmd: string = UIX_USE_PNPM
-            ? 'pnpm'
-            : 'npm';
-        const args: string[] = UIX_USE_PNPM
-            ? ['-C', cwd, 'add', `homebridge-appletv-enhanced@${version}`]
-            : ['--prefix', cwd, '--no-audit', '--no-fund', 'add', `homebridge-appletv-enhanced@${version}`];
+        installPath = path.resolve(installPath, '..');
 
-        this.log.debug(`CMD: ${cmd} "${args.join('" "')}"`);
-        const [, , exitCode]: [string, string, number | null] = await runCommand(this.log, cmd, args);
+        const args: string[] = ['install', ...installOptions, `homebridge-appletv-enhanced@${version}`];
+
+        this.log.info(`CMD: ${npm} "${args.join('" "')} (cwd: ${installPath})"`);
+        const [, , exitCode]: [string, string, number | null] = await runCommand(this.log, npm, args, {cwd: installPath});
 
         if (exitCode === 0) {
             this.log.success(`AppleTV Enhanced has successfully been updated to ${version}. Restarting now ...`);
