@@ -123,7 +123,9 @@ interface INpmResponse {
     readmeFilename: string;
 }
 
-const UIX_CUSTOM_PLUGIN_PATH: string | undefined = process.env.UIX_CUSTOM_PLUGIN_PATH;
+const UIX_CUSTOM_PLUGIN_PATH: string | undefined = process.env.UIX_CUSTOM_PLUGIN_PATH !== undefined
+    ? path.resolve(process.env.UIX_CUSTOM_PLUGIN_PATH)
+    : undefined;
 const UIX_USE_PNPM: boolean = process.env.UIX_USE_PNPM === '1';
 
 class UpdateChecker {
@@ -262,12 +264,6 @@ is not set.');
         }
 
         installPath = path.resolve(installPath, '..');
-
-        if (path.basename(installPath) === 'lib') {
-            installPath = path.resolve(installPath, '..');
-            installOptions.push('--prefix');
-            installOptions.push(installPath);
-        }
 
         const args: string[] = ['install', ...installOptions, `homebridge-appletv-enhanced@${version}`];
 
