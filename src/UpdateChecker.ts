@@ -244,7 +244,7 @@ is not set.');
 
         const npm: string = UIX_USE_PNPM ? 'pnpm' : 'npm';
 
-        let installPath: string = path.dirname(path.dirname(__dirname));
+        let installPath: string = path.resolve(__dirname, '..', '..');
         this.log.debug(`custom plugin path - ${UIX_CUSTOM_PLUGIN_PATH}`);
         this.log.debug(`install path - ${installPath}`);
 
@@ -261,10 +261,10 @@ is not set.');
             installOptions.push('--save');
         }
 
-        installPath = path.dirname(installPath);
+        installPath = path.resolve(installPath, '..');
 
         if (path.basename(installPath) === 'lib') {
-            installPath = path.dirname(installPath);
+            installPath = path.resolve(installPath, '..');
             installOptions.push('--prefix');
             installOptions.push(installPath);
         }
