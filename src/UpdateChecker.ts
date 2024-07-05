@@ -244,7 +244,9 @@ is not set.');
 
         const npm: string = UIX_USE_PNPM ? 'pnpm' : 'npm';
 
-        let installPath: string = path.dirname(__dirname);
+        let installPath: string = path.dirname(path.dirname(__dirname));
+        this.log.debug(`custom plugin path - ${UIX_CUSTOM_PLUGIN_PATH}`);
+        this.log.debug(`install path - ${installPath}`);
 
         const installOptions: string[] = !UIX_USE_PNPM ? [
             '--no-audit',
@@ -261,9 +263,7 @@ is not set.');
 
         installPath = path.dirname(installPath);
 
-        if (!UIX_CUSTOM_PLUGIN_PATH) {
-            installOptions.push('--global');
-        } else if (path.basename(installPath) === 'lib') {
+        if (path.basename(installPath) === 'lib') {
             installPath = path.dirname(installPath);
             installOptions.push('--prefix');
             installOptions.push(installPath);
@@ -271,7 +271,7 @@ is not set.');
 
         const args: string[] = ['install', ...installOptions, `homebridge-appletv-enhanced@${version}`];
 
-        this.log.info(`CMD: ${npm} "${args.join('" "')} (csd: ${installPath})"`);
+        this.log.info(`CMD: ${npm} "${args.join('" "')} (cwd: ${installPath})"`);
         const [, , exitCode]: [string, string, number | null] = await runCommand(this.log, npm, args, {cwd: installPath});
 
         if (exitCode === 0) {
