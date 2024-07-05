@@ -6,6 +6,7 @@ import type LogLevelLogger from './LogLevelLogger';
 import { compareVersions } from 'compare-versions';
 import packageJson from '../package.json';
 import path from 'path';
+import fs from 'fs';
 import { pathExists } from 'fs-extra';
 import { runCommand } from './utils';
 
@@ -124,7 +125,7 @@ interface INpmResponse {
 }
 
 const UIX_CUSTOM_PLUGIN_PATH: string | undefined = process.env.UIX_CUSTOM_PLUGIN_PATH !== undefined
-    ? path.resolve(process.env.UIX_CUSTOM_PLUGIN_PATH)
+    ? fs.realpathSync(process.env.UIX_CUSTOM_PLUGIN_PATH)
     : undefined;
 const UIX_USE_PNPM: boolean = process.env.UIX_USE_PNPM === '1';
 
