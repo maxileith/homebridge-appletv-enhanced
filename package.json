@@ -75,7 +75,8 @@
         "@sebbo2002/node-pyatv": "^7.4.0-develop.2",
         "axios": "^1.7.2",
         "compare-versions": "^6.1.0",
-        "md5": "^2.3.0"
+        "md5": "^2.3.0",
+        "fs-extra": "^11.2.0"
     },
     "homepage": "https://github.com/maxileith/homebridge-appletv-enhanced#readme",
     "funding": [
