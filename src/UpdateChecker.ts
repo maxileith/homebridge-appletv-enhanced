@@ -244,7 +244,7 @@ is not set.');
 
         const npm: string = UIX_USE_PNPM ? 'pnpm' : 'npm';
 
-        let installPath: string = path.dirname(path.dirname(__dirname));
+        let installPath: string = path.dirname(__dirname);
 
         const installOptions: string[] = !UIX_USE_PNPM ? [
             '--no-audit',
@@ -271,7 +271,7 @@ is not set.');
 
         const args: string[] = ['install', ...installOptions, `homebridge-appletv-enhanced@${version}`];
 
-        this.log.info(`CMD: ${npm} "${args.join('" "')}"`);
+        this.log.info(`CMD: ${npm} "${args.join('" "')} (csd: ${installPath})"`);
         const [, , exitCode]: [string, string, number | null] = await runCommand(this.log, npm, args, {cwd: installPath});
 
         if (exitCode === 0) {
