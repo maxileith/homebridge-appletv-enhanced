@@ -20,12 +20,14 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
         super(options);
     }
 
-    public static async find(options?: nodePyatv.NodePyATVFindAndInstanceOptions): Promise<nodePyatv.NodePyATVDevice[]> {
-        return nodePyatv.NodePyATVInstance.find(this.extendOptions(options))
+    public static async customFind(
+        options: nodePyatv.NodePyATVFindAndInstanceOptions = {},
+    ): Promise<nodePyatv.NodePyATVFindResponseObject> {
+        return nodePyatv.NodePyATVInstance.find(this.extendOptions(options), true)
             .then(async (results) => {
-                for (const result of results) {
-                    if (result.mac) {
-                        CustomPyATVInstance.cachedDevices[result.mac.toUpperCase()] = result;
+                for (const device of results.devices) {
+                    if (device.mac) {
+                        CustomPyATVInstance.cachedDevices[device.mac.toUpperCase()] = device;
                     }
                 }
                 return results;
@@ -76,7 +78,7 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
         return CustomPyATVInstance.atvremotePath || 'atvscript';
     }
 
-    private static extendOptions<T extends nodePyatv.NodePyATVDeviceOptions | nodePyatv.NodePyATVInstanceOptions | undefined>(
+    private static extendOptions<T extends nodePyatv.NodePyATVDeviceOptions | nodePyatv.NodePyATVInstanceOptions>(
         options: T,
     ): T {
         const debug = (msg: string): void => {

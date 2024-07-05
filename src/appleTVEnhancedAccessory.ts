@@ -814,6 +814,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
     private getAppConfigs(): IAppConfigs {
         if (this.appConfigs === undefined) {
             const jsonPath: string = this.getPath('apps.json');
+            this.log.debug(`Loading app config from ${jsonPath}`);
             this.appConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IAppConfigs;
         }
         return this.appConfigs;
@@ -822,13 +823,15 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
     private setAppConfigs(value: IAppConfigs): void {
         this.appConfigs = value;
         const jsonPath: string = this.getPath('apps.json');
+        this.log.debug(`Updating app config at ${jsonPath}`);
         fs.writeFileSync(jsonPath, JSON.stringify(value, null, 4), { encoding:'utf8', flag:'w' });
     }
 
     private getCommonConfig(): ICommonConfig {
         if (this.commonConfig === undefined) {
             const jsonPath: string = this.getPath('common.json');
-            this.commonConfig = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IAppConfigs;
+            this.log.debug(`Loading common config from ${jsonPath}`);
+            this.commonConfig = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as ICommonConfig;
         }
         return this.commonConfig;
     }
@@ -839,12 +842,14 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         }
         this.commonConfig[key] = value;
         const jsonPath: string = this.getPath('common.json');
+        this.log.debug(`Updating common config at ${jsonPath}`);
         fs.writeFileSync(jsonPath, JSON.stringify(this.commonConfig, null, 4), { encoding:'utf8', flag:'w' });
     }
 
     private getMediaConfigs(): TMediaConfigs {
         if (this.mediaConfigs === undefined) {
             const jsonPath: string = this.getPath('mediaTypes.json');
+            this.log.debug(`Loading media types config from ${jsonPath}`);
             this.mediaConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TMediaConfigs;
         }
         return this.mediaConfigs;
@@ -856,12 +861,14 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         }
         this.mediaConfigs[key] = value;
         const jsonPath: string = this.getPath('mediaTypes.json');
+        this.log.debug(`Updating media types config at ${jsonPath}`);
         fs.writeFileSync(jsonPath, JSON.stringify(this.mediaConfigs, null, 4), { encoding:'utf8', flag:'w' });
     }
 
     private getDeviceStateConfigs(): TDeviceStateConfigs {
         if (this.deviceStateConfigs === undefined) {
             const jsonPath: string = this.getPath('deviceStates.json');
+            this.log.debug(`Loading device states config from ${jsonPath}`);
             this.deviceStateConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TDeviceStateConfigs;
         }
         return this.deviceStateConfigs;
@@ -873,12 +880,14 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         }
         this.deviceStateConfigs[key] = value;
         const jsonPath: string = this.getPath('deviceStates.json');
+        this.log.debug(`Updating devices states config at ${jsonPath}`);
         fs.writeFileSync(jsonPath, JSON.stringify(this.deviceStateConfigs, null, 4), { encoding:'utf8', flag:'w' });
     }
 
     private getRemoteKeyAsSwitchConfigs(): TRemoteKeysAsSwitchConfigs {
         if (this.remoteKeyAsSwitchConfigs === undefined) {
             const jsonPath: string = this.getPath('remoteKeySwitches.json');
+            this.log.debug(`Loading remote key as switches config from ${jsonPath}`);
             this.remoteKeyAsSwitchConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TRemoteKeysAsSwitchConfigs;
         }
         return this.remoteKeyAsSwitchConfigs;
@@ -890,6 +899,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         }
         this.remoteKeyAsSwitchConfigs[key] = value;
         const jsonPath: string = this.getPath('remoteKeySwitches.json');
+        this.log.debug(`Updating remote keys as switches config at ${jsonPath}`);
         fs.writeFileSync(jsonPath, JSON.stringify(this.remoteKeyAsSwitchConfigs, null, 4), { encoding:'utf8', flag:'w' });
     }
 
@@ -1070,8 +1080,25 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         }
         const filePath: string = path.join(dir, file);
         try {
-            fs.writeFileSync(filePath, defaultContent, { encoding:'utf8', flag: 'wx' });
-        } catch (err) { /* empty */ }
+            this.log.verbose(`Trying to set the file ${filePath} to its default content`);
+            fs.writeFileSync(filePath, defaultContent, { encoding: 'utf8', flag: 'wx' });
+            this.log.verbose(`File ${filePath} has been set to its default content`);
+        } catch (err) {
+            if (typeof err === 'object' && err !== null && 'code' in err && err.code === 'EEXIST') {
+                this.log.verbose(`File ${filePath} already exists.`);
+                return filePath;
+            }
+            if (typeof err === 'object' && err !== null && 'code' in err && err.code === 'EACCES') {
+                this.log.error(`File ${filePath} is not accessible by homebridge due to insufficient permissions.`);
+            } else {
+                this.log.error(`Error while accessing file ${filePath}: ${err}`);
+            }
+            // FIXME: stop from running
+            // while (true) {
+            //     this.log.warn('Please fix the file error above and restart the plugin afterwards');
+            //     delaySync(10000);
+            // }
+        }
         return filePath;
     }
 
@@ -1245,9 +1272,11 @@ device. Additionally, make sure to check the TV\'s HomeKit settings. Enable debu
                     error instanceof Error &&
                     error.message.includes('Could not find any Apple TV on current network')
                 ) {
+                    this.log.debug(error.message);
+                    this.log.debug(error.stack as string);
                     while (true) {
                         this.log.warn('Apple TV can be reached on OSI Layer 2 but not on 3. This is likely a network problem. Restart \
-the plugin after you have fixed the root cause.');
+the plugin after you have fixed the root cause. Enable debug logging to see the original errors.');
                         await delay(300000);
                     }
                 }
