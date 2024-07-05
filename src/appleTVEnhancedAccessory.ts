@@ -815,7 +815,16 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         if (this.appConfigs === undefined) {
             const jsonPath: string = this.getPath('apps.json');
             this.log.debug(`Loading app config from ${jsonPath}`);
-            this.appConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IAppConfigs;
+            try {
+                this.appConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IAppConfigs;
+            } catch (err: unknown) {
+                if (err instanceof Error && err.name === 'SyntaxError') {
+                    this.log.warn(`The file ${jsonPath} does not contain a valid JSON. Resetting to its defaults ...`);
+                    this.appConfigs = {};
+                } else {
+                    throw err;
+                }
+            }
         }
         return this.appConfigs;
     }
@@ -831,7 +840,16 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         if (this.commonConfig === undefined) {
             const jsonPath: string = this.getPath('common.json');
             this.log.debug(`Loading common config from ${jsonPath}`);
-            this.commonConfig = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as ICommonConfig;
+            try{
+                this.commonConfig = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as ICommonConfig;
+            } catch (err: unknown) {
+                if (err instanceof Error && err.name === 'SyntaxError') {
+                    this.log.warn(`The file ${jsonPath} does not contain a valid JSON. Resetting to its defaults ...`);
+                    this.commonConfig = {};
+                } else {
+                    throw err;
+                }
+            }
         }
         return this.commonConfig;
     }
@@ -850,7 +868,16 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         if (this.mediaConfigs === undefined) {
             const jsonPath: string = this.getPath('mediaTypes.json');
             this.log.debug(`Loading media types config from ${jsonPath}`);
-            this.mediaConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TMediaConfigs;
+            try{
+                this.mediaConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TMediaConfigs;
+            } catch (err: unknown) {
+                if (err instanceof Error && err.name === 'SyntaxError') {
+                    this.log.warn(`The file ${jsonPath} does not contain a valid JSON. Resetting to its defaults ...`);
+                    this.mediaConfigs = {};
+                } else {
+                    throw err;
+                }
+            }
         }
         return this.mediaConfigs;
     }
@@ -869,7 +896,16 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         if (this.deviceStateConfigs === undefined) {
             const jsonPath: string = this.getPath('deviceStates.json');
             this.log.debug(`Loading device states config from ${jsonPath}`);
-            this.deviceStateConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TDeviceStateConfigs;
+            try{
+                this.deviceStateConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TDeviceStateConfigs;
+            } catch (err: unknown) {
+                if (err instanceof Error && err.name === 'SyntaxError') {
+                    this.log.warn(`The file ${jsonPath} does not contain a valid JSON. Resetting to its defaults ...`);
+                    this.deviceStateConfigs = {};
+                } else {
+                    throw err;
+                }
+            }
         }
         return this.deviceStateConfigs;
     }
@@ -888,7 +924,16 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         if (this.remoteKeyAsSwitchConfigs === undefined) {
             const jsonPath: string = this.getPath('remoteKeySwitches.json');
             this.log.debug(`Loading remote key as switches config from ${jsonPath}`);
-            this.remoteKeyAsSwitchConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TRemoteKeysAsSwitchConfigs;
+            try{
+                this.remoteKeyAsSwitchConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TRemoteKeysAsSwitchConfigs;
+            } catch (err: unknown) {
+                if (err instanceof Error && err.name === 'SyntaxError') {
+                    this.log.warn(`The file ${jsonPath} does not contain a valid JSON. Resetting to its defaults ...`);
+                    this.remoteKeyAsSwitchConfigs = {};
+                } else {
+                    throw err;
+                }
+            }
         }
         return this.remoteKeyAsSwitchConfigs;
     }
