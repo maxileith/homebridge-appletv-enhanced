@@ -31,7 +31,6 @@ import { DisplayOrderTypes, RocketRemoteKey } from './enums';
 import type { TDeviceStateConfigs, TMediaConfigs, TRemoteKeysAsSwitchConfigs } from './types';
 import RocketRemote from './RocketRemote';
 
-
 const HIDE_BY_DEFAULT_APPS: string[] = [
     'com.apple.podcasts',
     'com.apple.TVAppStore',
@@ -425,15 +424,38 @@ export class AppleTVEnhancedAccessory {
         const volTmp: number | null = (await this.device.getState({ maxAge: 600000 })).volume; // TTL 10min
         const vol: number = volTmp !== null ? volTmp : 50;
 
+        const configuredName: string = this.getCommonConfig().volumeFanName || 'Volume';
+
         this.volumeFanService = this.accessory.getService('fanVolumeControl') ||
             this.addServiceSave(this.platform.Service.Fanv2, 'fanVolumeControl', 'fanVolumeControl')!;
+
+        this.volumeFanService.addOptionalCharacteristic(this.platform.Characteristic.ConfiguredName);
         this.volumeFanService.setCharacteristic(this.platform.Characteristic.Name, 'Volume');
+        this.volumeFanService.setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName);
+        this.volumeFanService.getCharacteristic(this.platform.Characteristic.ConfiguredName)
+            .onSet(async (value: CharacteristicValue) => {
+                if (value === '') {
+                    return;
+                }
+                const oldValue: Nullable<CharacteristicValue> =
+                    this.volumeFanService!.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+                if (oldValue === value) {
+                    return;
+                }
+                this.log.info(`Changing configured name of Volume Fan from ${oldValue} to ${value}.`);
+                this.setCommonConfig('volumeFanName', value.toString());
+            })
+            .onGet(async (): Promise<Nullable<CharacteristicValue>> => {
+                if (this.offline) {
+                    throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+                }
+                return this.volumeFanService!.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+            });
+
         this.volumeFanService.setCharacteristic(
             this.platform.Characteristic.Active,
             vol !== 0 ? this.platform.Characteristic.Active.ACTIVE : this.platform.Characteristic.Active.INACTIVE,
         );
-        this.volumeFanService.setCharacteristic(this.platform.Characteristic.RotationSpeed, vol);
-
         this.volumeFanService.getCharacteristic(this.platform.Characteristic.Active)
             .onSet(async (value: CharacteristicValue): Promise<void> => {
                 if (value === this.platform.Characteristic.Active.ACTIVE) {
@@ -445,6 +467,7 @@ export class AppleTVEnhancedAccessory {
                 }
             });
 
+        this.volumeFanService.setCharacteristic(this.platform.Characteristic.RotationSpeed, vol);
         this.volumeFanService.getCharacteristic(this.platform.Characteristic.RotationSpeed)
             .onSet(async (value: CharacteristicValue): Promise<void> => {
                 this.log.info(`Setting volume to ${value}%`);

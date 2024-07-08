@@ -26,6 +26,7 @@ export interface ICommonConfig {
     avadaKedavraName?: string;
     showHomeInput?: number;
     homeInputName?: string;
+    volumeFanName?: string;
 }
 
 export interface DeviceConfigOverride {
