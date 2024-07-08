@@ -44,6 +44,8 @@ export interface DeviceConfigOverride {
     customInputURIs?: string[];
     overrideDisableVolumeControlRemote?: boolean;
     disableVolumeControlRemote?: boolean;
+    overrideAbsoluteVolumeControl?: boolean;
+    absoluteVolumeControl?: boolean;
     overrideSetTopBox?: boolean;
     setTopBox?: boolean;
 }
@@ -56,6 +58,7 @@ export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_br
     avadaKedavraAppAmount?: number;
     customInputURIs?: string[];
     disableVolumeControlRemote?: boolean;
+    absoluteVolumeControl?: boolean;
     setTopBox?: boolean;
     deviceSpecificOverrides?: DeviceConfigOverride[];
     discover?: {

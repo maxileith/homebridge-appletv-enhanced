@@ -70,6 +70,7 @@ export class AppleTVEnhancedAccessory {
     private deviceStateServices: Partial<Record<NodePyATVDeviceState, Service>> = {};
     private mediaTypeServices: Partial<Record<NodePyATVMediaType, Service>> = {};
     private remoteKeyServices: Partial<Record<RocketRemoteKey, Service>> = {};
+    private volumeFanService: Service | undefined = undefined;
     private avadaKedavraService: Service | undefined = undefined;
     private homeInputService: Service | undefined = undefined;
     private televisionSpeakerService: Service | undefined = undefined;
@@ -90,6 +91,7 @@ export class AppleTVEnhancedAccessory {
     private lastTurningOnEvent: number = 0;
     private lastDeviceStateChange: number = 0;
     private lastDeviceState: NodePyATVDeviceState | null = null;
+    private lastNonZeroVolume: number = 50;
 
     private credentials: string | undefined = undefined;
 
@@ -206,6 +208,7 @@ export class AppleTVEnhancedAccessory {
         this.createDeviceStateSensors();
         this.createMediaTypeSensors();
         this.createRemoteKeysAsSwitches();
+        await this.createVolumeFan();
         this.createAvadaKedavra();
         this.createHomeInput();
         this.createAirPlayInput();
@@ -268,12 +271,14 @@ export class AppleTVEnhancedAccessory {
         const deviceStateListener = (e: Error | NodePyATVDeviceEvent): void => filterErrorHandler(
             e, this.handleDeviceStateUpdate.bind(this));
         const mediaTypeListener = (e: Error | NodePyATVDeviceEvent): void => filterErrorHandler(e, this.handleMediaTypeUpdate.bind(this));
+        const volumeListener = (e: Error | NodePyATVDeviceEvent): void => filterErrorHandler(e, this.handleVolumeUpdate.bind(this));
 
         this.device.on('update:powerState', powerStateListener);
         this.device.on('update:appId', appIdListener);
         this.device.on('update:app', appListener);
         this.device.on('update:deviceState', deviceStateListener);
         this.device.on('update:mediaType', mediaTypeListener);
+        this.device.on('update:volume', volumeListener);
 
         this.device.once('error', ((e: Error | NodePyATVDeviceEvent): void => {
             this.log.debug(e as unknown as string);
@@ -285,6 +290,7 @@ export class AppleTVEnhancedAccessory {
             this.device.removeListener('update:app', appListener);
             this.device.removeListener('update:deviceState', deviceStateListener);
             this.device.removeListener('update:mediaType', mediaTypeListener);
+            this.device.removeListener('update:volume', volumeListener);
 
             const credentials: string | undefined = this.getCredentials();
             this.device = CustomPyAtvInstance.deviceAdvanced({
@@ -405,6 +411,76 @@ export class AppleTVEnhancedAccessory {
                 });
             this.service!.addLinkedService(s);
             this.remoteKeyServices[remoteKey] = s;
+        }
+    }
+
+    private async createVolumeFan(): Promise<void> {
+        if (this.config.absoluteVolumeControl !== true) {
+            this.log.debug('Adding no fan for volume control as it has not been configured on this Apple TV.');
+            return;
+        }
+
+        this.log.debug('Adding fan for volume control.');
+
+        const volTmp: number | null = (await this.device.getState({ maxAge: 600000 })).volume; // TTL 10min
+        const vol: number = volTmp !== null ? volTmp : 50;
+
+        this.volumeFanService = this.accessory.getService('fanVolumeControl') ||
+            this.addServiceSave(this.platform.Service.Fanv2, 'fanVolumeControl', 'fanVolumeControl')!;
+        this.volumeFanService.setCharacteristic(this.platform.Characteristic.Name, 'Volume');
+        this.volumeFanService.setCharacteristic(
+            this.platform.Characteristic.Active,
+            vol !== 0 ? this.platform.Characteristic.Active.ACTIVE : this.platform.Characteristic.Active.INACTIVE,
+        );
+        this.volumeFanService.setCharacteristic(this.platform.Characteristic.RotationSpeed, vol);
+
+        this.volumeFanService.getCharacteristic(this.platform.Characteristic.Active)
+            .onSet(async (value: CharacteristicValue): Promise<void> => {
+                if (value === this.platform.Characteristic.Active.ACTIVE) {
+                    this.log.info(`Unmuting (Setting the volume to the last known state: ${this.lastNonZeroVolume}%)`);
+                    this.rocketRemote?.setVolume(this.lastNonZeroVolume);
+                } else {
+                    this.log.info('Muting');
+                    this.rocketRemote?.setVolume(0);
+                }
+            });
+
+        this.volumeFanService.getCharacteristic(this.platform.Characteristic.RotationSpeed)
+            .onSet(async (value: CharacteristicValue): Promise<void> => {
+                this.log.info(`Setting volume to ${value}%`);
+                this.rocketRemote?.setVolume(value as number);
+            });
+
+        this.service!.addLinkedService(this.volumeFanService);
+    }
+
+    private async handleVolumeUpdate(event: NodePyATVDeviceEvent): Promise<void> {
+        if (this.config.absoluteVolumeControl !== true) {
+            return;
+        }
+
+        const numericValue: number = Math.round(event.newValue as number);
+        this.log.info(`Volume has been set to ${numericValue}`);
+        this.volumeFanService?.updateCharacteristic(this.platform.Characteristic.RotationSpeed, numericValue);
+        if (numericValue !== 0) {
+            this.lastNonZeroVolume = numericValue;
+            if (this.volumeFanService?.getCharacteristic(
+                this.platform.Characteristic.Active).value === this.platform.Characteristic.Active.INACTIVE) {
+                this.log.debug('Activating the volume fan since volume !== 0');
+                this.volumeFanService?.updateCharacteristic(
+                    this.platform.Characteristic.Active,
+                    this.platform.Characteristic.Active.ACTIVE,
+                );
+            }
+        } else {
+            if (this.volumeFanService?.getCharacteristic(
+                this.platform.Characteristic.Active).value === this.platform.Characteristic.Active.ACTIVE) {
+                this.log.debug('Deactivating the volume fan since volume === 0');
+                this.volumeFanService?.updateCharacteristic(
+                    this.platform.Characteristic.Active,
+                    this.platform.Characteristic.Active.INACTIVE,
+                );
+            }
         }
     }
 
@@ -718,6 +794,7 @@ The following services have been added:
 - 01 One service for Accessory Information
 - 01 The television service (Apple TV) itself
 - 01 Television speaker service to control the volume with the iOS remote
+- ${this.config.absoluteVolumeControl === true ? '01' : '00'} Fans for volume control
 - ${Object.keys(this.deviceStateServices).length.toString().padStart(2, '0')} motion sensors for device states
 - ${Object.keys(this.mediaTypeServices).length.toString().padStart(2, '0')} motion sensors for media types
 - ${Object.keys(this.remoteKeyServices).length.toString().padStart(2, '0')} switches for remote keys
@@ -1402,6 +1479,9 @@ remaining)`);
         }
         if (override.overrideDisableVolumeControlRemote === true) {
             config.disableVolumeControlRemote = override.disableVolumeControlRemote;
+        }
+        if (override.overrideAbsoluteVolumeControl === true) {
+            config.absoluteVolumeControl = override.absoluteVolumeControl;
         }
         if (override.overrideSetTopBox === true) {
             config.setTopBox = override.setTopBox;

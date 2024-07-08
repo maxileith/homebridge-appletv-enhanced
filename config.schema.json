@@ -116,7 +116,14 @@
             },
             "disableVolumeControlRemote": {
                 "title": "Disable volume control in iOS remote",
-                "description": "Disables the volume control in the iOS remote. It is recommended to disable volume control when the audio setup that the Apple TV is connected to does not supports ARC since the Apple TV does not have any control over the volume in this scenario anyways.",
+                "description": "Disables the volume control in the iOS remote. It is recommended to disable volume control when the audio setup that the Apple TV is connected to does not support HDMI-CEC since the Apple TV does not have any control over the volume in this scenario anyways.",
+                "type": "boolean",
+                "default": false,
+                "required": true
+            },
+            "absoluteVolumeControl": {
+                "title": "Absolute volume control (fan)",
+                "description": "Exposes a fan that let's you control the volume in percentage. This does only work with your audio output does allow absolute volume control like on certain HDMI-CEC setups or if using HomePods.",
                 "type": "boolean",
                 "default": false,
                 "required": true
@@ -370,6 +377,18 @@
                             "default": false,
                             "required": true
                         },
+                        "overrideAbsoluteVolumeControl": {
+                            "title": "Override: Absolute volume control (fan)",
+                            "type": "boolean",
+                            "default": false,
+                            "required": true
+                        },
+                        "absoluteVolumeControl": {
+                            "title": "Absolute volume control (fan)",
+                            "type": "boolean",
+                            "default": false,
+                            "required": true
+                        },
                         "overrideSetTopBox": {
                             "title": "Override: Expose Set-Top Box Accessory",
                             "type": "boolean",
@@ -408,6 +427,7 @@
                 },
                 "avadaKedavraAppAmount",
                 "disableVolumeControlRemote",
+                "absoluteVolumeControl",
                 "setTopBox"
             ]
         },
@@ -510,6 +530,18 @@
                             "key": "deviceSpecificOverrides[].disableVolumeControlRemote",
                             "condition": {
                                 "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideDisableVolumeControlRemote === true;"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].overrideAbsoluteVolumeControl",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac);"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].absoluteVolumeControl",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideAbsoluteVolumeControl === true;"
                             }
                         },
                         {
