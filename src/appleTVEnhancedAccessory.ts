@@ -438,17 +438,17 @@ export class AppleTVEnhancedAccessory {
             .onSet(async (value: CharacteristicValue): Promise<void> => {
                 if (value === this.platform.Characteristic.Active.ACTIVE) {
                     this.log.info(`Unmuting (Setting the volume to the last known state: ${this.lastNonZeroVolume}%)`);
-                    this.rocketRemote?.setVolume(this.lastNonZeroVolume);
+                    this.rocketRemote?.setVolume(this.lastNonZeroVolume, true);
                 } else {
                     this.log.info('Muting');
-                    this.rocketRemote?.setVolume(0);
+                    this.rocketRemote?.setVolume(0, true);
                 }
             });
 
         this.volumeFanService.getCharacteristic(this.platform.Characteristic.RotationSpeed)
             .onSet(async (value: CharacteristicValue): Promise<void> => {
                 this.log.info(`Setting volume to ${value}%`);
-                this.rocketRemote?.setVolume(value as number);
+                this.rocketRemote?.setVolume(value as number, true);
             });
 
         this.service!.addLinkedService(this.volumeFanService);
