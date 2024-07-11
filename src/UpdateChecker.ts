@@ -9,6 +9,7 @@ import path from 'path';
 import fs from 'fs';
 import { pathExists } from 'fs-extra';
 import { runCommand } from './utils';
+import type { TUpdateCheckTime } from './types';
 
 interface INpmPublishConfig {
     access: string;
@@ -133,7 +134,7 @@ class UpdateChecker {
 
     private readonly log: PrefixLogger;
 
-    private intervalMs: number;
+    private updateCheckHour: number;
     private includeBetas: boolean;
     private interval: NodeJS.Timeout | undefined;
     private autoUpdate: boolean;
@@ -142,25 +143,26 @@ class UpdateChecker {
         logger: LogLevelLogger | PrefixLogger,
         autoUpdate: boolean = false,
         includeBetas: boolean = false,
-        intervalMinutes: number = 60,
+        updateCheckHour: TUpdateCheckTime = 3,
     ) {
         this.log = new PrefixLogger(logger, 'Update check');
 
-        this.intervalMs = intervalMinutes * 60000;
+        this.updateCheckHour = updateCheckHour;
         this.includeBetas = includeBetas;
         this.autoUpdate = autoUpdate;
 
-        this.log.info(`The update checker is configured to check for updates every ${intervalMinutes} minutes, \
+        this.log.info(`The update checker is configured to check for updates between ${updateCheckHour}:00 and ${updateCheckHour}:59, \
 ${includeBetas ? 'including' : 'excluding'} betas. Auto updating is turned ${autoUpdate ? 'on' : 'off'}.`);
     }
 
     public startInterval(skipInitialCheck: boolean = false): void {
         this.log.debug('Starting update check interval.');
-        if (skipInitialCheck === false) {
+        if (skipInitialCheck) {
             this.log.debug('Skipping initial update check.');
-            this.check();
+        } else {
+            this.intervalMethod();
         }
-        this.interval = setInterval(this.check.bind(this), this.intervalMs);
+        this.interval = setInterval(this.intervalMethod.bind(this), 60 * 60 * 1000);
     }
 
     public stopInterval(): void {
@@ -194,6 +196,16 @@ betas): ${currentVersion}`;
             } else {
                 this.log.info(msg);
             }
+        }
+    }
+
+    private intervalMethod(): void {
+        if ((new Date()).getHours() === this.updateCheckHour) {
+            this.log.debug('Triggering the check method since the configured update check time is now.');
+            this.check();
+        } else {
+            this.log.debug(`Not triggering the check method as the update check is configured to run between ${this.updateCheckHour}:00 \
+and ${this.updateCheckHour}:59.`);
         }
     }
 
