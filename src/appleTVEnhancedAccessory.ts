@@ -90,6 +90,7 @@ export class AppleTVEnhancedAccessory {
     private lastDeviceStateChange: number = 0;
     private lastDeviceState: NodePyATVDeviceState | null = null;
     private lastNonZeroVolume: number = 50;
+    private lastUnmute: number = 0;
 
     private credentials: string | undefined = undefined;
 
@@ -461,6 +462,7 @@ export class AppleTVEnhancedAccessory {
         this.volumeFanService.getCharacteristic(this.platform.Characteristic.Active)
             .onSet(async (value: CharacteristicValue): Promise<void> => {
                 if (value === this.platform.Characteristic.Active.ACTIVE) {
+                    this.lastUnmute = Date.now();
                     this.log.info(`Unmuting (Setting the volume to the last known state: ${this.lastNonZeroVolume}%)`);
                     this.rocketRemote?.setVolume(this.lastNonZeroVolume, true);
                 } else {
@@ -472,8 +474,12 @@ export class AppleTVEnhancedAccessory {
         this.volumeFanService.setCharacteristic(this.platform.Characteristic.RotationSpeed, vol);
         this.volumeFanService.getCharacteristic(this.platform.Characteristic.RotationSpeed)
             .onSet(async (value: CharacteristicValue): Promise<void> => {
-                this.log.info(`Setting volume to ${value}%`);
-                this.rocketRemote?.setVolume(value as number, true);
+                if (value !== 100 || this.lastUnmute + 100 < Date.now()) {
+                    this.log.info(`Setting volume to ${value}%`);
+                    this.rocketRemote?.setVolume(value as number, true);
+                } else {
+                    this.log.debug('Skip setting volume to 100 as it is likely a faulty behavior of homebridge after unmuting.');
+                }
             });
 
         this.service!.addLinkedService(this.volumeFanService);
@@ -484,7 +490,11 @@ export class AppleTVEnhancedAccessory {
             return;
         }
 
-        const numericValue: number = Math.round(event.newValue as number);
+        if (typeof event.newValue !== 'number') {
+            return;
+        }
+
+        const numericValue: number = Math.round(event.newValue);
         this.log.info(`Volume has been set to ${numericValue}`);
         this.volumeFanService?.updateCharacteristic(this.platform.Characteristic.RotationSpeed, numericValue);
         if (numericValue !== 0) {

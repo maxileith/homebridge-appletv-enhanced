@@ -190,7 +190,7 @@ class RocketRemote {
 
     public avadaKedavra(): void {
         this.log.info('Avada Kedavra');
-        this.log.debug(`Avada Kedavra sequence: ${this.avadaKedavraSequence.toString()}`);
+        this.log.debug(`Avada Kedavra sequence: ${this.avadaKedavraSequence.join(', ')}`);
         const ak: ChildProcessWithoutNullStreams = spawn(this.atvremotePath, [
             '--scan-hosts', this.ip,
             '--companion-credentials', this.companionCredentials,
