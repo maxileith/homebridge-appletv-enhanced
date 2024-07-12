@@ -156,6 +156,8 @@ export class AppleTVEnhancedAccessory {
             ? this.platform.api.hap.Categories.TV_SET_TOP_BOX
             : this.platform.api.hap.Categories.APPLE_TV;
 
+        const configuredName: string = this.getCommonConfig().configuredName || removeSpecialCharacters(this.accessory.displayName);
+
         // set accessory information
         this.accessory.getService(this.platform.Service.AccessoryInformation)!
             .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Apple Inc.')
@@ -163,8 +165,6 @@ export class AppleTVEnhancedAccessory {
             .setCharacteristic(this.platform.Characteristic.SerialNumber, this.device.mac!)
             .setCharacteristic(this.platform.Characteristic.Name, removeSpecialCharacters(this.device.name))
             .setCharacteristic(this.platform.Characteristic.FirmwareRevision, this.device.version!);
-
-        const configuredName: string = this.getCommonConfig().configuredName || removeSpecialCharacters(this.accessory.displayName);
 
         // create the service
         this.service =
@@ -183,6 +183,7 @@ export class AppleTVEnhancedAccessory {
             )
             .setCharacteristic(this.platform.Characteristic.CurrentMediaState, this.platform.Characteristic.CurrentMediaState.INTERRUPTED)
             .setCharacteristic(this.platform.Characteristic.FirmwareRevision, this.device.version!);
+
         // create handlers for required characteristics of the service
         this.service.getCharacteristic(this.platform.Characteristic.Active)
             .onGet(this.handleActiveGet.bind(this))
@@ -324,47 +325,6 @@ export class AppleTVEnhancedAccessory {
             await delay(5000);
             this.createRemote();
         }).bind(this));
-    }
-
-    private createMediaTypeSensors(): void {
-        const mediaTypes: NodePyATVMediaType[] = Object.keys(NodePyATVMediaType) as NodePyATVMediaType[];
-        for (const mediaType of mediaTypes) {
-            if (this.config.mediaTypes === undefined || !this.config.mediaTypes.includes(mediaType)) {
-                continue;
-            }
-            const name: string = capitalizeFirstLetter(mediaType);
-            const configuredName: string = this.getMediaConfigs()[mediaType] || name;
-            this.log.debug(`Adding media type ${mediaType} as a motion sensor. (named: ${configuredName})`);
-            const s: Service = this.accessory.getService(name) ||
-                this.addServiceSave(this.platform.Service.MotionSensor, name, mediaType)!;
-            s.addOptionalCharacteristic(this.platform.Characteristic.ConfiguredName);
-            s
-                .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
-                .setCharacteristic(this.platform.Characteristic.Name, name)
-                .setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName);
-            s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
-                .onSet(async (value: CharacteristicValue) => {
-                    if (value === '') {
-                        return;
-                    }
-                    const oldConfiguredName: Nullable<CharacteristicValue> =
-                        s.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
-                    if (oldConfiguredName === value) {
-                        return;
-                    }
-                    this.log.info(`Changing configured name of media type sensor ${mediaType} from ${oldConfiguredName} to ${value}.`);
-                    this.setMediaTypeConfig(mediaType, value.toString());
-                });
-            s.getCharacteristic(this.platform.Characteristic.MotionDetected)
-                .onGet(async (): Promise<CharacteristicValue> => {
-                    if (this.offline) {
-                        throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
-                    }
-                    return s.getCharacteristic(this.platform.Characteristic.MotionDetected).value as CharacteristicValue;
-                });
-            this.service!.addLinkedService(s);
-            this.mediaTypeServices[mediaType] = s;
-        }
     }
 
     private createRemoteKeysAsSwitches(): void {
@@ -516,6 +476,47 @@ export class AppleTVEnhancedAccessory {
                     this.platform.Characteristic.Active.INACTIVE,
                 );
             }
+        }
+    }
+
+    private createMediaTypeSensors(): void {
+        const mediaTypes: NodePyATVMediaType[] = Object.keys(NodePyATVMediaType) as NodePyATVMediaType[];
+        for (const mediaType of mediaTypes) {
+            if (this.config.mediaTypes === undefined || !this.config.mediaTypes.includes(mediaType)) {
+                continue;
+            }
+            const name: string = capitalizeFirstLetter(mediaType);
+            const configuredName: string = this.getMediaConfigs()[mediaType] || name;
+            this.log.debug(`Adding media type ${mediaType} as a motion sensor. (named: ${configuredName})`);
+            const s: Service = this.accessory.getService(name) ||
+                this.addServiceSave(this.platform.Service.MotionSensor, name, mediaType)!;
+            s.addOptionalCharacteristic(this.platform.Characteristic.ConfiguredName);
+            s
+                .setCharacteristic(this.platform.Characteristic.MotionDetected, false)
+                .setCharacteristic(this.platform.Characteristic.Name, name)
+                .setCharacteristic(this.platform.Characteristic.ConfiguredName, configuredName);
+            s.getCharacteristic(this.platform.Characteristic.ConfiguredName)
+                .onSet(async (value: CharacteristicValue) => {
+                    if (value === '') {
+                        return;
+                    }
+                    const oldConfiguredName: Nullable<CharacteristicValue> =
+                        s.getCharacteristic(this.platform.Characteristic.ConfiguredName).value;
+                    if (oldConfiguredName === value) {
+                        return;
+                    }
+                    this.log.info(`Changing configured name of media type sensor ${mediaType} from ${oldConfiguredName} to ${value}.`);
+                    this.setMediaTypeConfig(mediaType, value.toString());
+                });
+            s.getCharacteristic(this.platform.Characteristic.MotionDetected)
+                .onGet(async (): Promise<CharacteristicValue> => {
+                    if (this.offline) {
+                        throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+                    }
+                    return s.getCharacteristic(this.platform.Characteristic.MotionDetected).value as CharacteristicValue;
+                });
+            this.service!.addLinkedService(s);
+            this.mediaTypeServices[mediaType] = s;
         }
     }
 
