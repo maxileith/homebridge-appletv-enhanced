@@ -116,7 +116,14 @@
             },
             "disableVolumeControlRemote": {
                 "title": "Disable volume control in iOS remote",
-                "description": "Disables the volume control in the iOS remote. It is recommended to disable volume control when the audio setup that the Apple TV is connected to does not supports ARC since the Apple TV does not have any control over the volume in this scenario anyways.",
+                "description": "Disables the volume control in the iOS remote. It is recommended to disable volume control when the audio setup that the Apple TV is connected to does not support HDMI-CEC since the Apple TV does not have any control over the volume in this scenario anyways.",
+                "type": "boolean",
+                "default": false,
+                "required": true
+            },
+            "absoluteVolumeControl": {
+                "title": "Absolute volume control (fan)",
+                "description": "Exposes a fan that let's you control the volume in percentage. This does only work with your audio output does allow absolute volume control like on certain HDMI-CEC setups or if using HomePods.",
                 "type": "boolean",
                 "default": false,
                 "required": true
@@ -204,6 +211,41 @@
                     { "title": "Off", "enum": ["off"] }
                 ],
                 "required": false
+            },
+            "updateCheckTime": {
+                "title": "Auto Update Time",
+                "description": "Set the timeframe in which the plugin will search for updates. Make sure that your system time is correct.",
+                "type": "integer",
+                "oneOf": [
+                    { "title": "0:00 - 0:59", "enum": [0] },
+                    { "title": "1:00 - 1:59", "enum": [1] },
+                    { "title": "2:00 - 2:59", "enum": [2] },
+                    { "title": "3:00 - 3:59", "enum": [3] },
+                    { "title": "4:00 - 4:59", "enum": [4] },
+                    { "title": "5:00 - 5:59", "enum": [5] },
+                    { "title": "6:00 - 6:59", "enum": [6] },
+                    { "title": "7:00 - 7:59", "enum": [7] },
+                    { "title": "8:00 - 8:59", "enum": [8] },
+                    { "title": "9:00 - 9:59", "enum": [9] },
+                    { "title": "10:00 - 10:59", "enum": [10] },
+                    { "title": "11:00 - 11:59", "enum": [11] },
+                    { "title": "12:00 - 12:59", "enum": [12] },
+                    { "title": "13:00 - 13:59", "enum": [13] },
+                    { "title": "14:00 - 14:59", "enum": [14] },
+                    { "title": "15:00 - 15:59", "enum": [15] },
+                    { "title": "16:00 - 16:59", "enum": [16] },
+                    { "title": "17:00 - 17:59", "enum": [17] },
+                    { "title": "18:00 - 18:59", "enum": [18] },
+                    { "title": "19:00 - 19:59", "enum": [19] },
+                    { "title": "20:00 - 20:59", "enum": [20] },
+                    { "title": "21:00 - 21:59", "enum": [21] },
+                    { "title": "22:00 - 22:59", "enum": [22] },
+                    { "title": "23:00 - 23:59", "enum": [23] }
+                ],
+                "required": true,
+                "minimum": 0,
+                "maximum": 23,
+                "default": 3
             },
             "pythonExecutable": {
                 "title": "Python Executable",
@@ -370,6 +412,18 @@
                             "default": false,
                             "required": true
                         },
+                        "overrideAbsoluteVolumeControl": {
+                            "title": "Override: Absolute volume control (fan)",
+                            "type": "boolean",
+                            "default": false,
+                            "required": true
+                        },
+                        "absoluteVolumeControl": {
+                            "title": "Absolute volume control (fan)",
+                            "type": "boolean",
+                            "default": false,
+                            "required": true
+                        },
                         "overrideSetTopBox": {
                             "title": "Override: Expose Set-Top Box Accessory",
                             "type": "boolean",
@@ -408,6 +462,7 @@
                 },
                 "avadaKedavraAppAmount",
                 "disableVolumeControlRemote",
+                "absoluteVolumeControl",
                 "setTopBox"
             ]
         },
@@ -513,6 +568,18 @@
                             }
                         },
                         {
+                            "key": "deviceSpecificOverrides[].overrideAbsoluteVolumeControl",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac);"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].absoluteVolumeControl",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideAbsoluteVolumeControl === true;"
+                            }
+                        },
+                        {
                             "key": "deviceSpecificOverrides[].overrideSetTopBox",
                             "condition": {
                                 "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac);"
@@ -565,6 +632,7 @@
                 "forceVenvRecreate",
                 "logLevel",
                 "updateCheckLevel",
+                "updateCheckTime",
                 "autoUpdate",
                 "pythonExecutable"
             ]

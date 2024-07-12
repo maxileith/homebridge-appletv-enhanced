@@ -45,12 +45,12 @@ class RocketRemote {
         this.initHeartbeat();
     }
 
-    public openApp(id: string): void {
-        this.sendCommand(`launch_app=${id}`);
+    public openApp(id: string, hideLog: boolean = false): void {
+        this.sendCommand(`launch_app=${id}`, hideLog);
     }
 
-    public setVolume(percentage: number): void {
-        this.sendCommand(`set_volume=${percentage}`);
+    public setVolume(percentage: number, hideLog: boolean = false): void {
+        this.sendCommand(`set_volume=${percentage}`, hideLog);
     }
 
     public sendCommand(cmd: RocketRemoteKey | string, hideLog: boolean = false): void {
@@ -66,96 +66,96 @@ class RocketRemote {
         this.lastCommandSend = Date.now();
     }
 
-    public channelDown(): void {
-        this.sendCommand(RocketRemoteKey.CHANNEL_DOWN);
+    public channelDown(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.CHANNEL_DOWN, hideLog);
     }
 
-    public channelUp(): void {
-        this.sendCommand(RocketRemoteKey.CHANNEL_UP);
+    public channelUp(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.CHANNEL_UP, hideLog);
     }
 
-    public down(): void {
-        this.sendCommand(RocketRemoteKey.DOWN);
+    public down(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.DOWN, hideLog);
     }
 
-    public home(): void {
-        this.sendCommand(RocketRemoteKey.HOME);
+    public home(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.HOME, hideLog);
     }
 
-    public homeHold(): void {
-        this.sendCommand(RocketRemoteKey.HOME_HOLD);
+    public homeHold(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.HOME_HOLD, hideLog);
     }
 
-    public left(): void {
-        this.sendCommand(RocketRemoteKey.LEFT);
+    public left(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.LEFT, hideLog);
     }
 
-    public menu(): void {
-        this.sendCommand(RocketRemoteKey.MENU);
+    public menu(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.MENU, hideLog);
     }
 
-    public next(): void {
-        this.sendCommand(RocketRemoteKey.NEXT);
+    public next(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.NEXT, hideLog);
     }
 
-    public pause(): void {
-        this.sendCommand(RocketRemoteKey.PAUSE);
+    public pause(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.PAUSE, hideLog);
     }
 
-    public play(): void {
-        this.sendCommand(RocketRemoteKey.PLAY);
+    public play(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.PLAY, hideLog);
     }
 
-    public playPause(): void {
-        this.sendCommand(RocketRemoteKey.PLAY_PAUSE);
+    public playPause(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.PLAY_PAUSE, hideLog);
     }
 
-    public previous(): void {
-        this.sendCommand(RocketRemoteKey.PREVIOUS);
+    public previous(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.PREVIOUS, hideLog);
     }
 
-    public right(): void {
-        this.sendCommand(RocketRemoteKey.RIGHT);
+    public right(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.RIGHT, hideLog);
     }
 
-    public select(): void {
-        this.sendCommand(RocketRemoteKey.SELECT);
+    public select(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.SELECT, hideLog);
     }
 
-    public skipBackward(): void {
-        this.sendCommand(RocketRemoteKey.SKIP_BACKWARD);
+    public skipBackward(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.SKIP_BACKWARD, hideLog);
     }
 
-    public skipForward(): void {
-        this.sendCommand(RocketRemoteKey.SKIP_FORWARD);
+    public skipForward(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.SKIP_FORWARD, hideLog);
     }
 
-    public stop(): void {
-        this.sendCommand(RocketRemoteKey.STOP);
+    public stop(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.STOP, hideLog);
     }
 
-    public turnOff(): void {
-        this.sendCommand(RocketRemoteKey.TURN_OFF);
+    public turnOff(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.TURN_OFF, hideLog);
     }
 
-    public turnOn(): void {
-        this.sendCommand(RocketRemoteKey.TURN_ON);
+    public turnOn(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.TURN_ON, hideLog);
     }
 
-    public topMenu(): void {
-        this.sendCommand(RocketRemoteKey.TOP_MENU);
+    public topMenu(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.TOP_MENU, hideLog);
     }
 
-    public up(): void {
-        this.sendCommand(RocketRemoteKey.UP);
+    public up(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.UP, hideLog);
     }
 
-    public volumeDown(): void {
-        this.sendCommand(RocketRemoteKey.VOLUME_DOWN);
+    public volumeDown(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.VOLUME_DOWN, hideLog);
     }
 
-    public volumeUp(): void {
-        this.sendCommand(RocketRemoteKey.VOLUME_UP);
+    public volumeUp(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.VOLUME_UP, hideLog);
     }
 
     public setOutputDevices(identifiers: string[], hideLog: boolean = false): void {
@@ -190,7 +190,7 @@ class RocketRemote {
 
     public avadaKedavra(): void {
         this.log.info('Avada Kedavra');
-        this.log.debug(`Avada Kedavra sequence: ${this.avadaKedavraSequence.toString()}`);
+        this.log.debug(`Avada Kedavra sequence: ${this.avadaKedavraSequence.join(', ')}`);
         const ak: ChildProcessWithoutNullStreams = spawn(this.atvremotePath, [
             '--scan-hosts', this.ip,
             '--companion-credentials', this.companionCredentials,

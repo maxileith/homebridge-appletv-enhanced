@@ -24,19 +24,6 @@ export function getLocalIP(): string {
     return 'homebridge.local';
 }
 
-export function trimSpecialCharacters(value: string): string {
-    while (value.length !== 0 && !/[a-zA-Z0-9]/.test(value.charAt(0))) {
-        value = value.substring(1);
-    }
-    while (value.length !== 0 && !/[a-zA-Z0-9]/.test(value.charAt(value.length - 1))) {
-        value = value.substring(0, value.length - 1);
-    }
-    if (value === '') {
-        return 'to be named';
-    }
-    return value;
-}
-
 export function trimToMaxLength(value: string, maxLength: number): string {
     if (value.length <= maxLength) {
         return value;
@@ -46,7 +33,7 @@ export function trimToMaxLength(value: string, maxLength: number): string {
 }
 
 export function removeSpecialCharacters(str: string): string {
-    return str.replace(/[^a-zA-Z0-9 ]/g, '').trim();
+    return str.replace(/[^a-zA-Z0-9\u00c4\u00e4\u00d6\u00f6\u00dc\u00fc\u00df ]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 export function snakeCaseToTitleCase(str: string): string {

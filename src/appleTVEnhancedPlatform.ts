@@ -50,8 +50,12 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             this.log.debug('Executed didFinishLaunching callback');
 
             // enable update check
-            const updateChecker: UpdateChecker =
-                new UpdateChecker(this.logLevelLogger, this.isAutoUpdateOn(), this.config.updateCheckLevel === 'beta', 60);
+            const updateChecker: UpdateChecker = new UpdateChecker(
+                this.logLevelLogger,
+                this.isAutoUpdateOn(),
+                this.config.updateCheckLevel === 'beta',
+                this.config.updateCheckTime,
+            );
             await updateChecker.check('info');
             updateChecker.startInterval(true);
 
