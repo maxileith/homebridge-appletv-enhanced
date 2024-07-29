@@ -280,7 +280,7 @@ is not set.');
 
         const args: string[] = ['install', ...installOptions, `homebridge-appletv-enhanced@${version}`];
 
-        this.log.info(`CMD: ${npm} "${args.join('" "')} (cwd: ${installPath})"`);
+        this.log.info(`CMD: ${npm} "${args.join('" "')}" (cwd: ${installPath})`);
         const [, , exitCode]: [string, string, number | null] = await runCommand(this.log, npm, args, {cwd: installPath});
 
         if (exitCode === 0) {

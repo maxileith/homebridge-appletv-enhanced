@@ -213,7 +213,7 @@
                 "required": false
             },
             "updateCheckTime": {
-                "title": "Auto Update Time",
+                "title": "Update Check Time",
                 "description": "Set the timeframe in which the plugin will search for updates. Make sure that your system time is correct.",
                 "type": "integer",
                 "oneOf": [

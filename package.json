@@ -1,7 +1,7 @@
 {
     "name": "homebridge-appletv-enhanced",
     "displayName": "Apple TV Enhanced",
-    "version": "1.5.0",
+    "version": "1.5.1-1",
     "description": "Plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV implementation of HomeKit.",
     "main": "dist/index.js",
     "author": "Maximilian Leith",
@@ -17,8 +17,8 @@
         "darwin"
     ],
     "engines": {
-        "homebridge": "^1.8.0",
-        "node": "^20.15.1 || ^18.20.4"
+        "homebridge": "^1.8.4",
+        "node": "^20.16.0 || ^18.20.4"
     },
     "keywords": [
         "homebridge-plugin",
@@ -59,14 +59,14 @@
     },
     "devDependencies": {
         "@types/md5": "^2.3.5",
-        "@types/node": "^18.19.39",
-        "@typescript-eslint/eslint-plugin": "^7.16.0",
-        "@typescript-eslint/parser": "^7.16.0",
+        "@types/node": "^18.19.42",
+        "@typescript-eslint/eslint-plugin": "^7.17.0",
+        "@typescript-eslint/parser": "^7.17.0",
         "eslint": "^8.57.0",
-        "homebridge": "^1.8.3",
+        "homebridge": "^1.8.4",
         "homebridge-config-ui-x": "^4.56.4",
         "nodemon": "^3.1.4",
-        "rimraf": "^5.0.7",
+        "rimraf": "^6.0.1",
         "standard-version": "^9.5.0",
         "ts-node": "^10.9.2",
         "typescript": "^5.5.3"
@@ -74,7 +74,7 @@
     "dependencies": {
         "@sebbo2002/node-pyatv": "^7.4.0-develop.3",
         "axios": "^1.7.2",
-        "compare-versions": "^6.1.0",
+        "compare-versions": "^6.1.1",
         "md5": "^2.3.0",
         "fs-extra": "^11.2.0"
     },
