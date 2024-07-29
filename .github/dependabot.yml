@@ -33,9 +33,9 @@ updates:
         patterns:
           - "@types/md5"
           - "md5"
-    ignore:
-      - dependency-name: "@types/node"
-        update-types: ["version-update:semver-major"]
+    # ignore:
+    #   - dependency-name: "@types/node"
+    #     update-types: ["version-update:semver-major"]
 
   # Enable version updates for pip
   - package-ecosystem: pip
