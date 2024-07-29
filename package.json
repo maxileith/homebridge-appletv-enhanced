@@ -17,7 +17,7 @@
         "darwin"
     ],
     "engines": {
-        "homebridge": "^1.8.0",
+        "homebridge": "^1.8.4",
         "node": "^20.16.0 || ^18.20.4"
     },
     "keywords": [
