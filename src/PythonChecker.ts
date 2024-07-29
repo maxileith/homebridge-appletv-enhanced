@@ -177,7 +177,7 @@ environment ...');
 
     private async installRequirements(): Promise<void> {
         await runCommand(this.log, this.venvPipExecutable, ['install', '-r', this.requirementsPath]);
-        this.log.success('Python requirement installed.');
+        this.log.success('Python requirements installed.');
     }
 
     private async getSystemPythonVersion(): Promise<string> {
