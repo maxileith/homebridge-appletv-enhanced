@@ -33,7 +33,7 @@ export function trimToMaxLength(value: string, maxLength: number): string {
 }
 
 export function removeSpecialCharacters(str: string): string {
-    return str.replace(/[^a-zA-Z0-9\u00c4\u00e4\u00d6\u00f6\u00dc\u00fc\u00df ]/g, ' ').replace(/\s+/g, ' ').trim();
+    return str.replace(/[^\p{L}\p{N} ']/gu, '').replace(/\s{2,}/g, ' ').trim();
 }
 
 export function snakeCaseToTitleCase(str: string): string {
