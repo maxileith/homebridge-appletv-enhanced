@@ -45,6 +45,7 @@ This plugin automatically discovers Apple TV devices on the local network and ex
     -   For each device state (idle, playing, loading, seeking, paused, stopped) the plugin will create a motion sensor (device states can be hidden or shown by changing the configuration).
 -   A fully functional and super fast remote in the remote app of your iPhone or iPad.
     -   Remote keys can also be exposed as switches.
+-   Absolute volume control via a fan accessory.
 -   If you do not want all Apple TVs to be exposed, it is possible to blacklist them by providing the MAC-Address.
 -   "Avada Kedavra" which is exposed as an input to close all apps.
 
