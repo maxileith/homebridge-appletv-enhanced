@@ -73,7 +73,7 @@
     },
     "dependencies": {
         "@sebbo2002/node-pyatv": "^7.4.0-develop.4",
-        "axios": "^1.7.2",
+        "axios": "^1.7.3",
         "compare-versions": "^6.1.1",
         "md5": "^2.3.0",
         "fs-extra": "^11.2.0"
