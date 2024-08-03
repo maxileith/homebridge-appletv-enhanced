@@ -9,7 +9,7 @@ export function capitalizeFirstLetter(value: string): string {
     return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-export const delay = (ms: number): Promise<void> => new Promise<void>(res => setTimeout(res, ms));
+export const delay = async (ms: number): Promise<void> => new Promise<void>(res => setTimeout(res, ms));
 
 export function getLocalIP(): string {
     const interfaces: NodeJS.Dict<NetworkInterfaceInfo[]> = networkInterfaces();

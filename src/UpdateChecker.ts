@@ -38,8 +38,8 @@ interface INpmProvenance {
 }
 
 interface INpmAttestations {
-    url: string;
     provenance: INpmProvenance;
+    url: string;
 }
 
 interface INpmSignature {
@@ -48,18 +48,18 @@ interface INpmSignature {
 }
 
 interface INpmDist {
+    attestations: INpmAttestations;
+    fileCount: number;
     integrity: string;
     shasum: string;
-    tarball: string;
-    fileCount: number;
-    unpackedSize: number;
-    attestations: INpmAttestations;
     signatures: INpmSignature[];
+    tarball: string;
+    unpackedSize: number;
 }
 
 interface INpmUser {
-    name: string;
     email: string;
+    name: string;
 }
 
 interface INpmOperationalInternal {
@@ -68,61 +68,62 @@ interface INpmOperationalInternal {
 }
 
 interface INpmVersion {
-    name: string;
-    displayName: string;
-    version: string;
-    description: string;
-    main: string;
+    _hasShrinkwrap: boolean;
+    _id: string;
+    _nodeVersion: string;
+    _npmOperationalInternal: INpmOperationalInternal;
+    _npmUser: INpmUser;
+    _npmVersion: string;
     author: INpmAuthor;
-    scripts: Record<string, string>;
-    os: string[];
+    bugs: INpmBugs;
+    dependencies: Record<string, string>;
+    description: string;
+    devDependencies: Record<string, string>;
+    directories: object;
+    displayName: string;
+    dist: INpmDist;
     engines: Record<string, string>;
+    funding: INpmFunding[];
+    gitHead: string;
+    homepage: string;
     keywords: string[];
     license: string;
+    main: string;
+    maintainers: INpmUser[];
+    name: string;
+    os: string[];
     publishConfig: INpmPublishConfig;
-    repository: INpmRepository;
-    bugs: INpmBugs;
-    devDependencies: Record<string, string>;
-    dependencies: Record<string, string>;
-    homepage: string;
-    funding: INpmFunding[];
-    _id: string;
     readme: string;
     readmeFilename: string;
-    gitHead: string;
+    repository: INpmRepository;
+    scripts: Record<string, string>;
     types: string;
-    _nodeVersion: string;
-    _npmVersion: string;
-    dist: INpmDist;
-    _npmUser: INpmUser;
-    directories: object;
-    maintainers: INpmUser[];
-    _npmOperationalInternal: INpmOperationalInternal;
-    _hasShrinkwrap: boolean;
+    version: string;
 }
 
 interface INpmTime extends Record<string, string> {
-    modified: string;
     created: string;
+    modified: string;
 }
 
 interface INpmResponse {
     _id: string;
     _rev: string;
-    name: string;
-    'dist-tags': Record<string, string>;
-    versions: Record<string, INpmVersion>;
-    time: INpmTime;
-    maintainers: INpmUser[];
-    description: string;
-    homepage: string;
-    keywords: string[];
-    repository: INpmRepository;
     author: INpmAuthor;
     bugs: INpmBugs;
+    description: string;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    'dist-tags': Record<string, string>;
+    homepage: string;
+    keywords: string[];
     license: string;
+    maintainers: INpmUser[];
+    name: string;
     readme: string;
     readmeFilename: string;
+    repository: INpmRepository;
+    time: INpmTime;
+    versions: Record<string, INpmVersion>;
 }
 
 const UIX_CUSTOM_PLUGIN_PATH: string | undefined = process.env.UIX_CUSTOM_PLUGIN_PATH !== undefined
@@ -132,12 +133,11 @@ const UIX_USE_PNPM: boolean = process.env.UIX_USE_PNPM === '1';
 
 class UpdateChecker {
 
-    private readonly log: PrefixLogger;
-
-    private updateCheckHour: number;
+    private autoUpdate: boolean;
     private includeBetas: boolean;
     private interval: NodeJS.Timeout | undefined;
-    private autoUpdate: boolean;
+    private readonly log: PrefixLogger;
+    private updateCheckHour: number;
 
     public constructor(
         logger: LogLevelLogger | PrefixLogger,
@@ -153,26 +153,6 @@ class UpdateChecker {
 
         this.log.info(`The update checker is configured to check for updates between ${updateCheckHour}:00 and ${updateCheckHour}:59, \
 ${includeBetas ? 'including' : 'excluding'} betas. Auto updating is turned ${autoUpdate ? 'on' : 'off'}.`);
-    }
-
-    public startInterval(skipInitialCheck: boolean = false): void {
-        this.log.debug('Starting update check interval.');
-        if (skipInitialCheck) {
-            this.log.debug('Skipping initial update check.');
-        } else {
-            this.intervalMethod();
-        }
-        this.interval = setInterval(this.intervalMethod.bind(this), 60 * 60 * 1000);
-    }
-
-    public stopInterval(): void {
-        if (this.interval !== undefined) {
-            this.log.debug('Stopping update check interval.');
-            clearInterval(this.interval);
-            this.interval = undefined;
-        } else {
-            this.log.warn('Could not stop update check interval since there is no active update check interval.');
-        }
     }
 
     public async check(infoOrDebugLogLevel: 'debug' | 'info' = 'debug'): Promise<void> {
@@ -199,14 +179,28 @@ betas): ${currentVersion}`;
         }
     }
 
-    private intervalMethod(): void {
-        if ((new Date()).getHours() === this.updateCheckHour) {
-            this.log.debug('Triggering the check method since the configured update check time is now.');
-            this.check();
+    public startInterval(skipInitialCheck: boolean = false): void {
+        this.log.debug('Starting update check interval.');
+        if (skipInitialCheck) {
+            this.log.debug('Skipping initial update check.');
         } else {
-            this.log.debug(`Not triggering the check method as the update check is configured to run between ${this.updateCheckHour}:00 \
-and ${this.updateCheckHour}:59.`);
+            this.intervalMethod();
         }
+        this.interval = setInterval(this.intervalMethod.bind(this), 60 * 60 * 1000);
+    }
+
+    public stopInterval(): void {
+        if (this.interval !== undefined) {
+            this.log.debug('Stopping update check interval.');
+            clearInterval(this.interval);
+            this.interval = undefined;
+        } else {
+            this.log.warn('Could not stop update check interval since there is no active update check interval.');
+        }
+    }
+
+    private getCurrentVersion(): string {
+        return packageJson.version;
     }
 
     private async getLatestVersion(): Promise<string | undefined> {
@@ -222,8 +216,8 @@ and ${this.updateCheckHour}:59.`);
             return undefined;
         }
 
-        const latestStableVersion: string = response.data['dist-tags']['latest'];
-        const latestBetaVersion: string = response.data['dist-tags']['beta'];
+        const latestStableVersion: string = response.data['dist-tags'].latest;
+        const latestBetaVersion: string = response.data['dist-tags'].beta;
 
         let outputVersion: string | undefined = undefined;
 
@@ -242,8 +236,14 @@ and ${this.updateCheckHour}:59.`);
         return outputVersion;
     }
 
-    private getCurrentVersion(): string {
-        return packageJson.version;
+    private intervalMethod(): void {
+        if ((new Date()).getHours() === this.updateCheckHour) {
+            this.log.debug('Triggering the check method since the configured update check time is now.');
+            void this.check();
+        } else {
+            this.log.debug(`Not triggering the check method as the update check is configured to run between ${this.updateCheckHour}:00 \
+and ${this.updateCheckHour}:59.`);
+        }
     }
 
     // update process according to hb-service
@@ -271,7 +271,7 @@ is not set.');
 
         if (
             installPath === UIX_CUSTOM_PLUGIN_PATH &&
-            pathExists(path.resolve(installPath, '../package.json'))
+            pathExists(path.resolve(installPath, '../package.json')) === true
         ) {
             installOptions.push('--save');
         }

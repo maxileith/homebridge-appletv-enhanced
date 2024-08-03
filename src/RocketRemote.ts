@@ -5,18 +5,16 @@ import type LogLevelLogger from './LogLevelLogger';
 
 class RocketRemote {
 
-    private readonly process: ChildProcessWithoutNullStreams;
-    private readonly log: PrefixLogger;
-    private onCloseCallable?: (() => void) = undefined;
-    private onHomeCallable?: (() => void) = undefined;
-    private heartbeatInterval?: NodeJS.Timeout;
-
-    private readonly stdoutListener = this.stdoutLog.bind(this);
-    private readonly stderrListener = this.stderrLog.bind(this);
-
-    private lastCommandSend: number = 0;
-
     private readonly avadaKedavraSequence: string[];
+    private heartbeatInterval?: NodeJS.Timeout;
+    private lastCommandSend: number = 0;
+    private readonly log: PrefixLogger;
+    private onCloseCallable?: (() => Promise<void> | void) = undefined;
+    private onHomeCallable?: (() => Promise<void> | void) = undefined;
+    private readonly process: ChildProcessWithoutNullStreams;
+
+    private readonly stderrListener = this.stderrLog.bind(this);
+    private readonly stdoutListener = this.stdoutLog.bind(this);
 
     public constructor(
         private readonly ip: string,
@@ -45,25 +43,24 @@ class RocketRemote {
         this.initHeartbeat();
     }
 
-    public openApp(id: string, hideLog: boolean = false): void {
-        this.sendCommand(`launch_app=${id}`, hideLog);
+    public addOutputDevices(identifiers: string[], hideLog: boolean = false): void {
+        const i: string = identifiers.join(',');
+        this.sendCommand(`add_output_devices=${i}`, hideLog);
     }
 
-    public setVolume(percentage: number, hideLog: boolean = false): void {
-        this.sendCommand(`set_volume=${percentage}`, hideLog);
-    }
-
-    public sendCommand(cmd: RocketRemoteKey | string, hideLog: boolean = false): void {
-        if (hideLog) {
-            this.log.debug(cmd);
-        } else {
-            this.log.info(cmd);
-        }
-        if (this.onHomeCallable !== undefined && cmd === 'home') {
-            this.onHomeCallable();
-        }
-        this.process.stdin.write(`${cmd}\n`);
-        this.lastCommandSend = Date.now();
+    public avadaKedavra(): void {
+        this.log.info('Avada Kedavra');
+        this.log.debug(`Avada Kedavra sequence: ${this.avadaKedavraSequence.join(', ')}`);
+        const ak: ChildProcessWithoutNullStreams = spawn(this.atvremotePath, [
+            '--scan-hosts', this.ip,
+            '--companion-credentials', this.companionCredentials,
+            '--airplay-credentials', this.airplayCredentials,
+            ... this.avadaKedavraSequence,
+        ]);
+        ak.stdout.setEncoding('utf8');
+        ak.stderr.setEncoding('utf8');
+        ak.stdout.on('data', this.stdoutListener);
+        ak.stderr.on('data', this.stderrListener);
     }
 
     public channelDown(hideLog: boolean = false): void {
@@ -98,6 +95,27 @@ class RocketRemote {
         this.sendCommand(RocketRemoteKey.NEXT, hideLog);
     }
 
+    public onClose(f: () => Promise<void> | void): void {
+        this.onCloseCallable = f;
+        this.process.once('close', () => {
+            this.process.stdout.removeListener('data', this.stdoutListener);
+            this.process.stderr.removeListener('data', this.stderrListener);
+            clearInterval(this.heartbeatInterval);
+            this.log.warn('Lost connection. Trying to reconnect ...');
+            if (this.onCloseCallable) {
+                void this.onCloseCallable();
+            }
+        });
+    }
+
+    public onHome(f: () => Promise<void> | void): void {
+        this.onHomeCallable = f;
+    }
+
+    public openApp(id: string, hideLog: boolean = false): void {
+        this.sendCommand(`launch_app=${id}`, hideLog);
+    }
+
     public pause(hideLog: boolean = false): void {
         this.sendCommand(RocketRemoteKey.PAUSE, hideLog);
     }
@@ -114,12 +132,39 @@ class RocketRemote {
         this.sendCommand(RocketRemoteKey.PREVIOUS, hideLog);
     }
 
+    public removeOutputDevices(identifiers: string[], hideLog: boolean = false): void {
+        const i: string = identifiers.join(',');
+        this.sendCommand(`remove_output_devices=${i}`, hideLog);
+    }
+
     public right(hideLog: boolean = false): void {
         this.sendCommand(RocketRemoteKey.RIGHT, hideLog);
     }
 
     public select(hideLog: boolean = false): void {
         this.sendCommand(RocketRemoteKey.SELECT, hideLog);
+    }
+
+    public sendCommand(cmd: RocketRemoteKey | string, hideLog: boolean = false): void {
+        if (hideLog) {
+            this.log.debug(cmd);
+        } else {
+            this.log.info(cmd);
+        }
+        if (this.onHomeCallable !== undefined && cmd === 'home') {
+            void this.onHomeCallable();
+        }
+        this.process.stdin.write(`${cmd}\n`);
+        this.lastCommandSend = Date.now();
+    }
+
+    public setOutputDevices(identifiers: string[], hideLog: boolean = false): void {
+        const i: string = identifiers.join(',');
+        this.sendCommand(`set_output_devices=${i}`, hideLog);
+    }
+
+    public setVolume(percentage: number, hideLog: boolean = false): void {
+        this.sendCommand(`set_volume=${percentage}`, hideLog);
     }
 
     public skipBackward(hideLog: boolean = false): void {
@@ -134,16 +179,16 @@ class RocketRemote {
         this.sendCommand(RocketRemoteKey.STOP, hideLog);
     }
 
+    public topMenu(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.TOP_MENU, hideLog);
+    }
+
     public turnOff(hideLog: boolean = false): void {
         this.sendCommand(RocketRemoteKey.TURN_OFF, hideLog);
     }
 
     public turnOn(hideLog: boolean = false): void {
         this.sendCommand(RocketRemoteKey.TURN_ON, hideLog);
-    }
-
-    public topMenu(hideLog: boolean = false): void {
-        this.sendCommand(RocketRemoteKey.TOP_MENU, hideLog);
     }
 
     public up(hideLog: boolean = false): void {
@@ -158,49 +203,13 @@ class RocketRemote {
         this.sendCommand(RocketRemoteKey.VOLUME_UP, hideLog);
     }
 
-    public setOutputDevices(identifiers: string[], hideLog: boolean = false): void {
-        const i: string = identifiers.join(',');
-        this.sendCommand(`set_output_devices=${i}`, hideLog);
-    }
-
-    public addOutputDevices(identifiers: string[], hideLog: boolean = false): void {
-        const i: string = identifiers.join(',');
-        this.sendCommand(`add_output_devices=${i}`, hideLog);
-    }
-
-    public removeOutputDevices(identifiers: string[], hideLog: boolean = false): void {
-        const i: string = identifiers.join(',');
-        this.sendCommand(`remove_output_devices=${i}`, hideLog);
-    }
-
-    public onClose(f: () => void): void {
-        this.onCloseCallable = f;
-        this.process.once('close', () => {
-            this.process.stdout.removeListener('data', this.stdoutListener);
-            this.process.stderr.removeListener('data', this.stderrListener);
-            clearInterval(this.heartbeatInterval);
-            this.log.warn('Lost connection. Trying to reconnect ...');
-            this.onCloseCallable && this.onCloseCallable();
-        });
-    }
-
-    public onHome(f: () => void): void {
-        this.onHomeCallable = f;
-    }
-
-    public avadaKedavra(): void {
-        this.log.info('Avada Kedavra');
-        this.log.debug(`Avada Kedavra sequence: ${this.avadaKedavraSequence.join(', ')}`);
-        const ak: ChildProcessWithoutNullStreams = spawn(this.atvremotePath, [
-            '--scan-hosts', this.ip,
-            '--companion-credentials', this.companionCredentials,
-            '--airplay-credentials', this.airplayCredentials,
-            ... this.avadaKedavraSequence,
-        ]);
-        ak.stdout.setEncoding('utf8');
-        ak.stderr.setEncoding('utf8');
-        ak.stdout.on('data', this.stdoutListener);
-        ak.stderr.on('data', this.stderrListener);
+    private generateAvadaKedavraSequence(numberOfApps: number): string[] {
+        let sequence: string[] = ['home', 'delay=100', 'home', 'delay=800', 'left', 'delay=300'];
+        for (let i: number = 0; i < numberOfApps; i++) {
+            sequence = sequence.concat(['up', 'delay=50', 'up', 'delay=600']);
+        }
+        sequence.push('home');
+        return sequence;
     }
 
     private initHeartbeat(): void {
@@ -226,15 +235,6 @@ class RocketRemote {
         } else if (toLog !== '') {
             this.log.debug(toLog);
         }
-    }
-
-    private generateAvadaKedavraSequence(numberOfApps: number): string[] {
-        let sequence: string[] = ['home', 'delay=100', 'home', 'delay=800', 'left', 'delay=300'];
-        for (let i: number = 0; i < numberOfApps; i++) {
-            sequence = sequence.concat(['up', 'delay=50', 'up', 'delay=600']);
-        }
-        sequence.push('home');
-        return sequence;
     }
 }
 

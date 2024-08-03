@@ -10,8 +10,11 @@
         "strict": true,
         "esModuleInterop": true,
         "noImplicitAny": false,
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "noImplicitThis": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true
     },
-    "include": ["src/"],
+    "include": ["src/", "eslint.config.mjs"],
     "exclude": ["**/*.spec.ts"]
 }

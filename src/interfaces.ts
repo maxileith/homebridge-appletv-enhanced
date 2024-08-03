@@ -13,71 +13,71 @@ export type IInputs = Record<string, Service>;
 
 export interface IAppConfig {
     configuredName: string;
+    identifier: number;
     isConfigured: 0 | 1;
     visibilityState: 0 | 1;
-    identifier: number;
 }
 
 export type IAppConfigs = Record<string, IAppConfig>;
 
 export interface ICommonConfig {
-    configuredName?: string;
     activeIdentifier?: number;
-    showAvadaKedavra?: number;
     avadaKedavraName?: string;
-    showHomeInput?: number;
+    configuredName?: string;
     homeInputName?: string;
+    showAvadaKedavra?: number;
+    showHomeInput?: number;
     volumeFanName?: string;
 }
 
 export interface DeviceConfigOverride {
-    mac?: string;
-    overrideMediaTypes?: boolean;
-    mediaTypes?: NodePyATVMediaType[];
-    overrideDeviceStates?: boolean;
-    deviceStates?: NodePyATVDeviceState[];
-    overrideDeviceStateDelay?: boolean;
-    deviceStateDelay?: number;
-    overrideRemoteKeysAsSwitch?: boolean;
-    remoteKeysAsSwitch?: RocketRemoteKey[];
-    overrideAvadaKedavraAppAmount?: boolean;
-    avadaKedavraAppAmount?: number;
-    overrideCustomInputURIs?: boolean;
-    customInputURIs?: string[];
-    overrideDisableVolumeControlRemote?: boolean;
-    disableVolumeControlRemote?: boolean;
-    overrideAbsoluteVolumeControl?: boolean;
     absoluteVolumeControl?: boolean;
+    avadaKedavraAppAmount?: number;
+    customInputURIs?: string[];
+    deviceStateDelay?: number;
+    deviceStates?: NodePyATVDeviceState[];
+    disableVolumeControlRemote?: boolean;
+    mac?: string;
+    mediaTypes?: NodePyATVMediaType[];
+    overrideAbsoluteVolumeControl?: boolean;
+    overrideAvadaKedavraAppAmount?: boolean;
+    overrideCustomInputURIs?: boolean;
+    overrideDeviceStateDelay?: boolean;
+    overrideDeviceStates?: boolean;
+    overrideDisableVolumeControlRemote?: boolean;
+    overrideMediaTypes?: boolean;
+    overrideRemoteKeysAsSwitch?: boolean;
     overrideSetTopBox?: boolean;
+    remoteKeysAsSwitch?: RocketRemoteKey[];
     setTopBox?: boolean;
 }
 
 export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_bridge' | 'name' | 'platform'> {
-    mediaTypes?: NodePyATVMediaType[];
-    deviceStates?: NodePyATVDeviceState[];
-    deviceStateDelay?: number;
-    remoteKeysAsSwitch?: RocketRemoteKey[];
+    absoluteVolumeControl?: boolean;
+    autoUpdate?: TAutoUpdate;
     avadaKedavraAppAmount?: number;
     customInputURIs?: string[];
-    disableVolumeControlRemote?: boolean;
-    absoluteVolumeControl?: boolean;
-    setTopBox?: boolean;
     deviceSpecificOverrides?: DeviceConfigOverride[];
+    deviceStateDelay?: number;
+    deviceStates?: NodePyATVDeviceState[];
+    disableVolumeControlRemote?: boolean;
     discover?: {
+        blacklist?: string[];
         multicast?: boolean;
         unicast?: string[];
-        blacklist?: string[];
     };
     forceVenvRecreate?: boolean;
     logLevel?: LogLevel;
+    mediaTypes?: NodePyATVMediaType[];
+    pythonExecutable?: string;
+    remoteKeysAsSwitch?: RocketRemoteKey[];
+    setTopBox?: boolean;
     updateCheckLevel?: TUpdateCheckLevel;
     updateCheckTime?: TUpdateCheckTime;
-    autoUpdate?: TAutoUpdate;
-    pythonExecutable?: string;
 }
 
 export interface AlternatePyATVDeviceOptions {
-    mac: string;
     airplayCredentials?: string;
     companionCredentials?: string;
+    mac: string;
 }

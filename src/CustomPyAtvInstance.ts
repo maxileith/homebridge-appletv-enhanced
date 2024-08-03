@@ -9,10 +9,10 @@ type ICache = Record<string, nodePyatv.NodePyATVDevice>;
 
 class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
 
-    private static cachedDevices: ICache = {};
-
-    private static atvscriptPath: string | undefined = undefined;
     private static atvremotePath: string | undefined = undefined;
+    private static atvscriptPath: string | undefined = undefined;
+
+    private static cachedDevices: ICache = {};
 
     private static log: PrefixLogger | undefined = undefined;
 
@@ -26,7 +26,7 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
         return nodePyatv.NodePyATVInstance.find(this.extendOptions(options), true)
             .then(async (results) => {
                 for (const device of results.devices) {
-                    if (device.mac) {
+                    if (device.mac !== undefined && device.mac !== null) {
                         CustomPyATVInstance.cachedDevices[device.mac.toUpperCase()] = device;
                     }
                 }
@@ -37,7 +37,7 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
     public static deviceAdvanced(
         options: AlternatePyATVDeviceOptions | nodePyatv.NodePyATVDeviceOptions,
     ): nodePyatv.NodePyATVDevice | undefined {
-        if (options.mac) {
+        if (options.mac !== undefined && options.mac !== null) {
             const cachedDevice: nodePyatv.NodePyATVDevice = CustomPyATVInstance.cachedDevices[options.mac.toUpperCase()];
             if (cachedDevice === undefined) {
                 return undefined;
@@ -59,23 +59,23 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
         }
     }
 
-    public static setStoragePath(storagePath: string): void {
-        CustomPyATVInstance.atvscriptPath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvscript');
-        CustomPyATVInstance.atvremotePath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvremote');
-        CustomPyATVInstance.log?.debug(`Set atvscript path to "${CustomPyATVInstance.atvscriptPath}".`);
-        CustomPyATVInstance.log?.debug(`Set atvremote path to "${CustomPyATVInstance.atvremotePath}".`);
+    public static getAtvremotePath(): string {
+        return CustomPyATVInstance.atvremotePath ?? 'atvremote';
+    }
+
+    public static getAtvscriptPath(): string {
+        return CustomPyATVInstance.atvremotePath ?? 'atvscript';
     }
 
     public static setLogger(logger: LogLevelLogger | PrefixLogger): void {
         CustomPyATVInstance.log = new PrefixLogger(logger, 'CustomPyATVInstance');
     }
 
-    public static getAtvremotePath(): string {
-        return CustomPyATVInstance.atvremotePath || 'atvremote';
-    }
-
-    public static getAtvscriptPath(): string {
-        return CustomPyATVInstance.atvremotePath || 'atvscript';
+    public static setStoragePath(storagePath: string): void {
+        CustomPyATVInstance.atvscriptPath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvscript');
+        CustomPyATVInstance.atvremotePath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvremote');
+        CustomPyATVInstance.log?.debug(`Set atvscript path to "${CustomPyATVInstance.atvscriptPath}".`);
+        CustomPyATVInstance.log?.debug(`Set atvremote path to "${CustomPyATVInstance.atvremotePath}".`);
     }
 
     private static extendOptions<T extends nodePyatv.NodePyATVDeviceOptions | nodePyatv.NodePyATVInstanceOptions>(
