@@ -17,18 +17,18 @@ class PythonChecker {
 
     private readonly log: PrefixLogger;
 
-    private readonly pythonExecutable: string;
     private readonly pluginDirPath: string;
+    private readonly pythonExecutable: string;
+    private readonly requirementsPath: string = path.join(__dirname, '..', 'requirements.txt');
+    private readonly venvConfigPath: string;
     private readonly venvPath: string;
     private readonly venvPipExecutable: string;
     private readonly venvPythonExecutable: string;
-    private readonly venvConfigPath: string;
-    private readonly requirementsPath: string = path.join(__dirname, '..', 'requirements.txt');
 
     public constructor(logger: LogLevelLogger | PrefixLogger, storagePath: string, pythonExecutable?: string) {
         this.log = new PrefixLogger(logger, 'Python check');
 
-        this.pythonExecutable = pythonExecutable || 'python3';
+        this.pythonExecutable = pythonExecutable ?? 'python3';
         this.log.debug(`Using ${this.pythonExecutable} as the python executable`);
 
         this.pluginDirPath = path.join(storagePath, 'appletv-enhanced');
@@ -47,6 +47,36 @@ class PythonChecker {
         await this.ensureVenvPipUpToDate();
         await this.ensureVenvRequirementsSatisfied();
         this.log.info('Finished');
+    }
+
+    private async areRequirementsSatisfied(): Promise<boolean> {
+        const [freezeStdout]: [string, string, number | null] =
+            await runCommand(this.log, this.venvPipExecutable, ['freeze'], undefined, true);
+        const freeze: Record<string, string> = this.freezeStringToObject(freezeStdout);
+        const requirements: Record<string, string> = this.freezeStringToObject(fs.readFileSync(this.requirementsPath).toString());
+        for (const pkg in requirements) {
+            if (freeze[pkg] !== requirements[pkg]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private async createVenv(): Promise<void> {
+        const [stdout]: [string, string, number | null] =
+            await runCommand(this.log, this.pythonExecutable, ['-m', 'venv', this.venvPath, '--clear'], undefined, true);
+        if (stdout.includes('not created successfully') || !this.isVenvCreated()) {
+            while (true) {
+                this.log.error('virtualenv python module is not installed. If you have installed homebridge via the apt package manager, \
+update the homebridge apt package to 1.1.4 or above (this applies for installations based on the Raspberry Pi OS iamge as well). When \
+using the official docker image, update the image to version 2023-11-28 or above. Otherwise install the python virtualenv module \
+manually.');
+                await delay(300000);
+            }
+        } else if (stdout.trim() !== '') {
+            this.log.warn(stdout);
+        }
+        this.log.success('Virtual python environment (re)created');
     }
 
     private ensurePluginDir(): void {
@@ -84,27 +114,26 @@ ${SUPPORTED_PYTHON_VERSIONS[0]} to ${SUPPORTED_PYTHON_VERSIONS[SUPPORTED_PYTHON_
         }
     }
 
-    private isVenvCreated(): boolean {
-        return fs.existsSync(this.venvPipExecutable) &&
-            fs.existsSync(this.venvConfigPath) &&
-            fs.existsSync(this.venvPythonExecutable);
+    private async ensureVenvPipUpToDate(): Promise<void> {
+        const venvPipVersion: string = await this.getVenvPipVersion();
+        this.log.info(`Venv pip version: ${venvPipVersion}`);
+        this.log.info('Checking if there is an update for venv pip ...');
+        if (venvPipVersion === await this.getMostRecentPipVersion()) {
+            this.log.info('Venv pip is up-to-date');
+        } else {
+            this.log.warn('Venv pip is outdated. Updating now ...');
+            await this.updatePip();
+            this.log.success('Venv pip updated');
+        }
     }
 
-    private async createVenv(): Promise<void> {
-        const [stdout]: [string, string, number | null] =
-            await runCommand(this.log, this.pythonExecutable, ['-m', 'venv', this.venvPath, '--clear'], undefined, true);
-        if (stdout.includes('not created successfully') || !this.isVenvCreated()) {
-            while (true) {
-                this.log.error('virtualenv python module is not installed. If you have installed homebridge via the apt package manager, \
-update the homebridge apt package to 1.1.4 or above (this applies for installations based on the Raspberry Pi OS iamge as well). When \
-using the official docker image, update the image to version 2023-11-28 or above. Otherwise install the python virtualenv module \
-manually.');
-                await delay(300000);
-            }
-        } else if (stdout.trim() !== '') {
-            this.log.warn(stdout);
+    private async ensureVenvRequirementsSatisfied(): Promise<void> {
+        if (await this.areRequirementsSatisfied()) {
+            this.log.info('Python requirements are satisfied.');
+        } else {
+            this.log.warn('Python requirements are not satisfied. Installing them now ...');
+            await this.installRequirements();
         }
-        this.log.success('Virtual python environment (re)created');
     }
 
     private async ensureVenvUsesCorrectPythonHome(): Promise<void> {
@@ -120,51 +149,6 @@ environment ...');
         }
     }
 
-    private async getPythonHome(executable: string): Promise<string> {
-        const [venvPythonHome]: [string, string, number | null] =
-            await runCommand(this.log, executable, [path.join(__dirname, 'determinePythonHome.py')], undefined, true);
-        return venvPythonHome.trim();
-    }
-
-    private async ensureVenvPipUpToDate(): Promise<void> {
-        const venvPipVersion: string = await this.getVenvPipVersion();
-        this.log.info(`Venv pip version: ${venvPipVersion}`);
-        this.log.info('Checking if there is an update for venv pip ...');
-        if (venvPipVersion === await this.getMostRecentPipVersion()) {
-            this.log.info('Venv pip is up-to-date');
-        } else {
-            this.log.warn('Venv pip is outdated. Updating now ...');
-            await this.updatePip();
-            this.log.success('Venv pip updated');
-        }
-    }
-
-    private async updatePip(): Promise<void> {
-        await runCommand(this.log, this.venvPipExecutable, ['install', '--upgrade', 'pip']);
-    }
-
-    private async ensureVenvRequirementsSatisfied(): Promise<void> {
-        if (await this.areRequirementsSatisfied()) {
-            this.log.info('Python requirements are satisfied.');
-        } else {
-            this.log.warn('Python requirements are not satisfied. Installing them now ...');
-            await this.installRequirements();
-        }
-    }
-
-    private async areRequirementsSatisfied(): Promise<boolean> {
-        const [freezeStdout]: [string, string, number | null] =
-            await runCommand(this.log, this.venvPipExecutable, ['freeze'], undefined, true);
-        const freeze: Record<string, string> = this.freezeStringToObject(freezeStdout);
-        const requirements: Record<string, string> = this.freezeStringToObject(fs.readFileSync(this.requirementsPath).toString());
-        for (const pkg in requirements) {
-            if (freeze[pkg] !== requirements[pkg]) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     private freezeStringToObject(value: string): Record<string, string> {
         const lines: string[] = value.trim().split('\n');
         const packages: Record<string, string> = {};
@@ -175,9 +159,20 @@ environment ...');
         return packages;
     }
 
-    private async installRequirements(): Promise<void> {
-        await runCommand(this.log, this.venvPipExecutable, ['install', '-r', this.requirementsPath]);
-        this.log.success('Python requirements installed.');
+    private async getMostRecentPipVersion(): Promise<string> {
+        try {
+            const response: AxiosResponse<{ info: { version: string } }, unknown> = await axios.get('https://pypi.org/pypi/pip/json');
+            return response.data.info.version;
+        } catch (e) {
+            this.log.error(e as string);
+            return 'error';
+        }
+    }
+
+    private async getPythonHome(executable: string): Promise<string> {
+        const [venvPythonHome]: [string, string, number | null] =
+            await runCommand(this.log, executable, [path.join(__dirname, 'determinePythonHome.py')], undefined, true);
+        return venvPythonHome.trim();
     }
 
     private async getSystemPythonVersion(): Promise<string> {
@@ -192,14 +187,19 @@ environment ...');
         return version.trim().replace('pip ', '').split(' ')[0];
     }
 
-    private async getMostRecentPipVersion(): Promise<string> {
-        try {
-            const response: AxiosResponse<{ info: { version: string } }, unknown> = await axios.get('https://pypi.org/pypi/pip/json');
-            return response.data.info.version;
-        } catch (e) {
-            this.log.error(e as string);
-            return 'error';
-        }
+    private async installRequirements(): Promise<void> {
+        await runCommand(this.log, this.venvPipExecutable, ['install', '-r', this.requirementsPath]);
+        this.log.success('Python requirements installed.');
+    }
+
+    private isVenvCreated(): boolean {
+        return fs.existsSync(this.venvPipExecutable) &&
+            fs.existsSync(this.venvConfigPath) &&
+            fs.existsSync(this.venvPythonExecutable);
+    }
+
+    private async updatePip(): Promise<void> {
+        await runCommand(this.log, this.venvPipExecutable, ['install', '--upgrade', 'pip']);
     }
 }
 

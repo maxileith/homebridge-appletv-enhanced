@@ -20,6 +20,7 @@
         "homebridge": "^1.8.4 || ^2.0.0-beta.0",
         "node": "^20.16.0 || ^18.20.4"
     },
+    "type": "commonjs",
     "keywords": [
         "homebridge-plugin",
         "appletv",
@@ -58,6 +59,8 @@
         "url": "http://github.com/maxileith/homebridge-appletv-enhanced/issues"
     },
     "devDependencies": {
+        "@eslint/eslintrc": "^3.1.0",
+        "@eslint/js": "^9.8.0",
         "@types/md5": "^2.3.5",
         "@types/node": "^22.1.0",
         "@typescript-eslint/eslint-plugin": "^8.0.0",
@@ -75,8 +78,8 @@
         "@sebbo2002/node-pyatv": "^7.4.0-develop.4",
         "axios": "^1.7.3",
         "compare-versions": "^6.1.1",
-        "md5": "^2.3.0",
-        "fs-extra": "^11.2.0"
+        "fs-extra": "^11.2.0",
+        "md5": "^2.3.0"
     },
     "homepage": "https://github.com/maxileith/homebridge-appletv-enhanced#readme",
     "funding": [
