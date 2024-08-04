@@ -23,13 +23,39 @@ jobs:
         id: load-versions
         shell: bash
         run: |
+          # read .engines.node attribute from package.json
           version_str=$(jq ".engines.node" package.json --raw-output)
-          new_version=$(echo $version_str | awk -F " || " '{print $1}')
-          old_version=$(echo $version_str | awk -F " || " '{print $3}')
-          new_version="${new_version:1}"
-          old_version="${old_version:1}"
 
-          result="versions={\"list\":[\"$new_version\",\"$old_version\"]}"
+          # split the version string into individual versions
+          IFS=' || ' read -r -a versions <<< "$version_str"
+
+          # filter empty elements
+          filtered_versions=()
+          for v in "${versions[@]}"; do
+            if [ -n "$v" ]; then
+              filtered_versions+=("$v")
+            fi
+          done
+
+          # remove "^" from filtered_versions
+          clean_versions=()
+          for v in "${filtered_versions[@]}"; do
+            clean_version="${v:1}"
+            clean_versions+=("$clean_version")
+          done
+
+          # merge versions together
+          version_list_as_str=""
+          for v in "${clean_versions[@]}"; do
+            if [ -n "$version_list_as_str" ]; then
+              version_list_as_str+=", "
+            fi
+            version_list_as_str+="\""
+            version_list_as_str+="$v"
+            version_list_as_str+="\""
+          done
+
+          result="versions={\"list\": [$version_list_as_str]}"
           echo $result
 
           echo $result >> $GITHUB_OUTPUT
