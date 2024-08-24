@@ -11,6 +11,7 @@ const SUPPORTED_PYTHON_VERSIONS: string[] = [
     '3.9',
     '3.10',
     '3.11',
+    '3.12',
 ];
 
 class PythonChecker {
