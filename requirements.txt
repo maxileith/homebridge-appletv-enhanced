@@ -16,7 +16,7 @@ miniaudio==1.61
 multidict==6.0.5
 mutagen==1.47.0
 protobuf==5.27.3
-pyatv==0.14.5
+pyatv==0.15.0
 pycparser==2.22
 pydantic==2.8.2
 pydantic_core==2.20.1
