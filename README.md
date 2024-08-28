@@ -64,6 +64,7 @@ It might also be a good idea to take a look at [this video](https://www.tiktok.c
         -   On debian-based distros: `sudo apt install python3-venv`
         -   Installation on other distros may vary
 -   [Homebridge Config UI >= 4.54.2](https://github.com/homebridge/homebridge-config-ui-x/releases/tag/4.54.2) when creating backups
+-   OpenSSL 3 or later
 -   Apple TV Models with tvOS 15 and upwards are supported (all 4K ones and the latest HD one)
 -   The access of Speakers & TVs should be either set to "Everybody" or "Anybody On the Same Network" in the Home app
     -   Additionally, make sure to check the TV's HomeKit settings.

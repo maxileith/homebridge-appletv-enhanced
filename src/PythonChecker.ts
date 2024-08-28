@@ -5,6 +5,7 @@ import PrefixLogger from './PrefixLogger';
 import type LogLevelLogger from './LogLevelLogger';
 import type { AxiosResponse } from 'axios';
 import axios from 'axios';
+import { compareVersions } from 'compare-versions';
 
 const SUPPORTED_PYTHON_VERSIONS: string[] = [
     '3.8',
@@ -13,6 +14,8 @@ const SUPPORTED_PYTHON_VERSIONS: string[] = [
     '3.11',
     '3.12',
 ];
+
+const MIN_OPENSSL_VERSION: string = '3.0.0';
 
 class PythonChecker {
 
@@ -47,6 +50,7 @@ class PythonChecker {
         await this.ensureVenvUsesCorrectPythonHome();
         await this.ensureVenvPipUpToDate();
         await this.ensureVenvRequirementsSatisfied();
+        await this.ensureOpenSSLVersion();
         this.log.info('Finished');
     }
 
@@ -78,6 +82,24 @@ manually.');
             this.log.warn(stdout);
         }
         this.log.success('Virtual python environment (re)created');
+    }
+
+    private async ensureOpenSSLVersion(): Promise<void> {
+        const [openSSLVersionString]: [string, string, number | null] =
+            await runCommand(this.log, 'openssl', ['version'], undefined, true);
+        const r: RegExpMatchArray | null = openSSLVersionString.match(/\d+\.\d+\.\d+/)
+        if (r === null) {
+            this.log.warn(`Could not verify that the correct OpenSSL version is installed. Continuing ... however, be aware that you \
+might experience problems if an incompatible version is installed. OpenSSL ${MIN_OPENSSL_VERSION} or later is required.`)
+            return;
+        }
+        if (compareVersions(MIN_OPENSSL_VERSION, r[0]) === 1) {
+            while (true) {
+                this.log.error(`You are using OpenSSL ${r[0]}. However, OpenSSL ${MIN_OPENSSL_VERSION} or later is required. Restart the \
+plugin after updating OpenSSL.`);
+                await delay(300000);
+            }
+        }
     }
 
     private ensurePluginDir(): void {
