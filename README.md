@@ -6,7 +6,7 @@
 [![npm](https://badgen.net/npm/dt/homebridge-appletv-enhanced)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
 [![npm](https://badgen.net/npm/dm/homebridge-appletv-enhanced)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
 [![donate](https://badgen.net/badge/donate/paypal/91BE09)](https://www.paypal.me/maxileith/EUR)
-[![PyPI pyversions](https://img.shields.io/badge/Python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue)](https://pypi.python.org/pypi/pyatv/)
+[![PyPI pyversions](https://img.shields.io/badge/Python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.python.org/pypi/pyatv/)
 
 [Homebridge](https://github.com/homebridge/homebridge) plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV integration of HomeKit.
 
@@ -45,6 +45,7 @@ This plugin automatically discovers Apple TV devices on the local network and ex
     -   For each device state (idle, playing, loading, seeking, paused, stopped) the plugin will create a motion sensor (device states can be hidden or shown by changing the configuration).
 -   A fully functional and super fast remote in the remote app of your iPhone or iPad.
     -   Remote keys can also be exposed as switches.
+-   Absolute volume control via a fan accessory.
 -   If you do not want all Apple TVs to be exposed, it is possible to blacklist them by providing the MAC-Address.
 -   "Avada Kedavra" which is exposed as an input to close all apps.
 
@@ -54,7 +55,7 @@ It might also be a good idea to take a look at [this video](https://www.tiktok.c
 
 -   Only Linux will be supported by the maintainer (although since MacOS / UNIX is similar to Linux, it should run on MacOS just fine)
 -   Most recent Version of Node 20 LTS or 18 LTS
--   Python 3.8, 3.9, 3.10 or 3.11
+-   Python 3.8, 3.9, 3.10, 3.11 or 3.12
 -   Python virtual environment module `virtualenv`. (the plugin will create a virtual environment on startup and will install python dependencies in this virtual environment)
     -   On homebridge **[apt-package >=1.1.4](https://github.com/homebridge/homebridge-apt-pkg/releases/tag/1.1.4)** the python module is installed automatically as a dependency, see [homebridge/homebridge-apt-pkg#16](https://github.com/homebridge/homebridge-apt-pkg/issues/16)
         -   **[raspian image >= 1.1.2](https://github.com/homebridge/homebridge-raspbian-image/releases/tag/v1.1.2)** includes this apt-package, so there is no need to install it manually.
@@ -63,6 +64,7 @@ It might also be a good idea to take a look at [this video](https://www.tiktok.c
         -   On debian-based distros: `sudo apt install python3-venv`
         -   Installation on other distros may vary
 -   [Homebridge Config UI >= 4.54.2](https://github.com/homebridge/homebridge-config-ui-x/releases/tag/4.54.2) when creating backups
+-   OpenSSL 3 or later
 -   Apple TV Models with tvOS 15 and upwards are supported (all 4K ones and the latest HD one)
 -   The access of Speakers & TVs should be either set to "Everybody" or "Anybody On the Same Network" in the Home app
     -   Additionally, make sure to check the TV's HomeKit settings.

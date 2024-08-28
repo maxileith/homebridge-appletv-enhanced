@@ -21,12 +21,11 @@ const ALLOWED_MODELS: string[] = [
 ];
 
 export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
-    public readonly Service: typeof Service;
-    public readonly Characteristic: typeof Characteristic;
-
+    public readonly characteristic: typeof Characteristic;
     public readonly logLevelLogger: LogLevelLogger;
-    private readonly log: PrefixLogger;
+    public readonly service: typeof Service;
 
+    private readonly log: PrefixLogger;
     private readonly publishedUUIDs: string[] = [];
 
     public constructor(
@@ -37,8 +36,8 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
         this.logLevelLogger = new LogLevelLogger(ogLog, this.config.logLevel);
         this.log = new PrefixLogger(this.logLevelLogger, 'Platform');
 
-        this.Service = this.api.hap.Service;
-        this.Characteristic = this.api.hap.Characteristic;
+        this.service = this.api.hap.Service;
+        this.characteristic = this.api.hap.Characteristic;
 
         this.log.info('Finished initializing platform:', this.config.name);
 
@@ -46,7 +45,8 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
         // Dynamic Platform plugins should only register new accessories after this event was fired,
         // in order to ensure they weren't added to homebridge already. This event can also be used
         // to start discovery of new accessories.
-        this.api.on('didFinishLaunching', async () => {
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        this.api.on('didFinishLaunching', async (): Promise<void> => {
             this.log.debug('Executed didFinishLaunching callback');
 
             // enable update check
@@ -78,14 +78,18 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             }
 
             this.log.info('Starting device discovery ...');
-            this.discoverDevices();
-            setInterval(() => this.discoverDevices(), 60000);
-            setTimeout(() => this.warnNoDevices(), 150000);
+            void this.discoverDevices();
+            setInterval(() => {
+                void this.discoverDevices()
+            }, 60000);
+            setTimeout(() => {
+                this.warnNoDevices();
+            }, 150000);
         });
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
-    public configureAccessory(accessory: PlatformAccessory): void {}
+    public configureAccessory(_accessory: PlatformAccessory): void {}
 
     /**
    * This is an example method showing how to register discovered accessories.
@@ -98,8 +102,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
 
         // multicast discovery
         if (
-            this.config.discover === undefined ||
-            this.config.discover.multicast === undefined ||
+            this.config.discover?.multicast === undefined ||
             this.config.discover.multicast === true
         ) {
             const multicastResults: NodePyATVFindResponseObject = await CustomPyAtvInstance.customFind();
@@ -116,8 +119,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
 
         // unicast discovery
         if (
-            this.config.discover &&
-            this.config.discover.unicast &&
+            this.config.discover?.unicast &&
             this.config.discover.unicast.length !== 0
         ) {
             const unicastResults: NodePyATVFindResponseObject =
@@ -133,7 +135,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             this.log.debug('finished unicast device discovery');
         }
 
-        const appleTVs: NodePyATVDevice[] = scanResults.filter((d) => ALLOWED_MODELS.includes(d.model || '') && d.os === 'TvOS');
+        const appleTVs: NodePyATVDevice[] = scanResults.filter((d) => ALLOWED_MODELS.includes(d.model ?? '') && d.os === 'TvOS');
 
         // loop over the discovered devices and register each one if it has not already been registered
         for (const appleTV of appleTVs) {
@@ -146,8 +148,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             const mac: string = appleTV.mac.toUpperCase();
 
             if (
-                this.config.discover &&
-                this.config.discover.blacklist &&
+                this.config.discover?.blacklist &&
                 (
                     this.config.discover.blacklist.map((e) => e.toUpperCase()).includes(mac) ||
                     this.config.discover.blacklist.includes(appleTV.host)
@@ -179,7 +180,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
 
             // create the accessory handler for the newly create accessory
             // this is imported from `platformAccessory.ts`
-            (async (): Promise<void> => {
+            void (async (): Promise<void> => {
                 this.log.debug(`Waiting for Apple TV ${appleTV.name} (${appleTV.mac}) to boot ...`);
                 await (new AppleTVEnhancedAccessory(this, accessory)).untilBooted();
 
@@ -190,13 +191,6 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
         }
 
         this.log.debug('Finished device discovery.');
-    }
-
-    private warnNoDevices(): void {
-        if (this.publishedUUIDs.length === 0) {
-            this.log.warn('The device discovery could not find any Apple TV devices until now. Are you sure that you have a compatible \
-Apple TV and the Apple TV is in the same subnet? (see https://github.com/maxileith/homebridge-appletv-enhanced#requirements)');
-        }
     }
 
     private isAutoUpdateOn(): boolean {
@@ -218,6 +212,13 @@ for automatic updates could not be determined. Falling back to "off". You can en
 explicitly.');
                 return false;
             }
+        }
+    }
+
+    private warnNoDevices(): void {
+        if (this.publishedUUIDs.length === 0) {
+            this.log.warn('The device discovery could not find any Apple TV devices until now. Are you sure that you have a compatible \
+Apple TV and the Apple TV is in the same subnet? (see https://github.com/maxileith/homebridge-appletv-enhanced#requirements)');
         }
     }
 }

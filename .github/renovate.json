@@ -16,18 +16,27 @@
             "customType": "regex",
             "fileMatch": ["^package(-lock)?\\.json$"],
             "matchStrings": [
-                "\\\"engines\\\":[\\s\\n]*\\{[^\\{\\}]*\\\"homebridge\\\"[^\\{\\}]*\\\"node\\\":[\\s\\n]*\\\"\\^(?<currentValue>\\d+\\.\\d+\\.\\d+)\\s\\|\\|\\s\\^\\d+\\.\\d+\\.\\d+\\\""
+                "\\\"engines\\\":[\\s\\n]*\\{[^\\{\\}]*\\\"homebridge\\\"[^\\{\\}]*\\\"node\\\":[\\s\\n]*\\\"\\^(?<currentValue>\\d+\\.\\d+\\.\\d+)\\s\\|\\|\\s\\^\\d+\\.\\d+\\.\\d+\\s\\|\\|\\s\\^\\d+\\.\\d+\\.\\d+\\\""
             ],
-            "depNameTemplate": "node",
+            "depNameTemplate": "node-22",
             "datasourceTemplate": "node-version"
         },
         {
             "customType": "regex",
             "fileMatch": ["^package(-lock)?\\.json$"],
             "matchStrings": [
-                "\\\"engines\\\":[\\s\\n]*\\{[^\\{\\}]*\\\"homebridge\\\"[^\\{\\}]*\\\"node\\\":[\\s\\n]*\\\"\\^\\d+\\.\\d+\\.\\d+\\s\\|\\|\\s\\^(?<currentValue>\\d+\\.\\d+\\.\\d+)\\\""
+                "\\\"engines\\\":[\\s\\n]*\\{[^\\{\\}]*\\\"homebridge\\\"[^\\{\\}]*\\\"node\\\":[\\s\\n]*\\\"\\^\\d+\\.\\d+\\.\\d+\\s\\|\\|\\s\\^(?<currentValue>\\d+\\.\\d+\\.\\d+)\\s\\|\\|\\s\\^\\d+\\.\\d+\\.\\d+\\\""
             ],
-            "depNameTemplate": "node-legacy",
+            "depNameTemplate": "node-20",
+            "datasourceTemplate": "node-version"
+        },
+        {
+            "customType": "regex",
+            "fileMatch": ["^package(-lock)?\\.json$"],
+            "matchStrings": [
+                "\\\"engines\\\":[\\s\\n]*\\{[^\\{\\}]*\\\"homebridge\\\"[^\\{\\}]*\\\"node\\\":[\\s\\n]*\\\"\\^\\d+\\.\\d+\\.\\d+\\s\\|\\|\\s\\^\\d+\\.\\d+\\.\\d+\\s\\|\\|\\s\\^(?<currentValue>\\d+\\.\\d+\\.\\d+)\\\""
+            ],
+            "depNameTemplate": "node-18",
             "datasourceTemplate": "node-version"
         }
     ],
@@ -36,11 +45,15 @@
     },
     "packageRules": [
         {
-            "matchDepNames": ["node"],
+            "matchDepNames": ["node-22"],
+            "allowedVersions": "^22"
+        },
+        {
+            "matchDepNames": ["node-20", "node"],
             "allowedVersions": "^20"
         },
         {
-            "matchDepNames": ["node-legacy"],
+            "matchDepNames": ["node-18"],
             "allowedVersions": "^18"
         },
         {
