@@ -73,7 +73,7 @@ class PythonChecker {
         if (stdout.includes('not created successfully') || !this.isVenvCreated()) {
             while (true) {
                 this.log.error('virtualenv python module is not installed. If you have installed homebridge via the apt package manager, \
-update the homebridge apt package to 1.1.4 or above (this applies for installations based on the Raspberry Pi OS iamge as well). When \
+update the homebridge apt package to 1.1.4 or above (this applies for installations based on the Raspberry Pi OS image as well). When \
 using the official docker image, update the image to version 2023-11-28 or above. Otherwise install the python virtualenv module \
 manually.');
                 await delay(300000);
@@ -100,6 +100,7 @@ plugin after updating OpenSSL.`);
                 await delay(300000);
             }
         }
+        this.log.info(`OpenSSL ${r[0]} is installed and compatible.`);
     }
 
     private ensurePluginDir(): void {
