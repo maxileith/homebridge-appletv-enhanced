@@ -27,4 +27,4 @@ tabulate==0.9.0
 typing_extensions==4.12.2
 urllib3==2.2.2
 yarl==1.9.4
-zeroconf==0.132.2
+zeroconf==0.133.0
