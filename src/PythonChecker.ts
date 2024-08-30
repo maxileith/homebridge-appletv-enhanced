@@ -7,7 +7,7 @@ import type { AxiosResponse } from 'axios';
 import axios from 'axios';
 import { compareVersions } from 'compare-versions';
 
-const SUPPORTED_PYTHON_VERSIONS: string[] = [
+let supportedPythonVersions: string[] = [
     '3.8',
     '3.9',
     '3.10',
@@ -23,7 +23,7 @@ class PythonChecker {
 
     private readonly pluginDirPath: string;
     private readonly pythonExecutable: string;
-    private readonly requirementsPath: string = path.join(__dirname, '..', 'requirements.txt');
+    private requirementsPath: string = path.join(__dirname, '..', 'requirements.txt');
     private readonly venvConfigPath: string;
     private readonly venvPath: string;
     private readonly venvPipExecutable: string;
@@ -45,12 +45,12 @@ class PythonChecker {
     public async allInOne(forceVenvRecreate: boolean = false): Promise<void> {
         this.log.info('Starting python check.');
         this.ensurePluginDir();
+        await this.openSSL();
         await this.ensurePythonVersion();
         await this.ensureVenvCreated(forceVenvRecreate);
         await this.ensureVenvUsesCorrectPythonHome();
         await this.ensureVenvPipUpToDate();
         await this.ensureVenvRequirementsSatisfied();
-        await this.ensureOpenSSLVersion();
         this.log.info('Finished');
     }
 
@@ -84,25 +84,6 @@ manually.');
         this.log.success('Virtual python environment (re)created');
     }
 
-    private async ensureOpenSSLVersion(): Promise<void> {
-        const [openSSLVersionString]: [string, string, number | null] =
-            await runCommand(this.log, 'openssl', ['version'], undefined, true);
-        const r: RegExpMatchArray | null = openSSLVersionString.match(/\d+\.\d+\.\d+/)
-        if (r === null) {
-            this.log.warn(`Could not verify that the correct OpenSSL version is installed. Continuing ... however, be aware that you \
-might experience problems if an incompatible version is installed. OpenSSL ${MIN_OPENSSL_VERSION} or later is required.`)
-            return;
-        }
-        if (compareVersions(MIN_OPENSSL_VERSION, r[0]) === 1) {
-            while (true) {
-                this.log.error(`You are using OpenSSL ${r[0]}. However, OpenSSL ${MIN_OPENSSL_VERSION} or later is required. Restart the \
-plugin after updating OpenSSL.`);
-                await delay(300000);
-            }
-        }
-        this.log.info(`OpenSSL ${r[0]} is installed and compatible.`);
-    }
-
     private ensurePluginDir(): void {
         if (!fs.existsSync(this.pluginDirPath)) {
             this.log.info('creating plugin dir ...');
@@ -115,10 +96,10 @@ plugin after updating OpenSSL.`);
 
     private async ensurePythonVersion(): Promise<void> {
         const version: string = await this.getSystemPythonVersion();
-        if (SUPPORTED_PYTHON_VERSIONS.findIndex((e) => version.includes(e)) === -1) {
+        if (supportedPythonVersions.findIndex((e) => version.includes(e)) === -1) {
             while (true) {
                 this.log.error(`Python ${version} is installed. However, only Python \
-${SUPPORTED_PYTHON_VERSIONS[0]} to ${SUPPORTED_PYTHON_VERSIONS[SUPPORTED_PYTHON_VERSIONS.length - 1]} is supported.`);
+${supportedPythonVersions[0]} to ${supportedPythonVersions[supportedPythonVersions.length - 1]} is supported.`);
                 await delay(300000);
             }
         } else {
@@ -220,6 +201,26 @@ environment ...');
         return fs.existsSync(this.venvPipExecutable) &&
             fs.existsSync(this.venvConfigPath) &&
             fs.existsSync(this.venvPythonExecutable);
+    }
+
+    private async openSSL(): Promise<void> {
+        const [openSSLVersionString]: [string, string, number | null] =
+            await runCommand(this.log, 'openssl', ['version'], undefined, true);
+        const r: RegExpMatchArray | null = openSSLVersionString.match(/\d+\.\d+\.\d+/)
+        if (r !== null && compareVersions(MIN_OPENSSL_VERSION, r[0]) !== 1) {
+            this.log.info(`OpenSSL ${r[0]} is installed and compatible.`);
+            return;
+        }
+        if (r === null) {
+            this.log.warn('Could not verify that the correct OpenSSL version is installed. Falling back to openssl legacy mode. Be aware \
+that Python 3.12 is not compatible with openssl legacy mode.')
+        } else {
+            this.log.warn(`You are using OpenSSL ${r[0]}. However, OpenSSL ${MIN_OPENSSL_VERSION} or later is required for the most \
+AppleTV enhanced in it's latest version. Falling back to openssl legacy mode. Be aware that Python 3.12 is not compatible with openssl \
+legacy mode.`);
+        }
+        this.requirementsPath = path.join(__dirname, '..', 'requirements_openssl_legacy.txt');
+        supportedPythonVersions = supportedPythonVersions.filter((e) => e !== '3.12');
     }
 
     private async updatePip(): Promise<void> {

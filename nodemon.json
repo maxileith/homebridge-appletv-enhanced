@@ -1,5 +1,10 @@
 {
-    "watch": ["src", "user_storage/config.json"],
+    "watch": [
+        "src",
+        "user_storage/config.json",
+        "requirements.txt",
+        "requirements_openssl_legacy.txt"
+    ],
     "ext": "ts",
     "ignore": [],
     "exec": "tsc && homebridge --insecure --debug --user-storage-path ./user_storage",
