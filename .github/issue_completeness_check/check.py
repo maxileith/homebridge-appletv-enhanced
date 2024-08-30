@@ -132,7 +132,7 @@ def check_homebridge_version(b: str):
 
     version_pattern = re.compile("^\d+\.\d+\.\d+(-(beta|alpha)\.\d+)?$")
 
-    min_homebridge_version = package_json["engines"]["homebridge"][1:]
+    min_homebridge_version = package_json["engines"]["homebridge"].split("||")[0][1:].strip()
     if not version_pattern.match(version):
         output.append(f"The Homebridge version {version} does not match the expected version pattern of Homebridge. Please provide a version that exists, e.g. {min_homebridge_version}.")
     else:
