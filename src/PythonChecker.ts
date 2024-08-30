@@ -23,7 +23,7 @@ class PythonChecker {
 
     private readonly pluginDirPath: string;
     private readonly pythonExecutable: string;
-    private requirementsPath: string = path.join(__dirname, '..', 'requirements.txt');
+    private requirementsPath: string = path.join(__dirname, '..', 'python_requirements', 'default', 'requirements.txt');
     private readonly venvConfigPath: string;
     private readonly venvPath: string;
     private readonly venvPipExecutable: string;
@@ -219,7 +219,7 @@ that Python 3.12 is not compatible with openssl legacy mode.')
 AppleTV enhanced in it's latest version. Falling back to openssl legacy mode. Be aware that Python 3.12 is not compatible with openssl \
 legacy mode.`);
         }
-        this.requirementsPath = path.join(__dirname, '..', 'requirements_openssl_legacy.txt');
+        this.requirementsPath = path.join(__dirname, '..', 'python_requirements', 'openssl_legacy', 'requirements.txt');
         supportedPythonVersions = supportedPythonVersions.filter((e) => e !== '3.12');
     }
 

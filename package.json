@@ -45,8 +45,7 @@
         "dist",
         "config.schema.json",
         "LICENSES_OF_DEPENDENCIES",
-        "requirements.txt",
-        "requirements_openssl_legacy.txt",
+        "python_requirements",
         "homebridge-ui/public/index.html"
     ],
     "publishConfig": {
