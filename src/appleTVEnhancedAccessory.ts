@@ -288,7 +288,9 @@ remaining)`);
                 if (oldValue === value) {
                     return;
                 }
-                this.log.info(`Changing configured name of Avada Kedavra from ${oldValue} to ${value}.`);
+                if (oldValue !== '') {
+                    this.log.info(`Changing configured name of Avada Kedavra from ${oldValue} to ${value}.`);
+                }
                 this.setCommonConfig('avadaKedavraName', value.toString());
             })
             .onGet(async (): Promise<Nullable<CharacteristicValue>> => {
@@ -336,7 +338,10 @@ remaining)`);
                     if (oldConfiguredName === value) {
                         return;
                     }
-                    this.log.info(`Changing configured name of device state sensor ${deviceState} from ${oldConfiguredName} to ${value}.`);
+                    if (oldConfiguredName !== '') {
+                        this.log.info(`Changing configured name of device state sensor ${deviceState} from ${oldConfiguredName} to \
+${value}.`);
+                    }
                     this.setDeviceStateConfig(deviceState, value.toString());
                 });
             s.getCharacteristic(this.platform.characteristic.MotionDetected)
@@ -381,7 +386,9 @@ remaining)`);
                 if (oldValue === value) {
                     return;
                 }
-                this.log.info(`Changing configured name of Home Input from ${oldValue} to ${value}.`);
+                if (oldValue !== '') {
+                    this.log.info(`Changing configured name of Home Input from ${oldValue} to ${value}.`);
+                }
                 this.setCommonConfig('homeInputName', value.toString());
             })
             .onGet(async (): Promise<Nullable<CharacteristicValue>> => {
@@ -476,7 +483,6 @@ It might be a good idea to uninstall unused apps.`);
                         return;
                     }
                     this.log.info(`Changing configured name of ${app.id} from ${appConfigs[app.id].configuredName} to ${value}.`);
-                    s.updateCharacteristic(this.platform.characteristic.ConfiguredName, value.toString());
                     appConfigs[app.id].configuredName = value.toString();
                     this.setAppConfigs(appConfigs);
                 })
@@ -611,7 +617,9 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
                     if (oldConfiguredName === value) {
                         return;
                     }
-                    this.log.info(`Changing configured name of media type sensor ${mediaType} from ${oldConfiguredName} to ${value}.`);
+                    if (oldConfiguredName !== '') {
+                        this.log.info(`Changing configured name of media type sensor ${mediaType} from ${oldConfiguredName} to ${value}.`);
+                    }
                     this.setMediaTypeConfig(mediaType, value.toString());
                 });
             s.getCharacteristic(this.platform.characteristic.MotionDetected)
@@ -674,7 +682,9 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
                     if (oldConfiguredName === value) {
                         return;
                     }
-                    this.log.info(`Changing configured name of remote key switch ${remoteKey} from ${oldConfiguredName} to ${value}.`);
+                    if (oldConfiguredName !== '') {
+                        this.log.info(`Changing configured name of remote key switch ${remoteKey} from ${oldConfiguredName} to ${value}.`);
+                    }
                     this.setRemoteKeyAsSwitchConfig(remoteKey, value.toString());
                 });
             s.getCharacteristic(this.platform.characteristic.On)
