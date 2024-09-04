@@ -47,9 +47,7 @@ export interface DeviceConfigOverride {
     overrideDisableVolumeControlRemote?: boolean;
     overrideMediaTypes?: boolean;
     overrideRemoteKeysAsSwitch?: boolean;
-    overrideSetTopBox?: boolean;
     remoteKeysAsSwitch?: RocketRemoteKey[];
-    setTopBox?: boolean;
 }
 
 export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_bridge' | 'name' | 'platform'> {
@@ -71,7 +69,6 @@ export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_br
     mediaTypes?: NodePyATVMediaType[];
     pythonExecutable?: string;
     remoteKeysAsSwitch?: RocketRemoteKey[];
-    setTopBox?: boolean;
     updateCheckLevel?: TUpdateCheckLevel;
     updateCheckTime?: TUpdateCheckTime;
 }

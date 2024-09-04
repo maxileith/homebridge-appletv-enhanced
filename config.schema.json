@@ -128,13 +128,6 @@
                 "default": false,
                 "required": true
             },
-            "setTopBox": {
-                "title": "Expose Set-Top Box Accessory",
-                "description": "Instead of exposing an Apple TV accessory, the plugin will expose a set-top box accessory. You need to repair the accessory with your Home app in order to see the changes.",
-                "type": "boolean",
-                "default": false,
-                "required": true
-            },
             "discover": {
                 "title": "Discover",
                 "type": "object",
@@ -423,18 +416,6 @@
                             "type": "boolean",
                             "default": false,
                             "required": true
-                        },
-                        "overrideSetTopBox": {
-                            "title": "Override: Expose Set-Top Box Accessory",
-                            "type": "boolean",
-                            "default": false,
-                            "required": true
-                        },
-                        "setTopBox": {
-                            "title": "Expose Set-Top Box Accessory",
-                            "type": "boolean",
-                            "default": false,
-                            "required": true
                         }
                     }
                 }
@@ -462,8 +443,7 @@
                 },
                 "avadaKedavraAppAmount",
                 "disableVolumeControlRemote",
-                "absoluteVolumeControl",
-                "setTopBox"
+                "absoluteVolumeControl"
             ]
         },
         {
@@ -577,18 +557,6 @@
                             "key": "deviceSpecificOverrides[].absoluteVolumeControl",
                             "condition": {
                                 "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideAbsoluteVolumeControl === true;"
-                            }
-                        },
-                        {
-                            "key": "deviceSpecificOverrides[].overrideSetTopBox",
-                            "condition": {
-                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac);"
-                            }
-                        },
-                        {
-                            "key": "deviceSpecificOverrides[].setTopBox",
-                            "condition": {
-                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideSetTopBox === true;"
                             }
                         }
                     ]

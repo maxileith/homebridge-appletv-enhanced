@@ -231,9 +231,6 @@ remaining)`);
         if (override.overrideAbsoluteVolumeControl === true) {
             config.absoluteVolumeControl = override.absoluteVolumeControl;
         }
-        if (override.overrideSetTopBox === true) {
-            config.setTopBox = override.setTopBox;
-        }
 
         return config;
     }
@@ -1468,11 +1465,7 @@ The webpage to pair the Apple TV will become available again when the plugin is 
     }
 
     private async startUp(): Promise<void> {
-        this.log.info(`Exposing Apple TV as accessory of type ${this.config.setTopBox === true ? 'set-top box' : 'Apple TV'}.`);
-
-        this.accessory.category = this.config.setTopBox === true
-            ? this.platform.api.hap.Categories.TV_SET_TOP_BOX
-            : this.platform.api.hap.Categories.APPLE_TV;
+        this.accessory.category = this.platform.api.hap.Categories.APPLE_TV;
 
         const configuredName: string = this.getCommonConfig().configuredName ?? removeSpecialCharacters(this.accessory.displayName);
 
