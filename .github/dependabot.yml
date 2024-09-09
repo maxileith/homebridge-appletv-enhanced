@@ -29,6 +29,10 @@ updates:
       typescript-eslint:
         patterns:
           - "@typescript-eslint/*"
+      eslint:
+        patterns:
+          - "@eslint/js"
+          - "eslint"
       md5:
         patterns:
           - "@types/md5"
