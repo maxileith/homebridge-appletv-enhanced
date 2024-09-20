@@ -15,7 +15,7 @@ mediafile==0.12.0
 miniaudio==1.61
 multidict==6.1.0
 mutagen==1.47.0
-protobuf==5.28.1
+protobuf==5.28.2
 pyatv==0.15.1
 pycparser==2.22
 pydantic==2.9.1
