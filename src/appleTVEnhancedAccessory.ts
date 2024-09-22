@@ -638,7 +638,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         this.log.debug('recreating rocket remote');
 
         this.rocketRemote = new RocketRemote(
-            this.device.host,
+            this.device.mac!,
             CustomPyAtvInstance.getAtvremotePath(),
             this.getCredentials()!,
             this.getCredentials()!,
