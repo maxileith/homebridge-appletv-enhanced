@@ -1,12 +1,16 @@
 # Homebridge Apple TV Enhanced
 
-[![mit license](https://badgen.net/badge/license/MIT/red)](https://github.com/maxileith/homebridge-appletv-enhanced/blob/master/LICENSE)
 [![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
-[![npm](https://img.shields.io/npm/v/homebridge-appletv-enhanced)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
-[![npm](https://badgen.net/npm/dt/homebridge-appletv-enhanced)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
-[![npm](https://badgen.net/npm/dm/homebridge-appletv-enhanced)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
-[![donate](https://badgen.net/badge/donate/paypal/91BE09)](https://www.paypal.me/maxileith/EUR)
+[![mit license](https://badgen.net/github/license/maxileith/homebridge-appletv-enhanced?color=red)](https://github.com/maxileith/homebridge-appletv-enhanced/blob/master/LICENSE)
+
+[![npm](https://badgen.net/npm/v/homebridge-appletv-enhanced/latest?label=latest)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
+[![npm](https://badgen.net/npm/v/homebridge-appletv-enhanced/beta?label=beta&color=cyan)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
+[![PyPI pyversions](https://badgen.net/npm/node/homebridge-appletv-enhanced?color=green)](https://pypi.python.org/pypi/pyatv/)
 [![PyPI pyversions](https://img.shields.io/badge/Python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.python.org/pypi/pyatv/)
+
+[![npm downloads total](https://badgen.net/npm/dt/homebridge-appletv-enhanced?color=gray)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
+[![npm downloads month](https://badgen.net/npm/dm/homebridge-appletv-enhanced?color=gray)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
+[![donate](https://badgen.net/badge/donate/paypal?color=yellow)](https://www.paypal.me/maxileith/EUR)
 
 [Homebridge](https://github.com/homebridge/homebridge) plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV integration of HomeKit.
 

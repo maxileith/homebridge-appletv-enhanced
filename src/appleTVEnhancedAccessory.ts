@@ -638,7 +638,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         this.log.debug('recreating rocket remote');
 
         this.rocketRemote = new RocketRemote(
-            this.device.host,
+            this.device.mac!,
             CustomPyAtvInstance.getAtvremotePath(),
             this.getCredentials()!,
             this.getCredentials()!,
@@ -844,7 +844,7 @@ the plugin after you have fixed the root cause. Enable debug logging to see the 
 
                 if (error instanceof Error) {
                     this.log.error(error.message);
-                    this.log.error(error.stack as string);
+                    this.log.debug(error.stack as string);
                     process.exit(1);
                 }
 

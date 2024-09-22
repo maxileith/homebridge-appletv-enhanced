@@ -3,7 +3,7 @@ cffi==1.17.1
 charset-normalizer==3.3.2
 cryptography==43.0.1
 Deprecated==1.2.14
-idna==3.8
+idna==3.10
 packaging==24.1
 pycparser==2.22
 PyGithub==2.4.0
@@ -11,5 +11,5 @@ PyJWT==2.9.0
 PyNaCl==1.5.0
 requests==2.32.3
 typing_extensions==4.12.2
-urllib3==2.2.2
+urllib3==2.2.3
 wrapt==1.16.0
