@@ -1310,8 +1310,9 @@ ${deviceStateDelay}ms is over): ${event.value}`);
         const ipEnd: string = ipSplitted[ipSplitted.length - 1];
         const httpPort: number = 42000 + parseInt(ipEnd);
 
-        const htmlInput: string = fs.readFileSync(path.join(__dirname, 'html', 'input.html'), 'utf8');
-        const htmlAfterPost: string = fs.readFileSync(path.join(__dirname, 'html', 'afterPost.html'), 'utf8');
+        const htmlInputHTML: string = fs.readFileSync(path.join(__dirname, 'html', 'input.html'), 'utf8');
+        const htmlAfterPostHTML: string = fs.readFileSync(path.join(__dirname, 'html', 'afterPost.html'), 'utf8');
+        const backOffHTML: string = fs.readFileSync(path.join(__dirname, 'html', 'backOff.html'), 'utf8');
 
         let goOn: boolean = false;
         let success: boolean = false;
@@ -1320,6 +1321,43 @@ ${deviceStateDelay}ms is over): ${event.value}`);
         let credentials: string = '';
 
         while (!success) {
+            let webPageOpened: boolean = false;
+            const requestListener = (req: IncomingMessage, res: ServerResponse<IncomingMessage> & { req: IncomingMessage }): void => {
+                res.setHeader('Content-Security-Policy', 'default-src * \'self\' data: \'unsafe-inline\' \'unsafe-hashes\' \'unsafe-eval\';\
+script-src * \'self\' data: \'unsafe-inline\' \'unsafe-hashes\' \'unsafe-eval\';\
+script-src-elem * \'self\' data: \'unsafe-inline\' \'unsafe-hashes\' \'unsafe-eval\';\
+script-src-attr * \'self\' data: \'unsafe-inline\' \'unsafe-hashes\' \'unsafe-eval\';\
+media-src * \'self\'');
+                res.setHeader('Cache-Control', 'max-age=0, no-cache, must-revalidate, proxy-revalidate');
+                res.writeHead(200);
+                if (req.method === 'GET') {
+                    webPageOpened = true;
+                    res.end(htmlInputHTML);
+                } else {
+                    let reqBody: string = '';
+                    req.on('data', (chunk) => {
+                        reqBody += chunk;
+                    });
+                    req.on('end', () => {
+                        const [a, b, c, d]: string[] = reqBody.split('&').map((e) => e.charAt(2));
+                        const pin: string = `${a}${b}${c}${d}`;
+                        this.log.info(`Got PIN ${pin} for Apple TV ${appleTVName}.`);
+                        process.stdin.write(`${pin}\n`);
+                        res.end(htmlAfterPostHTML);
+                    });
+                }
+            };
+            const server: http.Server = http.createServer(requestListener);
+            server.listen(httpPort, '0.0.0.0', () => {
+                this.log.warn(`You need to pair your Apple TV before the plugin can connect to it. Open the webpage \
+http://${localIP}:${httpPort}/. Then, enter the pairing code that will be displayed on your Apple TV.`);
+            });
+
+            // wait until the user opens the pairing page before starting the pairing process
+            while (webPageOpened === false) {
+                await delay(100);
+            }
+
             let backOffSeconds: number = 0;
             let processClosed: boolean = false;
 
@@ -1348,7 +1386,15 @@ ${deviceStateDelay}ms is over): ${event.value}`);
                 }
                 if (data.toUpperCase().includes('ERROR')) {
                     goOn = true;
-                    this.log.error('stdout: ' + data);
+                    let message: string = data;
+                    let traceback: string | null = null;
+                    if (data.includes('Traceback')) {
+                        [message, traceback] = data.split('Traceback', 1)
+                    }
+                    this.log.error('stdout: ' + message.trim());
+                    if (traceback !== null) {
+                        this.log.debug(traceback);
+                    }
                     return;
                 }
                 if (data.includes('You may now use these credentials: ')) {
@@ -1365,42 +1411,12 @@ ${deviceStateDelay}ms is over): ${event.value}`);
 
             setTimeout(() => {
                 if (!processClosed) {
-                    this.log.warn('Pairing request timed out, retrying ...');
+                    this.log.warn('Pairing request timed out, starting over ...');
                     this.log.debug('Kill the pyatv pairing process.');
                     process.kill();
                     goOn = true;
                 }
             }, 32000);
-
-            const requestListener = (req: IncomingMessage, res: ServerResponse<IncomingMessage> & { req: IncomingMessage }): void => {
-                res.setHeader('Content-Security-Policy', 'default-src * \'self\' data: \'unsafe-inline\' \'unsafe-hashes\' \'unsafe-eval\';\
-script-src * \'self\' data: \'unsafe-inline\' \'unsafe-hashes\' \'unsafe-eval\';\
-script-src-elem * \'self\' data: \'unsafe-inline\' \'unsafe-hashes\' \'unsafe-eval\';\
-script-src-attr * \'self\' data: \'unsafe-inline\' \'unsafe-hashes\' \'unsafe-eval\';\
-media-src * \'self\'');
-                res.setHeader('Cache-Control', 'max-age=0, no-cache, must-revalidate, proxy-revalidate');
-                res.writeHead(200);
-                if (req.method === 'GET') {
-                    res.end(htmlInput);
-                } else {
-                    let reqBody: string = '';
-                    req.on('data', (chunk) => {
-                        reqBody += chunk;
-                    });
-                    req.on('end', () => {
-                        const [a, b, c, d]: string[] = reqBody.split('&').map((e) => e.charAt(2));
-                        const pin: string = `${a}${b}${c}${d}`;
-                        this.log.info(`Got PIN ${pin} for Apple TV ${appleTVName}.`);
-                        process.stdin.write(`${pin}\n`);
-                        res.end(htmlAfterPost);
-                    });
-                }
-            };
-            const server: http.Server = http.createServer(requestListener);
-            server.listen(httpPort, '0.0.0.0', () => {
-                // eslint-disable-next-line max-len
-                this.log.warn(`You need to pair your Apple TV before the plugin can connect to it. Enter the PIN that is currently displayed on the device here: http://${localIP}:${httpPort}/`);
-            });
 
             this.log.debug('Wait for the atvremote process to terminate');
             while (!goOn || !processClosed) {
@@ -1409,12 +1425,27 @@ media-src * \'self\'');
             server.close();
 
             if (backOffSeconds !== 0) {
-                this.log.warn(`Apple TV ${appleTVName}: Too many attempts. Waiting for ${backOffSeconds} seconds before retrying. \
-The webpage to pair the Apple TV will become available again when the plugin is attempting the next pairing attempt.`);
+                this.log.warn(`Apple TV ${appleTVName}: Too many attempts. Waiting for ${backOffSeconds} seconds before retrying.`);
+                const requestListenerBackOff = (
+                    _req: IncomingMessage,
+                    res: ServerResponse<IncomingMessage> & { req: IncomingMessage },
+                ): void => {
+                    res.setHeader('Content-Security-Policy', 'default-src * \'self\' data: \'unsafe-inline\' \'unsafe-hashes\' \
+\'unsafe-eval\';script-src * \'self\' data: \'unsafe-inline\' \'unsafe-hashes\' \'unsafe-eval\';\
+script-src-elem * \'self\' data: \'unsafe-inline\' \'unsafe-hashes\' \'unsafe-eval\';\
+script-src-attr * \'self\' data: \'unsafe-inline\' \'unsafe-hashes\' \'unsafe-eval\';\
+media-src * \'self\'');
+                    res.setHeader('Cache-Control', 'max-age=0, no-cache, must-revalidate, proxy-revalidate');
+                    res.writeHead(200);
+                    res.end(backOffHTML.replace('let secondsLeft = 10;', `let secondsLeft = ${backOffSeconds};`));
+                };
+                const serverBackOff: http.Server = http.createServer(requestListenerBackOff);
+                serverBackOff.listen(httpPort, '0.0.0.0');
                 for (; backOffSeconds > 0; backOffSeconds--) {
                     this.log.debug(`${backOffSeconds} seconds remaining.`);
                     await delay(1000);
                 }
+                serverBackOff.close();
             }
         }
 
