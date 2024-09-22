@@ -844,7 +844,7 @@ the plugin after you have fixed the root cause. Enable debug logging to see the 
 
                 if (error instanceof Error) {
                     this.log.error(error.message);
-                    this.log.error(error.stack as string);
+                    this.log.debug(error.stack as string);
                     process.exit(1);
                 }
 
