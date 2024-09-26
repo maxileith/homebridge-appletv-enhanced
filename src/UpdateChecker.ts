@@ -155,7 +155,7 @@ class UpdateChecker {
 ${includeBetas ? 'including' : 'excluding'} betas. Auto updating is turned ${autoUpdate ? 'on' : 'off'}.`);
     }
 
-    public async check(infoOrDebugLogLevel: 'debug' | 'info' = 'debug'): Promise<void> {
+    public async check(infoOrDebugLogLevel: 'debug' | 'success' = 'debug'): Promise<void> {
         const latestVersion: string | undefined = await this.getLatestVersion();
         if (latestVersion === undefined) {
             return;
@@ -174,7 +174,7 @@ betas): ${currentVersion}`;
             if (infoOrDebugLogLevel === 'debug') {
                 this.log.debug(msg);
             } else {
-                this.log.info(msg);
+                this.log.success(msg);
             }
         }
     }

@@ -224,7 +224,15 @@ class RocketRemote {
     }
 
     private stderrLog(data: string): void {
-        this.log.error(data);
+        let message: string = data;
+        let traceback: string | null = null;
+        if (data.includes('Traceback')) {
+            [message, traceback] = data.split('Traceback', 1)
+        }
+        this.log.error(message);
+        if (traceback !== null) {
+            this.log.debug(traceback);
+        }
         this.process.kill();
     }
 
@@ -232,6 +240,9 @@ class RocketRemote {
         const toLog: string = data.replace('pyatv>', '').trim();
         if (toLog.toUpperCase().includes('ERROR')) {
             this.stderrLog(toLog);
+        } else if (toLog.includes('Enter commands and press enter')) {
+            this.log.debug(toLog);
+            this.log.success('Connected')
         } else if (toLog !== '') {
             this.log.debug(toLog);
         }

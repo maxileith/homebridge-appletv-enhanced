@@ -126,7 +126,7 @@ export class AppleTVEnhancedAccessory {
             //FIXME: catch errors / remove void
             void this.credentialsValid().then((valid: boolean): void => {
                 if (valid) {
-                    this.log.info('Credentials are still valid. Continuing ...');
+                    this.log.success('Credentials are still valid. Continuing ...');
                     void this.startUp();
                 } else {
                     this.log.warn('Credentials are no longer valid. Need to repair ...');
@@ -532,7 +532,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         ): void => {
             if (!(event instanceof Error)) {
                 if (this.offline && event.value !== null) {
-                    this.log.info('Reestablished the connection');
+                    this.log.success('Reestablished the connection');
                     this.offline = false;
                 }
                 this.log.debug(`event ${event.key}: ${event.value}`);
