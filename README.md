@@ -89,14 +89,16 @@ It might also be a good idea to take a look at [this video](https://www.tiktok.c
 3.  Restart the homebridge.
 4.  (optional) If the plugin is running as a child bridge, the child bridge will now be exposed. You can add it to your Home App if you want to. However, there is no real benefit to it since this bridge will not expose any devices (Apple TVs will be exposed as their own bridges).
 5.  The plugin will start the discovery of Apple TVs in your local network.
-6.  For every discovered Apple TV you have to do the following steps. Make sure you are in front of your TV. The paring process is the same that is used to pair iPhones and iPads and will timeout after 30 seconds. Pairing will be retried until the Apple TV is paired.
-    1. In the logs there will be a message thats says `You need to pair your Apple TV before the plugin can connect to it. Enter the PIN that is currently displayed on the device here: http://192.168.0.12:42015/` where the link http://192.168.0.12:42015 is different in your log and distinct for one Apple TV if you are connecting multiple.
+6.  For every discovered Apple TV you have to do the following steps. Make sure you are in front of your TV. The paring process is the same that is used to pair iPhones and iPads and will timeout after 30 seconds.
+    1. In the logs there will be a message thats says `You need to pair your Apple TV before the plugin can connect to it. pen the webpage http://192.168.0.12:42015/. Then, enter the pairing code that will be displayed on your Apple TV.` where the link [http://192.168.0.12:42015](https://www.youtube.com/watch?v=dQw4w9WgXcQ) is different in your log and distinct for one Apple TV if you are connecting multiple.
     2. Open the link. A pairing page will open (see first image below).
-    3. In the meantime there should already be a pairing code displayed on your Apple TV. Enter the 4-digit code into the pairing page.
-    4. If the pairing page says that transmitting the PIN was successful (see second image below), pairing was probably successful (Logs: `Paring was successful. Add it to your home in the Home app: com.apple.home://launch`). To be sure, take a look into the logs, you may have entered the PIN wrong too often or let the pairing request time out too many times (Logs: `Too many attempts. Waiting for x seconds before retrying.`). If you are requested to enter a PIN again (see first image below) you have most probably entered the wrong PIN ... the plugin will attempt a new pairing attempt. Enter the new PIN displayed on the Apple TV again.
-    5. Done ... do this with all your Apple TVs.
+    3. In the meantime there should already be a pairing code displayed on your Apple TV. Enter the 4-digit code into the pairing page. You have 30 seconds to enter the pairing code.
+        - If you miss that timeframe, you can just click the "Tap to retry" button and initiate another pairing request.
+        - If you enter a wrong code, the pairing request will fail and another pairing request is started **automatically**.
+        - If the pairing requests fails to often due to too many incorrect entered codes or too many timed out requests, the Apple TV will start a "Back Off Timer" which blocks all pairing request for a certain period. This is period is set by the Apple TV, not the plugin. Restarting or reinstalling the plugin won't reset the timer.
+    4. Done ... do this with all your Apple TVs.
 7.  You have paired all Apple TVs (with the plugin, not with Apple Home yet).
-8.  Every Apple TV is exposed as a Set-Top Box and is its own bridge. Therefore, we need to add every Apple TV separately to Apple Home. In order to do that, open the Home app, go to add devices > more options, then type in the pairing code from the logs (Logs: `Please add [Apple TV Wohnzimmer (2)] manually in
+8.  Every Apple TV is exposed as an Apple TV device and is its own bridge. Therefore, we need to add every Apple TV separately to Apple Home. In order to do that, open the Home app, go to add devices > more options, then type in the pairing code from the logs (Logs: `Please add [Apple TV Wohnzimmer (2)] manually in
 Home app. Setup Code: xxxx-xxxx` this is not the code that you have seen on the Apple TV display).
 
 <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/docs/img/enterPIN.jpg" width=280/> <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/docs/img/pinTransmitted.jpg" width=280/>

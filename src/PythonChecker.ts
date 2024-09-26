@@ -51,7 +51,7 @@ class PythonChecker {
         await this.ensureVenvUsesCorrectPythonHome();
         await this.ensureVenvPipUpToDate();
         await this.ensureVenvRequirementsSatisfied();
-        this.log.info('Finished');
+        this.log.success('Finished');
     }
 
     private async areRequirementsSatisfied(): Promise<boolean> {

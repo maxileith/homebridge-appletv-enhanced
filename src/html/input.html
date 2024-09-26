@@ -59,52 +59,53 @@
             #appleTVLogo {
                 max-width: 10rem;
             }
+            button {
+                padding: 0.5rem;
+                border: 0;
+                width: 100%;
+                height: 5rem;
+                font-size: 1.5rem;
+                border-radius: 0.75rem;
+                background-color: rgba(0, 0, 0, 0.2);
+                cursor: pointer;
+                margin: 3.5rem 0 0.25rem 0;
+            }
         </style>
-    </head>
-    <body>
-        <div class="bg-image"></div>
-        <div class="box">
-            <div>
-                <img
-                    src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/static_html_content/appleTVLogo.png"
-                    id="appleTVLogo"
-                />
-                <h3>Enter the PIN on your Apple TV.</h3>
-                <form action="/" method="post" name="pin">
-                    <input
-                        type="text"
-                        id="a"
-                        onkeyup="moveOnMax(this, '', 'b')"
-                        autofocus
-                        name="a"
-                        inputmode="numeric"
-                    />
-                    <input
-                        type="text"
-                        id="b"
-                        onkeyup="moveOnMax(this, 'a', 'c')"
-                        name="b"
-                        inputmode="numeric"
-                    />
-                    <input
-                        type="text"
-                        id="c"
-                        onkeyup="moveOnMax(this, 'b', 'd')"
-                        name="c"
-                        inputmode="numeric"
-                    />
-                    <input
-                        type="text"
-                        id="d"
-                        onkeyup="moveOnMax(this, 'c', '')"
-                        name="d"
-                        inputmode="numeric"
-                    />
-                </form>
-            </div>
-        </div>
-
         <script>
+            let secondsLeft = 30;
+            let countDownInterval = null;
+
+            function showRetry() {
+                document.getElementById("pinForm").style.display = "none";
+                document.getElementById("retryButton").style.display = "block";
+            }
+
+            function countDown() {
+                secondsLeft--;
+                if (secondsLeft === 0) {
+                    clearInterval(countDownInterval);
+                    showRetry();
+                } else {
+                    document.getElementById("secondsLeft").innerHTML =
+                        secondsLeft;
+                }
+            }
+
+            window.addEventListener("load", () => {
+                document.getElementById("secondsLeft").innerHTML = secondsLeft;
+                countDownInterval = setInterval(countDown, 1000);
+
+                setTimeout(() => {
+                    fetch("/", { method: "GET" }).then((res) => {
+                        res.text().then((t) => {
+                            if (t.includes("Back off" + " timer")) {
+                                window.location.replace("/");
+                            }
+                        });
+                    });
+                }, 1000);
+            });
+
             function moveOnMax(field, lastFieldID, nextFieldID) {
                 field.value = field.value.substring(field.value.length - 1);
                 if (
@@ -145,5 +146,56 @@
                 document.pin.submit();
             }
         </script>
+    </head>
+    <body>
+        <div class="bg-image"></div>
+        <div class="box">
+            <div>
+                <img
+                    src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/main/static_html_content/appleTVLogo.png"
+                    id="appleTVLogo"
+                />
+                <h3>Enter the PIN on your Apple TV.</h3>
+                <form action="/" method="post" name="pin" id="pinForm">
+                    <p><span id="secondsLeft"></span> seconds left</p>
+                    <input
+                        type="text"
+                        id="a"
+                        onkeyup="moveOnMax(this, '', 'b')"
+                        autofocus
+                        name="a"
+                        inputmode="numeric"
+                    />
+                    <input
+                        type="text"
+                        id="b"
+                        onkeyup="moveOnMax(this, 'a', 'c')"
+                        name="b"
+                        inputmode="numeric"
+                    />
+                    <input
+                        type="text"
+                        id="c"
+                        onkeyup="moveOnMax(this, 'b', 'd')"
+                        name="c"
+                        inputmode="numeric"
+                    />
+                    <input
+                        type="text"
+                        id="d"
+                        onkeyup="moveOnMax(this, 'c', '')"
+                        name="d"
+                        inputmode="numeric"
+                    />
+                </form>
+                <button
+                    id="retryButton"
+                    style="display: none"
+                    onClick="window.location.reload();"
+                >
+                    Tap to retry
+                </button>
+            </div>
+        </div>
     </body>
 </html>
