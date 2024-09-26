@@ -224,15 +224,7 @@ class RocketRemote {
     }
 
     private stderrLog(data: string): void {
-        let message: string = data;
-        let traceback: string | null = null;
-        if (data.includes('Traceback')) {
-            [message, traceback] = data.split('Traceback', 1)
-        }
-        this.log.error(message);
-        if (traceback !== null) {
-            this.log.debug(traceback);
-        }
+        this.log.error(data);
         this.process.kill();
     }
 
