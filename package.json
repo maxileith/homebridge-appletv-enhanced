@@ -7,7 +7,7 @@
     "author": "Maximilian Leith",
     "scripts": {
         "lint": "eslint src/**.ts --max-warnings=0",
-        "watch": "npm run build && npm link && nodemon",
+        "watch": "npm run build && npm link && APPLETV_ENHANCED_DEV=true nodemon",
         "build": "npm ci && rimraf -I ./dist && npm run lint && tsc && mkdir ./dist/html && cp -r ./src/html ./dist && cp ./src/*.py ./dist",
         "prepublishOnly": "npm run build",
         "postversion": "git push && git push --tags"

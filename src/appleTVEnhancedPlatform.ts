@@ -20,6 +20,8 @@ const ALLOWED_MODELS: string[] = [
     'AppleTV4KGen3',
 ];
 
+const DEV_MODE: boolean = process.env.APPLETV_ENHANCED_DEV?.toLowerCase() === 'true'
+
 export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
     public readonly characteristic: typeof Characteristic;
     public readonly logLevelLogger: LogLevelLogger;
@@ -38,6 +40,10 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
 
         this.service = this.api.hap.Service;
         this.characteristic = this.api.hap.Characteristic;
+
+        if (DEV_MODE === true) {
+            this.log.warn('Development mode activated');
+        }
 
         this.log.info('Finished initializing platform:', this.config.name);
 
@@ -161,7 +167,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             // generate a unique id for the accessory this should be generated from
             // something globally unique, but constant, for example, the device serial
             // number or MAC address
-            const uuid: string = this.api.hap.uuid.generate(mac);
+            const uuid: string = this.api.hap.uuid.generate(DEV_MODE === true ? `x${mac}` : mac);
             if (this.publishedUUIDs.includes(uuid)) {
                 this.log.debug(`${appleTV.name} (${appleTV.mac}) with UUID ${uuid} already exists. Skipping.`);
                 continue;
