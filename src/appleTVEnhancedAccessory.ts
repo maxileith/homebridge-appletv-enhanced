@@ -727,6 +727,14 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
                         this.rocketRemote?.volumeDown();
                     }
                 });
+            this.televisionSpeakerService.getCharacteristic(this.platform.characteristic.Mute)
+                .onSet(async (value: CharacteristicValue): Promise<void> => {
+                    if (value === true) {
+                        this.unmute();
+                    } else {
+                        this.mute();
+                    }
+                });
         }
 
         this.service!.addLinkedService(this.televisionSpeakerService);
@@ -779,11 +787,9 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         this.volumeFanService.getCharacteristic(this.platform.characteristic.Active)
             .onSet(async (value: CharacteristicValue): Promise<void> => {
                 if (value === this.platform.characteristic.Active.ACTIVE) {
-                    this.log.info(`Unmuting (Setting the volume to the last known state: ${this.lastNonZeroVolume}%)`);
-                    this.rocketRemote?.setVolume(this.lastNonZeroVolume, true);
+                    this.unmute();
                 } else {
-                    this.log.info('Muting');
-                    this.rocketRemote?.setVolume(0, true);
+                    this.mute();
                 }
             });
 
@@ -1303,6 +1309,11 @@ ${deviceStateDelay}ms is over): ${event.value}`);
         }
     }
 
+    private mute(): void {
+        this.log.info('Muting');
+        this.rocketRemote?.setVolume(0, true);
+    }
+
     private async pair(ip: string, appleTVName: string): Promise<string> {
         this.log.debug('Got empty credentials, initiating pairing process.');
 
@@ -1575,5 +1586,10 @@ media-src * \'self\'');
 
         this.log.info('Finished initializing');
         this.booted = true;
+    }
+
+    private unmute(): void {
+        this.log.info(`Unmuting (Setting the volume to the last known state: ${this.lastNonZeroVolume}%)`);
+        this.rocketRemote?.setVolume(this.lastNonZeroVolume, true);
     }
 }
