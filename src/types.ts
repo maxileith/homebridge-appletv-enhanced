@@ -26,7 +26,7 @@ export type TPyatvCharacteristicID =
 type Mapped<
     N extends number,
     Result extends unknown[] = [],
-    > =
+> =
     (Result['length'] extends N
         ? Result
         : Mapped<N, [...Result, Result['length']]>

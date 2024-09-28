@@ -1,7 +1,6 @@
 import fs from 'fs';
 import http, { type IncomingMessage, type ServerResponse } from 'http';
-import type {
-    Characteristic} from 'homebridge';
+import type { Characteristic } from 'homebridge';
 import {
     type Service,
     type PlatformAccessory,
@@ -13,7 +12,7 @@ import {
 } from 'homebridge';
 import type { AppleTVEnhancedPlatform } from './appleTVEnhancedPlatform';
 import { NodePyATVDeviceState, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
-import type {NodePyATVDevice, NodePyATVDeviceEvent, NodePyATVEventValueType } from '@sebbo2002/node-pyatv';
+import type { NodePyATVDevice, NodePyATVDeviceEvent, NodePyATVEventValueType } from '@sebbo2002/node-pyatv';
 import md5 from 'md5';
 import { type ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import path from 'path';
@@ -424,9 +423,11 @@ ${value}.`);
     }
 
     private createInputs(apps: NodePyATVApp[], customURIs: string[]): void {
-        const appsAndCustomInputs: NodePyATVApp[] = [...customURIs.map((uri) => {
-            return { id: uri, name: uri };
-        }), ...apps];
+        const appsAndCustomInputs: NodePyATVApp[] = [
+            ...customURIs.map((uri) => {
+                return { id: uri, name: uri };
+            }), ...apps,
+        ];
 
         const appConfigs: IAppConfigs = this.getAppConfigs();
 
@@ -574,7 +575,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
 
         const pyatvCharacteristicListener = (e: Error | NodePyATVDeviceEvent, characteristic: TPyatvCharacteristicID): void => {
             filterErrorHandler(e, this.handlePyatvCharacteristicUpdate.bind(this, characteristic));
-        }
+        };
 
         this.device.on('update:powerState', powerStateListener);
         this.device.on('update:appId', appIdListener);
@@ -586,7 +587,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         for (const characteristic in this.pyatvCharacteristics) {
             const handler: (e: Error | NodePyATVDeviceEvent) => void = (e): void => {
                 pyatvCharacteristicListener(e, characteristic as TPyatvCharacteristicID);
-            }
+            };
             this.pyatvListenerHandlers[characteristic] = handler;
             this.device.on(`update:${characteristic}`, handler);
         }
@@ -672,33 +673,33 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
             this.log.debug(`Adding custom characteristic ${characteristic.displayName}.`);
 
             switch (pyatvId) {
-            case 'album':
-                characteristic.setValue(await this.device.getAlbum() ?? '');
-                break;
-            case 'artist':
-                characteristic.setValue(await this.device.getArtist() ?? '');
-                break;
-            case 'episodeNumber':
-                break;
-            case 'genre':
-                characteristic.setValue(await this.device.getGenre() ?? '');
-                break;
-            case 'repeat':
-                characteristic.setValue(await this.device.getRepeat() ?? 'off');
-                break;
-            case 'seasonNumber':
-                break;
-            case 'seriesName':
-                break;
-            case 'shuffle':
-                characteristic.setValue(await this.device.getShuffle() ?? 'off');
-                break;
-            case 'title':
-                characteristic.setValue(await this.device.getTitle() ?? '');
-                break;
-            case 'totalTime':
-                characteristic.setValue(await this.device.getTotalTime() ?? -1);
-                break;
+                case 'album':
+                    characteristic.setValue(await this.device.getAlbum() ?? '');
+                    break;
+                case 'artist':
+                    characteristic.setValue(await this.device.getArtist() ?? '');
+                    break;
+                case 'episodeNumber':
+                    break;
+                case 'genre':
+                    characteristic.setValue(await this.device.getGenre() ?? '');
+                    break;
+                case 'repeat':
+                    characteristic.setValue(await this.device.getRepeat() ?? 'off');
+                    break;
+                case 'seasonNumber':
+                    break;
+                case 'seriesName':
+                    break;
+                case 'shuffle':
+                    characteristic.setValue(await this.device.getShuffle() ?? 'off');
+                    break;
+                case 'title':
+                    characteristic.setValue(await this.device.getTitle() ?? '');
+                    break;
+                case 'totalTime':
+                    characteristic.setValue(await this.device.getTotalTime() ?? -1);
+                    break;
             }
 
             if (characteristic.value !== '' && characteristic.value !== null) {
@@ -958,7 +959,7 @@ the plugin after you have fixed the root cause. Enable debug logging to see the 
         if (this.commonConfig === undefined) {
             const jsonPath: string = this.getPath('common.json');
             this.log.debug(`Loading common config from ${jsonPath}`);
-            try{
+            try {
                 this.commonConfig = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as ICommonConfig;
             } catch (err: unknown) {
                 if (err instanceof Error && err.name === 'SyntaxError') {
@@ -986,7 +987,7 @@ the plugin after you have fixed the root cause. Enable debug logging to see the 
         if (this.deviceStateConfigs === undefined) {
             const jsonPath: string = this.getPath('deviceStates.json');
             this.log.debug(`Loading device states config from ${jsonPath}`);
-            try{
+            try {
                 this.deviceStateConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TDeviceStateConfigs;
             } catch (err: unknown) {
                 if (err instanceof Error && err.name === 'SyntaxError') {
@@ -1004,7 +1005,7 @@ the plugin after you have fixed the root cause. Enable debug logging to see the 
         if (this.mediaConfigs === undefined) {
             const jsonPath: string = this.getPath('mediaTypes.json');
             this.log.debug(`Loading media types config from ${jsonPath}`);
-            try{
+            try {
                 this.mediaConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TMediaConfigs;
             } catch (err: unknown) {
                 if (err instanceof Error && err.name === 'SyntaxError') {
@@ -1020,7 +1021,7 @@ the plugin after you have fixed the root cause. Enable debug logging to see the 
 
     private getPath(file: string, defaultContent = '{}'): string {
         const dir: string = path.join(this.platform.api.user.storagePath(), 'appletv-enhanced', this.device.mac!.replaceAll(':', ''));
-        if (!fs.existsSync(dir)){
+        if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir);
         }
         const filePath: string = path.join(dir, file);
@@ -1051,7 +1052,7 @@ the plugin after you have fixed the root cause. Enable debug logging to see the 
         if (this.remoteKeyAsSwitchConfigs === undefined) {
             const jsonPath: string = this.getPath('remoteKeySwitches.json');
             this.log.debug(`Loading remote key as switches config from ${jsonPath}`);
-            try{
+            try {
                 this.remoteKeyAsSwitchConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TRemoteKeysAsSwitchConfigs;
             } catch (err: unknown) {
                 if (err instanceof Error && err.name === 'SyntaxError') {
@@ -1221,38 +1222,38 @@ ${deviceStateDelay}ms is over): ${event.value}`);
         }
 
         switch (event.value) {
-        case NodePyATVDeviceState.playing:
-            this.service!.updateCharacteristic(
-                this.platform.characteristic.CurrentMediaState,
-                this.platform.characteristic.CurrentMediaState.PLAY,
-            );
-            break;
-        case NodePyATVDeviceState.paused:
-            this.service!.updateCharacteristic(
-                this.platform.characteristic.CurrentMediaState,
-                this.platform.characteristic.CurrentMediaState.PAUSE,
-            );
-            break;
-        case NodePyATVDeviceState.stopped:
-            this.service!.updateCharacteristic(
-                this.platform.characteristic.CurrentMediaState,
-                this.platform.characteristic.CurrentMediaState.STOP,
-            );
-            break;
-        case NodePyATVDeviceState.loading:
-            this.service!.updateCharacteristic(
-                this.platform.characteristic.CurrentMediaState,
-                this.platform.characteristic.CurrentMediaState.LOADING,
-            );
-            break;
-        case null:
-            this.service!.updateCharacteristic(
-                this.platform.characteristic.CurrentMediaState,
-                this.platform.characteristic.CurrentMediaState.INTERRUPTED,
-            );
-            break;
-        default:
-            break;
+            case NodePyATVDeviceState.playing:
+                this.service!.updateCharacteristic(
+                    this.platform.characteristic.CurrentMediaState,
+                    this.platform.characteristic.CurrentMediaState.PLAY,
+                );
+                break;
+            case NodePyATVDeviceState.paused:
+                this.service!.updateCharacteristic(
+                    this.platform.characteristic.CurrentMediaState,
+                    this.platform.characteristic.CurrentMediaState.PAUSE,
+                );
+                break;
+            case NodePyATVDeviceState.stopped:
+                this.service!.updateCharacteristic(
+                    this.platform.characteristic.CurrentMediaState,
+                    this.platform.characteristic.CurrentMediaState.STOP,
+                );
+                break;
+            case NodePyATVDeviceState.loading:
+                this.service!.updateCharacteristic(
+                    this.platform.characteristic.CurrentMediaState,
+                    this.platform.characteristic.CurrentMediaState.LOADING,
+                );
+                break;
+            case null:
+                this.service!.updateCharacteristic(
+                    this.platform.characteristic.CurrentMediaState,
+                    this.platform.characteristic.CurrentMediaState.INTERRUPTED,
+                );
+                break;
+            default:
+                break;
         }
     }
 
@@ -1306,53 +1307,53 @@ ${deviceStateDelay}ms is over): ${event.value}`);
             value = trimToMaxLength(value as string, characteristic.props.maxLen ?? 64);
         }
 
-        this.log.info(`Updating characteristic ${characteristic.displayName} to "${value}".`)
+        this.log.info(`Updating characteristic ${characteristic.displayName} to "${value}".`);
         characteristic.setValue(value);
     }
 
     private async handleRemoteKeySet(state: CharacteristicValue): Promise<void> {
         switch (state) {
-        case this.platform.characteristic.RemoteKey.REWIND:
-            this.rocketRemote?.skipBackward();
-            break;
-        case this.platform.characteristic.RemoteKey.FAST_FORWARD:
-            this.rocketRemote?.skipForward();
-            break;
-        case this.platform.characteristic.RemoteKey.NEXT_TRACK:
-            this.rocketRemote?.next();
-            break;
-        case this.platform.characteristic.RemoteKey.PREVIOUS_TRACK:
-            this.rocketRemote?.previous();
-            break;
-        case this.platform.characteristic.RemoteKey.ARROW_UP:
-            this.rocketRemote?.up();
-            break;
-        case this.platform.characteristic.RemoteKey.ARROW_DOWN:
-            this.rocketRemote?.down();
-            break;
-        case this.platform.characteristic.RemoteKey.ARROW_LEFT:
-            this.rocketRemote?.left();
-            break;
-        case this.platform.characteristic.RemoteKey.ARROW_RIGHT:
-            this.rocketRemote?.right();
-            break;
-        case this.platform.characteristic.RemoteKey.SELECT:
-            this.rocketRemote?.select();
-            break;
-        case this.platform.characteristic.RemoteKey.BACK:
-            this.rocketRemote?.menu();
-            break;
-        case this.platform.characteristic.RemoteKey.EXIT:
-            this.rocketRemote?.home();
-            break;
-        case this.platform.characteristic.RemoteKey.PLAY_PAUSE:
-            this.rocketRemote?.playPause();
-            break;
-        case this.platform.characteristic.RemoteKey.INFORMATION:
-            this.rocketRemote?.topMenu();
-            break;
-        default:
-            break;
+            case this.platform.characteristic.RemoteKey.REWIND:
+                this.rocketRemote?.skipBackward();
+                break;
+            case this.platform.characteristic.RemoteKey.FAST_FORWARD:
+                this.rocketRemote?.skipForward();
+                break;
+            case this.platform.characteristic.RemoteKey.NEXT_TRACK:
+                this.rocketRemote?.next();
+                break;
+            case this.platform.characteristic.RemoteKey.PREVIOUS_TRACK:
+                this.rocketRemote?.previous();
+                break;
+            case this.platform.characteristic.RemoteKey.ARROW_UP:
+                this.rocketRemote?.up();
+                break;
+            case this.platform.characteristic.RemoteKey.ARROW_DOWN:
+                this.rocketRemote?.down();
+                break;
+            case this.platform.characteristic.RemoteKey.ARROW_LEFT:
+                this.rocketRemote?.left();
+                break;
+            case this.platform.characteristic.RemoteKey.ARROW_RIGHT:
+                this.rocketRemote?.right();
+                break;
+            case this.platform.characteristic.RemoteKey.SELECT:
+                this.rocketRemote?.select();
+                break;
+            case this.platform.characteristic.RemoteKey.BACK:
+                this.rocketRemote?.menu();
+                break;
+            case this.platform.characteristic.RemoteKey.EXIT:
+                this.rocketRemote?.home();
+                break;
+            case this.platform.characteristic.RemoteKey.PLAY_PAUSE:
+                this.rocketRemote?.playPause();
+                break;
+            case this.platform.characteristic.RemoteKey.INFORMATION:
+                this.rocketRemote?.topMenu();
+                break;
+            default:
+                break;
         }
     }
 
@@ -1492,7 +1493,7 @@ http://${localIP}:${httpPort}/. Then, enter the pairing code that will be displa
                     let message: string = data;
                     let traceback: string | null = null;
                     if (data.includes('Traceback')) {
-                        [message, traceback] = data.split('Traceback', 1)
+                        [message, traceback] = data.split('Traceback', 1);
                     }
                     this.log.error('stdout: ' + message.trim());
                     if (traceback !== null) {
@@ -1559,7 +1560,7 @@ media-src * \'self\'');
         this.appConfigs = value;
         const jsonPath: string = this.getPath('apps.json');
         this.log.debug(`Updating app config at ${jsonPath}`);
-        fs.writeFileSync(jsonPath, JSON.stringify(value, null, 4), { encoding:'utf8', flag:'w' });
+        fs.writeFileSync(jsonPath, JSON.stringify(value, null, 4), { encoding: 'utf8', flag: 'w' });
     }
 
     private setCommonConfig(key: string, value: PrimitiveTypes): void {
@@ -1569,13 +1570,13 @@ media-src * \'self\'');
         this.commonConfig[key] = value;
         const jsonPath: string = this.getPath('common.json');
         this.log.debug(`Updating common config at ${jsonPath}`);
-        fs.writeFileSync(jsonPath, JSON.stringify(this.commonConfig, null, 4), { encoding:'utf8', flag:'w' });
+        fs.writeFileSync(jsonPath, JSON.stringify(this.commonConfig, null, 4), { encoding: 'utf8', flag: 'w' });
     }
 
     private setCredentials(value: string): void {
         this.credentials = value;
         const path: string = this.getPath('credentials.txt', '');
-        fs.writeFileSync(path, value, { encoding:'utf8', flag:'w' });
+        fs.writeFileSync(path, value, { encoding: 'utf8', flag: 'w' });
     }
 
     private setDeviceStateConfig(key: NodePyATVDeviceState, value: string): void {
@@ -1585,7 +1586,7 @@ media-src * \'self\'');
         this.deviceStateConfigs[key] = value;
         const jsonPath: string = this.getPath('deviceStates.json');
         this.log.debug(`Updating devices states config at ${jsonPath}`);
-        fs.writeFileSync(jsonPath, JSON.stringify(this.deviceStateConfigs, null, 4), { encoding:'utf8', flag:'w' });
+        fs.writeFileSync(jsonPath, JSON.stringify(this.deviceStateConfigs, null, 4), { encoding: 'utf8', flag: 'w' });
     }
 
     private setMediaTypeConfig(key: NodePyATVMediaType, value: string): void {
@@ -1595,7 +1596,7 @@ media-src * \'self\'');
         this.mediaConfigs[key] = value;
         const jsonPath: string = this.getPath('mediaTypes.json');
         this.log.debug(`Updating media types config at ${jsonPath}`);
-        fs.writeFileSync(jsonPath, JSON.stringify(this.mediaConfigs, null, 4), { encoding:'utf8', flag:'w' });
+        fs.writeFileSync(jsonPath, JSON.stringify(this.mediaConfigs, null, 4), { encoding: 'utf8', flag: 'w' });
     }
 
     private setRemoteKeyAsSwitchConfig(key: RocketRemoteKey, value: string): void {
@@ -1605,7 +1606,7 @@ media-src * \'self\'');
         this.remoteKeyAsSwitchConfigs[key] = value;
         const jsonPath: string = this.getPath('remoteKeySwitches.json');
         this.log.debug(`Updating remote keys as switches config at ${jsonPath}`);
-        fs.writeFileSync(jsonPath, JSON.stringify(this.remoteKeyAsSwitchConfigs, null, 4), { encoding:'utf8', flag:'w' });
+        fs.writeFileSync(jsonPath, JSON.stringify(this.remoteKeyAsSwitchConfigs, null, 4), { encoding: 'utf8', flag: 'w' });
     }
 
     private async startUp(): Promise<void> {

@@ -1,5 +1,5 @@
 
-import type { HAP, Characteristic} from 'homebridge';
+import type { HAP, Characteristic } from 'homebridge';
 import { Formats, Perms, Units } from 'homebridge';
 import type { TPyatvCharacteristicID, TPyatvCharacteristicGenerator } from './types';
 
@@ -9,7 +9,7 @@ function albumPyatvCharacteristic(hap: HAP): Characteristic {
         format: Formats.STRING,
         perms: [Perms.PAIRED_READ, Perms.NOTIFY],
         maxLen: 64,
-    })
+    });
 }
 
 function artistPyatvCharacteristic(hap: HAP): Characteristic {
@@ -17,14 +17,14 @@ function artistPyatvCharacteristic(hap: HAP): Characteristic {
         format: Formats.STRING,
         perms: [Perms.PAIRED_READ, Perms.NOTIFY],
         maxLen: 64,
-    })
+    });
 }
 
 function episodePyatvCharacteristic(hap: HAP): Characteristic {
     return new hap.Characteristic('Episode', '5628da35-33b4-413c-b3b6-00bc61dca1ab', {
         format: Formats.UINT32,
         perms: [Perms.PAIRED_READ, Perms.NOTIFY],
-    })
+    });
 }
 
 
@@ -33,7 +33,7 @@ function genrePyatvCharacteristic(hap: HAP): Characteristic {
         format: Formats.STRING,
         perms: [Perms.PAIRED_READ, Perms.NOTIFY],
         maxLen: 64,
-    })
+    });
 }
 
 
@@ -42,14 +42,14 @@ function repeatPyatvCharacteristic(hap: HAP): Characteristic {
         format: Formats.STRING,
         perms: [Perms.PAIRED_READ, Perms.NOTIFY],
         maxLen: 64,
-    })
+    });
 }
 
 function seasonPyatvCharacteristic(hap: HAP): Characteristic {
     return new hap.Characteristic('Season', 'b131bea3-ebc0-477f-9d0b-552e0a6163a9', {
         format: Formats.UINT32,
         perms: [Perms.PAIRED_READ, Perms.NOTIFY],
-    })
+    });
 }
 
 function seriesNamePyatvCharacteristic(hap: HAP): Characteristic {
@@ -57,7 +57,7 @@ function seriesNamePyatvCharacteristic(hap: HAP): Characteristic {
         format: Formats.STRING,
         perms: [Perms.PAIRED_READ, Perms.NOTIFY],
         maxLen: 64,
-    })
+    });
 }
 
 function shufflePyatvCharacteristic(hap: HAP): Characteristic {
@@ -65,7 +65,7 @@ function shufflePyatvCharacteristic(hap: HAP): Characteristic {
         format: Formats.STRING,
         perms: [Perms.PAIRED_READ, Perms.NOTIFY],
         maxLen: 64,
-    })
+    });
 }
 
 function titlePyatvCharacteristic(hap: HAP): Characteristic {
@@ -73,7 +73,7 @@ function titlePyatvCharacteristic(hap: HAP): Characteristic {
         format: Formats.STRING,
         perms: [Perms.PAIRED_READ, Perms.NOTIFY],
         maxLen: 64,
-    })
+    });
 }
 
 function totalTimePyatvCharacteristic(hap: HAP): Characteristic {
@@ -81,20 +81,20 @@ function totalTimePyatvCharacteristic(hap: HAP): Characteristic {
         format: Formats.UINT32,
         perms: [Perms.PAIRED_READ, Perms.NOTIFY],
         unit: Units.SECONDS,
-    })
+    });
 }
 
 const pyatvCharacteristicGenerators: Record<TPyatvCharacteristicID, TPyatvCharacteristicGenerator> = {
-    'album': albumPyatvCharacteristic,
-    'artist': artistPyatvCharacteristic,
-    'episodeNumber': episodePyatvCharacteristic,
-    'genre': genrePyatvCharacteristic,
-    'repeat': repeatPyatvCharacteristic,
-    'seasonNumber': seasonPyatvCharacteristic,
-    'seriesName': seriesNamePyatvCharacteristic,
-    'shuffle': shufflePyatvCharacteristic,
-    'title': titlePyatvCharacteristic,
-    'totalTime': totalTimePyatvCharacteristic,
-}
+    album: albumPyatvCharacteristic,
+    artist: artistPyatvCharacteristic,
+    episodeNumber: episodePyatvCharacteristic,
+    genre: genrePyatvCharacteristic,
+    repeat: repeatPyatvCharacteristic,
+    seasonNumber: seasonPyatvCharacteristic,
+    seriesName: seriesNamePyatvCharacteristic,
+    shuffle: shufflePyatvCharacteristic,
+    title: titlePyatvCharacteristic,
+    totalTime: totalTimePyatvCharacteristic,
+};
 
 export default pyatvCharacteristicGenerators;
