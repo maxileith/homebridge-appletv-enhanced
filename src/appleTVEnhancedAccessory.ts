@@ -39,6 +39,7 @@ import { DisplayOrderTypes, RocketRemoteKey } from './enums';
 import type { TDeviceStateConfigs, TMediaConfigs, TPyatvCharacteristicID, TRemoteKeysAsSwitchConfigs } from './types';
 import RocketRemote from './RocketRemote';
 import pyatvCharacteristicGenerators from './PyatvCharacteristics';
+import tvOS18InputBugSolver from './tvOS18InputBugSolver';
 
 const HIDE_BY_DEFAULT_APPS: string[] = [
     'com.apple.podcasts',
@@ -114,6 +115,8 @@ export class AppleTVEnhancedAccessory {
         this.log = new PrefixLogger(this.platform.logLevelLogger, `${this.device.name} (${this.device.mac})`);
 
         this.log.debug(`Accessory Config: ${JSON.stringify(this.config)}`);
+
+        tvOS18InputBugSolver(this.log, this.platform.api.user.storagePath(), this.device.mac!);
 
         const credentials: string | undefined = this.getCredentials();
         this.device = CustomPyAtvInstance.deviceAdvanced({
