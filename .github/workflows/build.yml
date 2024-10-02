@@ -83,3 +83,11 @@ jobs:
       - name: Build
         shell: bash
         run: npm run build
+
+      - name: Install homebridge@beta
+        shell: bash
+        run: npm install homebridge@beta
+
+      - name: Build with homebridge@beta
+        shell: bash
+        run: npm run build
