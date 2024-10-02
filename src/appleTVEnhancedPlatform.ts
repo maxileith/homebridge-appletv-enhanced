@@ -15,12 +15,12 @@ const ALLOWED_MODELS: string[] = [
     'Gen4',
     'Gen4K',
     'AppleTVGen4', // future proof since they will be renamed in pyatv
-    'AppleTVGen4K',  // future proof since they will be renamed in pyatv
+    'AppleTVGen4K', // future proof since they will be renamed in pyatv
     'AppleTV4KGen2',
     'AppleTV4KGen3',
 ];
 
-const DEV_MODE: boolean = process.env.APPLETV_ENHANCED_DEV?.toLowerCase() === 'true'
+const DEV_MODE: boolean = process.env.APPLETV_ENHANCED_DEV?.toLowerCase() === 'true';
 
 export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
     public readonly characteristic: typeof Characteristic;
@@ -86,7 +86,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             this.log.info('Starting device discovery ...');
             void this.discoverDevices();
             setInterval(() => {
-                void this.discoverDevices()
+                void this.discoverDevices();
             }, 60000);
             setTimeout(() => {
                 this.warnNoDevices();
@@ -137,7 +137,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
                     this.log.error(JSON.stringify(error, undefined, 2));
                 }
             });
-            scanResults = [ ...scanResults, ...unicastResults.devices];
+            scanResults = [...scanResults, ...unicastResults.devices];
             this.log.debug('finished unicast device discovery');
         }
 
@@ -188,7 +188,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             // this is imported from `platformAccessory.ts`
             void (async (): Promise<void> => {
                 this.log.debug(`Waiting for ${appleTV.name} (${appleTV.mac}) to boot ...`);
-                await (new AppleTVEnhancedAccessory(this, accessory)).untilBooted();
+                await new AppleTVEnhancedAccessory(this, accessory).untilBooted();
 
                 // link the accessory to your platform
                 this.log.debug(`${appleTV.name} (${appleTV.mac}) finished booting. Publishing the accessory now.`);
@@ -201,23 +201,23 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
 
     private isAutoUpdateOn(): boolean {
         switch (this.config.autoUpdate) {
-        case 'on':
-            return true;
-        case 'off':
-            return false;
-        default:
-            // by default, autoUpdate should be turned on when the plugin is running as a child bridge
-            const ogConfig: HomebridgeConfig = JSON.parse(fs.readFileSync(this.api.user.configPath(), 'utf-8'));
-            const ogAppleTVEnhancedConfig: AppleTVEnhancedPlatformConfig | undefined =
-                ogConfig.platforms.find((p) => p.platform === 'AppleTVEnhanced');
-            if (ogAppleTVEnhancedConfig !== undefined) {
-                return ogAppleTVEnhancedConfig._bridge !== undefined;
-            } else {
-                this.log.warn('Could not determine whether or not the plugin is running as a child bridge. Therefore, the default setting \
-for automatic updates could not be determined. Falling back to "off". You can enable or disable automatic updates in the configuration \
-explicitly.');
+            case 'on':
+                return true;
+            case 'off':
                 return false;
-            }
+            default:
+                // by default, autoUpdate should be turned on when the plugin is running as a child bridge
+                const ogConfig: HomebridgeConfig = JSON.parse(fs.readFileSync(this.api.user.configPath(), 'utf-8'));
+                const ogAppleTVEnhancedConfig: AppleTVEnhancedPlatformConfig | undefined =
+                    ogConfig.platforms.find((p) => p.platform === 'AppleTVEnhanced');
+                if (ogAppleTVEnhancedConfig !== undefined) {
+                    return ogAppleTVEnhancedConfig._bridge !== undefined;
+                } else {
+                    this.log.warn('Could not determine whether or not the plugin is running as a child bridge. Therefore, the default \
+setting for automatic updates could not be determined. Falling back to "off". You can enable or disable automatic updates in the \
+configuration explicitly.');
+                    return false;
+                }
         }
     }
 

@@ -55,7 +55,7 @@ class RocketRemote {
             '--scan-hosts', this.mac,
             '--companion-credentials', this.companionCredentials,
             '--airplay-credentials', this.airplayCredentials,
-            ... this.avadaKedavraSequence,
+            ...this.avadaKedavraSequence,
         ]);
         ak.stdout.setEncoding('utf8');
         ak.stderr.setEncoding('utf8');
@@ -204,7 +204,9 @@ class RocketRemote {
     }
 
     private generateAvadaKedavraSequence(numberOfApps: number): string[] {
-        let sequence: string[] = ['home', 'delay=100', 'home', 'delay=800', 'left', 'delay=300'];
+        let sequence: string[] = [
+            'home', 'delay=100', 'home', 'delay=800', 'left', 'delay=300',
+        ];
         for (let i: number = 0; i < numberOfApps; i++) {
             sequence = sequence.concat(['up', 'delay=50', 'up', 'delay=600']);
         }
@@ -234,7 +236,7 @@ class RocketRemote {
             this.stderrLog(toLog);
         } else if (toLog.includes('Enter commands and press enter')) {
             this.log.debug(toLog);
-            this.log.success('Connected')
+            this.log.success('Connected');
         } else if (toLog !== '') {
             this.log.debug(toLog);
         }

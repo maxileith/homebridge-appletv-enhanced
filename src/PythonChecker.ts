@@ -206,14 +206,14 @@ environment ...');
     private async openSSL(): Promise<void> {
         const [openSSLVersionString]: [string, string, number | null] =
             await runCommand(this.log, 'openssl', ['version'], undefined, true);
-        const r: RegExpMatchArray | null = openSSLVersionString.match(/\d+\.\d+\.\d+/)
+        const r: RegExpMatchArray | null = openSSLVersionString.match(/\d+\.\d+\.\d+/);
         if (r !== null && compareVersions(MIN_OPENSSL_VERSION, r[0]) !== 1) {
             this.log.info(`OpenSSL ${r[0]} is installed and compatible.`);
             return;
         }
         if (r === null) {
             this.log.warn('Could not verify that the correct OpenSSL version is installed. Falling back to openssl legacy mode. Be aware \
-that Python 3.12 is not compatible with openssl legacy mode.')
+that Python 3.12 is not compatible with openssl legacy mode.');
         } else {
             this.log.warn(`You are using OpenSSL ${r[0]}. However, OpenSSL ${MIN_OPENSSL_VERSION} or later is required for the most \
 AppleTV enhanced in it's latest version. Falling back to openssl legacy mode. Be aware that Python 3.12 is not compatible with openssl \

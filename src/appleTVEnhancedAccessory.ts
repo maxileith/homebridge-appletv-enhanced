@@ -1,9 +1,18 @@
 import fs from 'fs';
 import http, { type IncomingMessage, type ServerResponse } from 'http';
-import type { Service, PlatformAccessory, CharacteristicValue, Nullable, PrimitiveTypes, ConstructorArgs } from 'homebridge';
+import type { Characteristic } from 'homebridge';
+import {
+    type Service,
+    type PlatformAccessory,
+    type CharacteristicValue,
+    type Nullable,
+    type PrimitiveTypes,
+    type ConstructorArgs,
+    Formats,
+} from 'homebridge';
 import type { AppleTVEnhancedPlatform } from './appleTVEnhancedPlatform';
 import { NodePyATVDeviceState, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
-import type {NodePyATVDevice, NodePyATVDeviceEvent, NodePyATVEventValueType } from '@sebbo2002/node-pyatv';
+import type { NodePyATVDevice, NodePyATVDeviceEvent, NodePyATVEventValueType } from '@sebbo2002/node-pyatv';
 import md5 from 'md5';
 import { type ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import path from 'path';
@@ -27,8 +36,10 @@ import type {
 } from './interfaces';
 import PrefixLogger from './PrefixLogger';
 import { DisplayOrderTypes, RocketRemoteKey } from './enums';
-import type { TDeviceStateConfigs, TMediaConfigs, TRemoteKeysAsSwitchConfigs } from './types';
+import type { TDeviceStateConfigs, TMediaConfigs, TPyatvCharacteristicID, TRemoteKeysAsSwitchConfigs } from './types';
 import RocketRemote from './RocketRemote';
+import pyatvCharacteristicGenerators from './PyatvCharacteristics';
+import tvOS18InputBugSolver from './tvOS18InputBugSolver';
 
 const HIDE_BY_DEFAULT_APPS: string[] = [
     'com.apple.podcasts',
@@ -73,7 +84,7 @@ export class AppleTVEnhancedAccessory {
     private credentials: string | undefined = undefined;
     private device: NodePyATVDevice;
     private deviceStateConfigs: TDeviceStateConfigs | undefined = undefined;
-    private deviceStateServices: Partial<Record<NodePyATVDeviceState, Service>> = {};
+    private readonly deviceStateServices: Partial<Record<NodePyATVDeviceState, Service>> = {};
     private homeInputService: Service | undefined = undefined;
     private inputs: IInputs = {};
     private lastDeviceState: NodePyATVDeviceState | null = null;
@@ -82,10 +93,12 @@ export class AppleTVEnhancedAccessory {
     private lastTurningOnEvent: number = 0;
     private readonly log: PrefixLogger;
     private mediaConfigs: TMediaConfigs | undefined = undefined;
-    private mediaTypeServices: Partial<Record<NodePyATVMediaType, Service>> = {};
+    private readonly mediaTypeServices: Partial<Record<NodePyATVMediaType, Service>> = {};
     private offline: boolean = false;
+    private readonly pyatvCharacteristics: Partial<Record<TPyatvCharacteristicID, Characteristic>> = {};
+    private readonly pyatvListenerHandlers: Partial<Record<TPyatvCharacteristicID, (e: Error | NodePyATVDeviceEvent) => void>> = {};
     private remoteKeyAsSwitchConfigs: TRemoteKeysAsSwitchConfigs | undefined = undefined;
-    private remoteKeyServices: Partial<Record<RocketRemoteKey, Service>> = {};
+    private readonly remoteKeyServices: Partial<Record<RocketRemoteKey, Service>> = {};
     private rocketRemote: RocketRemote | undefined = undefined;
     private service: Service | undefined = undefined;
     private televisionSpeakerService: Service | undefined = undefined;
@@ -102,6 +115,8 @@ export class AppleTVEnhancedAccessory {
         this.log = new PrefixLogger(this.platform.logLevelLogger, `${this.device.name} (${this.device.mac})`);
 
         this.log.debug(`Accessory Config: ${JSON.stringify(this.config)}`);
+
+        tvOS18InputBugSolver(this.log, this.platform.api.user.storagePath(), this.device.mac!);
 
         const credentials: string | undefined = this.getCredentials();
         this.device = CustomPyAtvInstance.deviceAdvanced({
@@ -411,9 +426,11 @@ ${value}.`);
     }
 
     private createInputs(apps: NodePyATVApp[], customURIs: string[]): void {
-        const appsAndCustomInputs: NodePyATVApp[] = [...customURIs.map((uri) => {
-            return { id: uri, name: uri };
-        }), ...apps];
+        const appsAndCustomInputs: NodePyATVApp[] = [
+            ...customURIs.map((uri) => {
+                return { id: uri, name: uri };
+            }), ...apps,
+        ];
 
         const appConfigs: IAppConfigs = this.getAppConfigs();
 
@@ -559,12 +576,24 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
             filterErrorHandler(e, this.handleVolumeUpdate.bind(this));
         };
 
+        const pyatvCharacteristicListener = (e: Error | NodePyATVDeviceEvent, characteristic: TPyatvCharacteristicID): void => {
+            filterErrorHandler(e, this.handlePyatvCharacteristicUpdate.bind(this, characteristic));
+        };
+
         this.device.on('update:powerState', powerStateListener);
         this.device.on('update:appId', appIdListener);
         this.device.on('update:app', appListener);
         this.device.on('update:deviceState', deviceStateListener);
         this.device.on('update:mediaType', mediaTypeListener);
         this.device.on('update:volume', volumeListener);
+
+        for (const characteristic in this.pyatvCharacteristics) {
+            const handler: (e: Error | NodePyATVDeviceEvent) => void = (e): void => {
+                pyatvCharacteristicListener(e, characteristic as TPyatvCharacteristicID);
+            };
+            this.pyatvListenerHandlers[characteristic] = handler;
+            this.device.on(`update:${characteristic}`, handler);
+        }
 
         this.device.once('error', ((e: Error | NodePyATVDeviceEvent): void => {
             this.log.debug(e as unknown as string);
@@ -577,6 +606,10 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
             this.device.removeListener('update:deviceState', deviceStateListener);
             this.device.removeListener('update:mediaType', mediaTypeListener);
             this.device.removeListener('update:volume', volumeListener);
+
+            for (const characteristic in this.pyatvListenerHandlers) {
+                this.device.removeListener(`update:${characteristic}`, this.pyatvListenerHandlers[characteristic]);
+            }
 
             const credentials: string | undefined = this.getCredentials();
             this.device = CustomPyAtvInstance.deviceAdvanced({
@@ -631,6 +664,52 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
                 });
             this.service!.addLinkedService(s);
             this.mediaTypeServices[mediaType] = s;
+        }
+    }
+
+    private async createPyATVCharacteristics(): Promise<void> {
+        for (const pyatvId in pyatvCharacteristicGenerators) {
+            const characteristic: Characteristic =
+                this.service!.addCharacteristic(pyatvCharacteristicGenerators[pyatvId](this.platform.api.hap));
+            this.pyatvCharacteristics[pyatvId] = characteristic;
+
+            this.log.debug(`Adding custom characteristic ${characteristic.displayName}.`);
+
+            switch (pyatvId) {
+                case 'album':
+                    characteristic.setValue(await this.device.getAlbum() ?? '');
+                    break;
+                case 'artist':
+                    characteristic.setValue(await this.device.getArtist() ?? '');
+                    break;
+                case 'episodeNumber':
+                    break;
+                case 'genre':
+                    characteristic.setValue(await this.device.getGenre() ?? '');
+                    break;
+                case 'repeat':
+                    characteristic.setValue(await this.device.getRepeat() ?? 'off');
+                    break;
+                case 'seasonNumber':
+                    break;
+                case 'seriesName':
+                    break;
+                case 'shuffle':
+                    characteristic.setValue(await this.device.getShuffle() ?? 'off');
+                    break;
+                case 'title':
+                    characteristic.setValue(await this.device.getTitle() ?? '');
+                    break;
+                case 'totalTime':
+                    characteristic.setValue(await this.device.getTotalTime() ?? -1);
+                    break;
+            }
+
+            if (characteristic.value !== '' && characteristic.value !== null) {
+                this.log.info(`Setting characteristic ${characteristic.displayName} to "${characteristic.value}".`);
+            } else {
+                this.log.debug(`Setting characteristic ${characteristic.displayName} to "${characteristic.value}".`);
+            }
         }
     }
 
@@ -727,6 +806,14 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
                         this.rocketRemote?.volumeDown();
                     }
                 });
+            this.televisionSpeakerService.getCharacteristic(this.platform.characteristic.Mute)
+                .onSet(async (value: CharacteristicValue): Promise<void> => {
+                    if (value === true) {
+                        this.unmute();
+                    } else {
+                        this.mute();
+                    }
+                });
         }
 
         this.service!.addLinkedService(this.televisionSpeakerService);
@@ -779,11 +866,9 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         this.volumeFanService.getCharacteristic(this.platform.characteristic.Active)
             .onSet(async (value: CharacteristicValue): Promise<void> => {
                 if (value === this.platform.characteristic.Active.ACTIVE) {
-                    this.log.info(`Unmuting (Setting the volume to the last known state: ${this.lastNonZeroVolume}%)`);
-                    this.rocketRemote?.setVolume(this.lastNonZeroVolume, true);
+                    this.unmute();
                 } else {
-                    this.log.info('Muting');
-                    this.rocketRemote?.setVolume(0, true);
+                    this.mute();
                 }
             });
 
@@ -877,7 +962,7 @@ the plugin after you have fixed the root cause. Enable debug logging to see the 
         if (this.commonConfig === undefined) {
             const jsonPath: string = this.getPath('common.json');
             this.log.debug(`Loading common config from ${jsonPath}`);
-            try{
+            try {
                 this.commonConfig = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as ICommonConfig;
             } catch (err: unknown) {
                 if (err instanceof Error && err.name === 'SyntaxError') {
@@ -905,7 +990,7 @@ the plugin after you have fixed the root cause. Enable debug logging to see the 
         if (this.deviceStateConfigs === undefined) {
             const jsonPath: string = this.getPath('deviceStates.json');
             this.log.debug(`Loading device states config from ${jsonPath}`);
-            try{
+            try {
                 this.deviceStateConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TDeviceStateConfigs;
             } catch (err: unknown) {
                 if (err instanceof Error && err.name === 'SyntaxError') {
@@ -923,7 +1008,7 @@ the plugin after you have fixed the root cause. Enable debug logging to see the 
         if (this.mediaConfigs === undefined) {
             const jsonPath: string = this.getPath('mediaTypes.json');
             this.log.debug(`Loading media types config from ${jsonPath}`);
-            try{
+            try {
                 this.mediaConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TMediaConfigs;
             } catch (err: unknown) {
                 if (err instanceof Error && err.name === 'SyntaxError') {
@@ -939,7 +1024,7 @@ the plugin after you have fixed the root cause. Enable debug logging to see the 
 
     private getPath(file: string, defaultContent = '{}'): string {
         const dir: string = path.join(this.platform.api.user.storagePath(), 'appletv-enhanced', this.device.mac!.replaceAll(':', ''));
-        if (!fs.existsSync(dir)){
+        if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir);
         }
         const filePath: string = path.join(dir, file);
@@ -970,7 +1055,7 @@ the plugin after you have fixed the root cause. Enable debug logging to see the 
         if (this.remoteKeyAsSwitchConfigs === undefined) {
             const jsonPath: string = this.getPath('remoteKeySwitches.json');
             this.log.debug(`Loading remote key as switches config from ${jsonPath}`);
-            try{
+            try {
                 this.remoteKeyAsSwitchConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as TRemoteKeysAsSwitchConfigs;
             } catch (err: unknown) {
                 if (err instanceof Error && err.name === 'SyntaxError') {
@@ -1140,38 +1225,38 @@ ${deviceStateDelay}ms is over): ${event.value}`);
         }
 
         switch (event.value) {
-        case NodePyATVDeviceState.playing:
-            this.service!.updateCharacteristic(
-                this.platform.characteristic.CurrentMediaState,
-                this.platform.characteristic.CurrentMediaState.PLAY,
-            );
-            break;
-        case NodePyATVDeviceState.paused:
-            this.service!.updateCharacteristic(
-                this.platform.characteristic.CurrentMediaState,
-                this.platform.characteristic.CurrentMediaState.PAUSE,
-            );
-            break;
-        case NodePyATVDeviceState.stopped:
-            this.service!.updateCharacteristic(
-                this.platform.characteristic.CurrentMediaState,
-                this.platform.characteristic.CurrentMediaState.STOP,
-            );
-            break;
-        case NodePyATVDeviceState.loading:
-            this.service!.updateCharacteristic(
-                this.platform.characteristic.CurrentMediaState,
-                this.platform.characteristic.CurrentMediaState.LOADING,
-            );
-            break;
-        case null:
-            this.service!.updateCharacteristic(
-                this.platform.characteristic.CurrentMediaState,
-                this.platform.characteristic.CurrentMediaState.INTERRUPTED,
-            );
-            break;
-        default:
-            break;
+            case NodePyATVDeviceState.playing:
+                this.service!.updateCharacteristic(
+                    this.platform.characteristic.CurrentMediaState,
+                    this.platform.characteristic.CurrentMediaState.PLAY,
+                );
+                break;
+            case NodePyATVDeviceState.paused:
+                this.service!.updateCharacteristic(
+                    this.platform.characteristic.CurrentMediaState,
+                    this.platform.characteristic.CurrentMediaState.PAUSE,
+                );
+                break;
+            case NodePyATVDeviceState.stopped:
+                this.service!.updateCharacteristic(
+                    this.platform.characteristic.CurrentMediaState,
+                    this.platform.characteristic.CurrentMediaState.STOP,
+                );
+                break;
+            case NodePyATVDeviceState.loading:
+                this.service!.updateCharacteristic(
+                    this.platform.characteristic.CurrentMediaState,
+                    this.platform.characteristic.CurrentMediaState.LOADING,
+                );
+                break;
+            case null:
+                this.service!.updateCharacteristic(
+                    this.platform.characteristic.CurrentMediaState,
+                    this.platform.characteristic.CurrentMediaState.INTERRUPTED,
+                );
+                break;
+            default:
+                break;
         }
     }
 
@@ -1212,49 +1297,66 @@ ${deviceStateDelay}ms is over): ${event.value}`);
         }
     }
 
+    private handlePyatvCharacteristicUpdate(pyatvId: TPyatvCharacteristicID, event: NodePyATVDeviceEvent): void {
+        const characteristic: Characteristic | undefined = this.pyatvCharacteristics[pyatvId];
+
+        if (characteristic === undefined) {
+            this.log.error(`Could not update ${pyatvId} since no corresponding characteristic was found.`);
+            return;
+        }
+
+        let value: NodePyATVEventValueType = event.newValue;
+        if ((characteristic.props.format as Formats) === Formats.STRING) {
+            value = trimToMaxLength(value as string, characteristic.props.maxLen ?? 64);
+        }
+
+        this.log.info(`Updating characteristic ${characteristic.displayName} to "${value}".`);
+        characteristic.setValue(value);
+    }
+
     private async handleRemoteKeySet(state: CharacteristicValue): Promise<void> {
         switch (state) {
-        case this.platform.characteristic.RemoteKey.REWIND:
-            this.rocketRemote?.skipBackward();
-            break;
-        case this.platform.characteristic.RemoteKey.FAST_FORWARD:
-            this.rocketRemote?.skipForward();
-            break;
-        case this.platform.characteristic.RemoteKey.NEXT_TRACK:
-            this.rocketRemote?.next();
-            break;
-        case this.platform.characteristic.RemoteKey.PREVIOUS_TRACK:
-            this.rocketRemote?.previous();
-            break;
-        case this.platform.characteristic.RemoteKey.ARROW_UP:
-            this.rocketRemote?.up();
-            break;
-        case this.platform.characteristic.RemoteKey.ARROW_DOWN:
-            this.rocketRemote?.down();
-            break;
-        case this.platform.characteristic.RemoteKey.ARROW_LEFT:
-            this.rocketRemote?.left();
-            break;
-        case this.platform.characteristic.RemoteKey.ARROW_RIGHT:
-            this.rocketRemote?.right();
-            break;
-        case this.platform.characteristic.RemoteKey.SELECT:
-            this.rocketRemote?.select();
-            break;
-        case this.platform.characteristic.RemoteKey.BACK:
-            this.rocketRemote?.menu();
-            break;
-        case this.platform.characteristic.RemoteKey.EXIT:
-            this.rocketRemote?.home();
-            break;
-        case this.platform.characteristic.RemoteKey.PLAY_PAUSE:
-            this.rocketRemote?.playPause();
-            break;
-        case this.platform.characteristic.RemoteKey.INFORMATION:
-            this.rocketRemote?.topMenu();
-            break;
-        default:
-            break;
+            case this.platform.characteristic.RemoteKey.REWIND:
+                this.rocketRemote?.skipBackward();
+                break;
+            case this.platform.characteristic.RemoteKey.FAST_FORWARD:
+                this.rocketRemote?.skipForward();
+                break;
+            case this.platform.characteristic.RemoteKey.NEXT_TRACK:
+                this.rocketRemote?.next();
+                break;
+            case this.platform.characteristic.RemoteKey.PREVIOUS_TRACK:
+                this.rocketRemote?.previous();
+                break;
+            case this.platform.characteristic.RemoteKey.ARROW_UP:
+                this.rocketRemote?.up();
+                break;
+            case this.platform.characteristic.RemoteKey.ARROW_DOWN:
+                this.rocketRemote?.down();
+                break;
+            case this.platform.characteristic.RemoteKey.ARROW_LEFT:
+                this.rocketRemote?.left();
+                break;
+            case this.platform.characteristic.RemoteKey.ARROW_RIGHT:
+                this.rocketRemote?.right();
+                break;
+            case this.platform.characteristic.RemoteKey.SELECT:
+                this.rocketRemote?.select();
+                break;
+            case this.platform.characteristic.RemoteKey.BACK:
+                this.rocketRemote?.menu();
+                break;
+            case this.platform.characteristic.RemoteKey.EXIT:
+                this.rocketRemote?.home();
+                break;
+            case this.platform.characteristic.RemoteKey.PLAY_PAUSE:
+                this.rocketRemote?.playPause();
+                break;
+            case this.platform.characteristic.RemoteKey.INFORMATION:
+                this.rocketRemote?.topMenu();
+                break;
+            default:
+                break;
         }
     }
 
@@ -1301,6 +1403,11 @@ ${deviceStateDelay}ms is over): ${event.value}`);
                 );
             }, 500);
         }
+    }
+
+    private mute(): void {
+        this.log.info('Muting');
+        this.rocketRemote?.setVolume(0, true);
     }
 
     private async pair(ip: string, appleTVName: string): Promise<string> {
@@ -1389,7 +1496,7 @@ http://${localIP}:${httpPort}/. Then, enter the pairing code that will be displa
                     let message: string = data;
                     let traceback: string | null = null;
                     if (data.includes('Traceback')) {
-                        [message, traceback] = data.split('Traceback', 1)
+                        [message, traceback] = data.split('Traceback', 1);
                     }
                     this.log.error('stdout: ' + message.trim());
                     if (traceback !== null) {
@@ -1456,7 +1563,7 @@ media-src * \'self\'');
         this.appConfigs = value;
         const jsonPath: string = this.getPath('apps.json');
         this.log.debug(`Updating app config at ${jsonPath}`);
-        fs.writeFileSync(jsonPath, JSON.stringify(value, null, 4), { encoding:'utf8', flag:'w' });
+        fs.writeFileSync(jsonPath, JSON.stringify(value, null, 4), { encoding: 'utf8', flag: 'w' });
     }
 
     private setCommonConfig(key: string, value: PrimitiveTypes): void {
@@ -1466,13 +1573,13 @@ media-src * \'self\'');
         this.commonConfig[key] = value;
         const jsonPath: string = this.getPath('common.json');
         this.log.debug(`Updating common config at ${jsonPath}`);
-        fs.writeFileSync(jsonPath, JSON.stringify(this.commonConfig, null, 4), { encoding:'utf8', flag:'w' });
+        fs.writeFileSync(jsonPath, JSON.stringify(this.commonConfig, null, 4), { encoding: 'utf8', flag: 'w' });
     }
 
     private setCredentials(value: string): void {
         this.credentials = value;
         const path: string = this.getPath('credentials.txt', '');
-        fs.writeFileSync(path, value, { encoding:'utf8', flag:'w' });
+        fs.writeFileSync(path, value, { encoding: 'utf8', flag: 'w' });
     }
 
     private setDeviceStateConfig(key: NodePyATVDeviceState, value: string): void {
@@ -1482,7 +1589,7 @@ media-src * \'self\'');
         this.deviceStateConfigs[key] = value;
         const jsonPath: string = this.getPath('deviceStates.json');
         this.log.debug(`Updating devices states config at ${jsonPath}`);
-        fs.writeFileSync(jsonPath, JSON.stringify(this.deviceStateConfigs, null, 4), { encoding:'utf8', flag:'w' });
+        fs.writeFileSync(jsonPath, JSON.stringify(this.deviceStateConfigs, null, 4), { encoding: 'utf8', flag: 'w' });
     }
 
     private setMediaTypeConfig(key: NodePyATVMediaType, value: string): void {
@@ -1492,7 +1599,7 @@ media-src * \'self\'');
         this.mediaConfigs[key] = value;
         const jsonPath: string = this.getPath('mediaTypes.json');
         this.log.debug(`Updating media types config at ${jsonPath}`);
-        fs.writeFileSync(jsonPath, JSON.stringify(this.mediaConfigs, null, 4), { encoding:'utf8', flag:'w' });
+        fs.writeFileSync(jsonPath, JSON.stringify(this.mediaConfigs, null, 4), { encoding: 'utf8', flag: 'w' });
     }
 
     private setRemoteKeyAsSwitchConfig(key: RocketRemoteKey, value: string): void {
@@ -1502,7 +1609,7 @@ media-src * \'self\'');
         this.remoteKeyAsSwitchConfigs[key] = value;
         const jsonPath: string = this.getPath('remoteKeySwitches.json');
         this.log.debug(`Updating remote keys as switches config at ${jsonPath}`);
-        fs.writeFileSync(jsonPath, JSON.stringify(this.remoteKeyAsSwitchConfigs, null, 4), { encoding:'utf8', flag:'w' });
+        fs.writeFileSync(jsonPath, JSON.stringify(this.remoteKeyAsSwitchConfigs, null, 4), { encoding: 'utf8', flag: 'w' });
     }
 
     private async startUp(): Promise<void> {
@@ -1553,6 +1660,9 @@ media-src * \'self\'');
 
         this.log.setPrefix(`${configuredName} (${this.device.mac})`);
 
+        // create pyatv characteristics
+        await this.createPyATVCharacteristics();
+
         // create television speaker
         this.createTelevisionSpeaker();
 
@@ -1575,5 +1685,10 @@ media-src * \'self\'');
 
         this.log.info('Finished initializing');
         this.booted = true;
+    }
+
+    private unmute(): void {
+        this.log.info(`Unmuting (Setting the volume to the last known state: ${this.lastNonZeroVolume}%)`);
+        this.rocketRemote?.setVolume(this.lastNonZeroVolume, true);
     }
 }

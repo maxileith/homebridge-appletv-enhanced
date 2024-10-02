@@ -237,7 +237,7 @@ betas): ${currentVersion}`;
     }
 
     private intervalMethod(): void {
-        if ((new Date()).getHours() === this.updateCheckHour) {
+        if (new Date().getHours() === this.updateCheckHour) {
             this.log.debug('Triggering the check method since the configured update check time is now.');
             void this.check();
         } else {
@@ -263,11 +263,13 @@ is not set.');
         this.log.debug(`custom plugin path - ${UIX_CUSTOM_PLUGIN_PATH}`);
         this.log.debug(`install path - ${installPath}`);
 
-        const installOptions: string[] = !UIX_USE_PNPM ? [
-            '--no-audit',
-            '--no-fund',
-            '--global-style',
-        ] : [];
+        const installOptions: string[] = !UIX_USE_PNPM
+            ? [
+                '--no-audit',
+                '--no-fund',
+                '--global-style',
+            ]
+            : [];
 
         if (
             installPath === UIX_CUSTOM_PLUGIN_PATH &&
@@ -281,7 +283,7 @@ is not set.');
         const args: string[] = ['install', ...installOptions, `homebridge-appletv-enhanced@${version}`];
 
         this.log.info(`CMD: ${npm} "${args.join('" "')}" (cwd: ${installPath})`);
-        const [, , exitCode]: [string, string, number | null] = await runCommand(this.log, npm, args, {cwd: installPath});
+        const [, , exitCode]: [string, string, number | null] = await runCommand(this.log, npm, args, { cwd: installPath });
 
         if (exitCode === 0) {
             this.log.success(`AppleTV Enhanced has successfully been updated to ${version}. Restarting now ...`);
