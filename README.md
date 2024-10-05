@@ -1,7 +1,7 @@
 # Homebridge Apple TV Enhanced
 
 [![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
-[![mit license](https://badgen.net/github/license/maxileith/homebridge-appletv-enhanced?color=red)](https://github.com/maxileith/homebridge-appletv-enhanced/blob/master/LICENSE)
+[![mit license](https://badgen.net/github/license/maxileith/homebridge-appletv-enhanced?color=red)](https://github.com/maxileith/homebridge-appletv-enhanced/blob/main/LICENSE)
 
 [![npm](https://badgen.net/npm/v/homebridge-appletv-enhanced/latest?label=latest)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
 [![npm](https://badgen.net/npm/v/homebridge-appletv-enhanced/beta?label=beta&color=cyan)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
@@ -24,11 +24,11 @@ This plugin automatically discovers Apple TV devices on the local network and ex
 > -   32 bit systems
 > -   [HOOBS](https://github.com/hoobs-org/HOOBS)
 >
-> Further explanation in the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced?tab=readme-ov-file#requirements).
+> Further explanation in the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced/tree/main?tab=readme-ov-file#requirements).
 >
 > ### Before opening a new issue ...
 >
-> -   Review the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements) to ensure you are not missing any.
+> -   Review the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced/tree/main?tab=readme-ov-file#requirements) to ensure you are not missing any.
 > -   Please take a look at the [known issues](https://github.com/maxileith/homebridge-appletv-enhanced?tab=readme-ov-file#known-issues) as well. The problem you are having might be already known.
 > -   Check whether or not the problem you are having was already solved in the past. To check that, search through the [resolved issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aclosed+label%3Abug).
 > -   Check whether or not the bug you have found is already in the [open issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aopen+label%3Abug).
@@ -119,7 +119,7 @@ The easiest way to configure this plugin is to use [homebridge-config-ui-x](http
 
 To configure it manually, add the following to the `platforms` section of Homebridge's `config.json` after installing the plugin.
 
-Also see [device specific overrides](https://github.com/maxileith/homebridge-appletv-enhanced/blob/develop/docs/md/deviceSpecificOverrides.md).
+Also see [device specific overrides](https://github.com/maxileith/homebridge-appletv-enhanced/blob/main/docs/md/deviceSpecificOverrides.md).
 
 **`config.json`**
 
