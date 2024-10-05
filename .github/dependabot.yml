@@ -33,6 +33,10 @@ updates:
         patterns:
           - "@eslint/js"
           - "eslint"
+      stylistic:
+        patterns:
+          - "@stylistic/eslint-plugin-ts"
+          - "@stylistic/eslint-plugin-js"
       md5:
         patterns:
           - "@types/md5"
