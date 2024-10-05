@@ -16,15 +16,7 @@
 
 This plugin automatically discovers Apple TV devices on the local network and exposes each one as a HomeKit Set-Top Box.
 
-> [!IMPORTANT]
->
-> ### The following platforms are **not supported**:
->
-> -   Anything other than Linux
-> -   32 bit systems
-> -   [HOOBS](https://github.com/hoobs-org/HOOBS)
->
-> Further explanation in the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced/tree/main?tab=readme-ov-file#requirements).
+> [!NOTE]
 >
 > ### Before opening a new issue ...
 >
@@ -37,6 +29,9 @@ This plugin automatically discovers Apple TV devices on the local network and ex
 > Otherwise, feel free to open an issue [here](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new/choose).
 
 ## Features
+
+> [!TIP]
+> You might want to watch [this video](https://www.tiktok.com/@b_turner50/video/7330389563946339589) to get an idea what this plugin is all about.
 
 -   Automatically discover Apple TVs in your local network.
 -   Pairing process without the need to access the command line like with other plugins.
@@ -53,13 +48,17 @@ This plugin automatically discovers Apple TV devices on the local network and ex
 -   If you do not want all Apple TVs to be exposed, it is possible to blacklist them by providing the MAC-Address.
 -   "Avada Kedavra" which is exposed as an input to close all apps.
 
-It might also be a good idea to take a look at [this video](https://www.tiktok.com/@b_turner50/video/7330389563946339589) to get an idea what this plugin is all about.
-
 ## Requirements
 
+> [!TIP]
+> Using the **[latest docker image](https://hub.docker.com/r/homebridge/homebridge/)** or **[latest Raspberry Pi image](https://github.com/homebridge/homebridge-raspbian-image/releases)** will fulfill all requirements out of the box.
+
+> [!WARNING]
+> Raspberry Pi 1, 2, 3 and Zero 1, 2 are not recommended for performance reasons. Recommended are 3B+, 4B, 5B.
+
 -   Only Linux will be supported by the maintainer (although since MacOS / UNIX is similar to Linux, it should run on MacOS just fine)
--   Most recent Version of Node 20 LTS or 18 LTS
--   Python 3.8, 3.9, 3.10, 3.11 or 3.12
+-   Most recent Version of **Node 22 LTS, 20 LTS or 18 LTS**.
+-   **Python 3.8, 3.9, 3.10, 3.11 or 3.12**
 -   Python virtual environment module `virtualenv`. (the plugin will create a virtual environment on startup and will install python dependencies in this virtual environment)
     -   On homebridge **[apt-package >=1.1.4](https://github.com/homebridge/homebridge-apt-pkg/releases/tag/1.1.4)** the python module is installed automatically as a dependency, see [homebridge/homebridge-apt-pkg#16](https://github.com/homebridge/homebridge-apt-pkg/issues/16)
         -   **[raspian image >= 1.1.2](https://github.com/homebridge/homebridge-raspbian-image/releases/tag/v1.1.2)** includes this apt-package, so there is no need to install it manually.
@@ -68,19 +67,23 @@ It might also be a good idea to take a look at [this video](https://www.tiktok.c
         -   On debian-based distros: `sudo apt install python3-venv`
         -   Installation on other distros may vary
 -   [Homebridge Config UI >= 4.54.2](https://github.com/homebridge/homebridge-config-ui-x/releases/tag/4.54.2) when creating backups
--   OpenSSL 3 or later
+-   **OpenSSL 3** or later
     -   If an older OpenSSL version is installed, the plugin will automatically boot into an OpenSSL legacy compatibility mode. Be aware that this mode does not support Python 3.12.
--   Apple TV Models with tvOS 15 and upwards are supported (all 4K ones and the latest HD one)
+-   Apple TV Models with **tvOS 15** and upwards are supported (all 4K ones and the latest HD one)
 -   The access of Speakers & TVs should be either set to "Everybody" or "Anybody On the Same Network" in the Home app
     -   Additionally, make sure to check the TV's HomeKit settings.
--   Raspberry Pi 1, 2, 3 and Zero 1, 2 are not recommended for performance reasons. Recommended are 3B+, 4B, 5B.
--   The homebridge instance and Apple TVs need to be on the same subnet.
--   32 bit systems are not supported
-    -   Certain python packages that are required are not available as 32 bit binaries. Thus, it is required to install tooling to compile the packages. This includes 32 bit systems in a 64 bit userspace. (If you know what you are doing, you can install build dependencies and compile the packages yourself. However, this is not supported by the plugin officially)
-    -   see [issue #236](https://github.com/maxileith/homebridge-appletv-enhanced/issues/236).
--   [HOOBS](https://github.com/hoobs-org/HOOBS) is not supported.
-    -   HOOBS is a 32 bit architecture and suffers from the above limitations.
-    -   HOOBS has a different plugin system that prevents managing Apple TVs.
+-   The homebridge instance and Apple TVs need to be on the **same subnet**.
+
+> [!CAUTION]
+>
+> The following platforms are **not supported**:
+>
+> -   **Anything other than Linux**
+> -   **32 bit systems**
+>     -   Certain python packages that are required are not available as 32 bit binaries. Thus, it is required to install tooling to compile the packages. This includes 32 bit systems in a 64 bit userspace. (If you know what you are doing, you can install build dependencies and compile the packages yourself. However, this is not supported by the plugin officially)
+> -   **[HOOBS](https://github.com/hoobs-org/HOOBS)**
+>     -   HOOBS is a 32 bit architecture and suffers from the above limitations.
+>     -   HOOBS has a different plugin system that prevents managing Apple TVs.
 
 ## Pairing
 
@@ -115,7 +118,8 @@ The screenshots speak for themselves ...
 
 ## Configuration
 
-The easiest way to configure this plugin is to use [homebridge-config-ui-x](https://www.npmjs.com/package/homebridge-config-ui-x).
+> [!TIP]
+> The easiest way to configure this plugin is to use [homebridge-config-ui-x](https://www.npmjs.com/package/homebridge-config-ui-x).
 
 To configure it manually, add the following to the `platforms` section of Homebridge's `config.json` after installing the plugin.
 

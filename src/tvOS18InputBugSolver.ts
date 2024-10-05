@@ -4,7 +4,7 @@ import type { IAppConfigs } from './interfaces';
 import PrefixLogger from './PrefixLogger';
 
 export default function tvOS18InputBugSolver(log: PrefixLogger, storagePath: string, mac: string): void {
-    log = new PrefixLogger(log, 'TvOS 18 Input Bug Solver');
+    log = new PrefixLogger(log, 'tvOS 18 Input Bug Solver');
 
     const dir: string = path.join(storagePath, 'appletv-enhanced', mac.replaceAll(':', ''));
     const appConfigFilePath: string = path.join(dir, 'apps.json');
@@ -54,7 +54,7 @@ export default function tvOS18InputBugSolver(log: PrefixLogger, storagePath: str
     }
 
     log.warn(`${percentageWithSameName}% of apps have a configured name that starts with "${highestCountAppName}". This is likely caused \
-by a bug in TvOS 18. Please refer to the following GitHub issues:`);
+by a bug in tvOS 18. Please refer to the following GitHub issues:`);
     log.warn('- https://github.com/homebridge/homebridge/issues/3703');
     log.warn('- https://github.com/maxileith/homebridge-appletv-enhanced/issues/627');
     log.warn('To resolve this issue the configuration of the Apple TV will now be automatically reset. This issue only occurs during the \
