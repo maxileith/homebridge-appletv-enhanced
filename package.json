@@ -62,7 +62,7 @@
         "@eslint/eslintrc": "^3.1.0",
         "@eslint/js": "^9.11.1",
         "@stylistic/eslint-plugin-js": "^2.9.0",
-        "@stylistic/eslint-plugin-ts": "^2.8.0",
+        "@stylistic/eslint-plugin-ts": "^2.9.0",
         "@types/md5": "^2.3.5",
         "@types/node": "^22.7.4",
         "@typescript-eslint/eslint-plugin": "^8.8.0",
