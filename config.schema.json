@@ -2,7 +2,7 @@
     "pluginAlias": "AppleTVEnhanced",
     "pluginType": "platform",
     "singular": true,
-    "headerDisplay": "## Apple TV Enhanced\n\n Plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV integration of HomeKit. \n\n Made with ❤ by [maxileith](https://github.com/maxileith). \n\n [license of this plugin](https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/LICENSE) \n\n [open-source licenses](https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/LICENSES_OF_DEPENDENCIES)",
+    "headerDisplay": "## Apple TV Enhanced\n\n Plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV integration of HomeKit. \n\n Made with ❤ by [maxileith](https://github.com/maxileith). \n\n [license of this plugin](https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/LICENSE)",
     "schema": {
         "type": "object",
         "properties": {
@@ -16,7 +16,7 @@
             },
             "mediaTypes": {
                 "title": "Media Types as Motion Sensors",
-                "description": "Media types for which a motion sensor is created that triggers when the according media type is present on the Apple TV",
+                "description": "Media types for which a motion sensor is created that triggers when the according media type is present on the Apple TV.",
                 "type": "array",
                 "default": [],
                 "items": {
@@ -28,7 +28,7 @@
             },
             "deviceStates": {
                 "title": "Device States as Motion Sensors",
-                "description": "Device states for which a motion sensor is created that triggers when the according device state is present on the Apple TV",
+                "description": "Device states for which a motion sensor is created that triggers when the according device state is present on the Apple TV.<br/>The <strong>power state is always exposed</strong> with the Apple TV accessory itself. To create automations based on the power state refer to <a href=\"https://github.com/maxileith/homebridge-appletv-enhanced/issues/558#issuecomment-2317646770\">this GitHub issue</a>.",
                 "type": "array",
                 "default": [],
                 "items": {

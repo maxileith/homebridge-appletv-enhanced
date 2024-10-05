@@ -19,8 +19,8 @@ body:
       description: |
         Before we start, be sure you are aware of the following points:
 
-        - Review the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements) to ensure you are not missing any.
-        - Please take a look at the [known issues](https://github.com/maxileith/homebridge-appletv-enhanced?tab=readme-ov-file#known-issues) as well. The problem you are having might be already known.
+        - Review the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced/tree/main?tab=readme-ov-file#requirements) to ensure you are not missing any.
+        - Please take a look at the [known issues](https://github.com/maxileith/homebridge-appletv-enhanced/tree/main?tab=readme-ov-file#known-issues) as well. The problem you are having might be already known.
         - Check whether or not the support request that is on your mind has already been answered in the past. To check that, search through the [resolved issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aclosed).
         - Check whether or not the support request that is on your mind is already in the [open issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aopen).
         - You may find an answer in the [discussions](https://github.com/maxileith/homebridge-appletv-enhanced/discussions).
@@ -143,7 +143,7 @@ body:
     attributes:
       label: Docker Image Tag
       description: |
-        Which version of the image are you using? Please provide the exact image tag, not `latest`. (the minimum required version is specified in the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements))
+        Which version of the image are you using? Please provide the exact image tag, not `latest`. (the minimum required version is specified in the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced/tree/main?tab=readme-ov-file#requirements))
         Command to find out: `docker container list | grep homebridge`
       placeholder: "2024-12-31"
 
@@ -160,7 +160,7 @@ body:
     id: environment_homebridge_config_ui_version
     attributes:
       label: Homebridge Config UI Version
-      description: Which version of homebridge ui are you using? (the minimum required version is specified in the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements))
+      description: Which version of homebridge ui are you using? (the minimum required version is specified in the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced/tree/main?tab=readme-ov-file#requirements))
       placeholder: v4.54.2
     validations:
       required: true
