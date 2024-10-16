@@ -64,6 +64,7 @@
             ],
             "disableVolumeControlRemote": false,
             "absoluteVolumeControl": false,
+            "setTopBox": false,
             "deviceSpecificOverrides": [
                 {
                     "mac": "AA:BB:CC:DD:EE:FF",
@@ -90,7 +91,9 @@
                     "overrideDisableVolumeControlRemote": true,
                     "disableVolumeControlRemote": true,
                     "overrideAbsoluteVolumeControl": true,
-                    "absoluteVolumeControl": true
+                    "absoluteVolumeControl": true,
+                    "overrideSetTopBox": true,
+                    "setTopBox": true
                 }
             ],
             "discover": {
