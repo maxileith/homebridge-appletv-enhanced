@@ -11,7 +11,6 @@ cryptography==43.0.3
 frozenlist==1.5.0
 idna==3.10
 ifaddr==0.2.0
-mediafile==0.13.0
 miniaudio==1.61
 multidict==6.1.0
 mutagen==1.47.0
