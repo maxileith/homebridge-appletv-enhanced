@@ -46,7 +46,7 @@ def check_os(b: str):
     optional_output = []
 
     if operating_system != "Linux":
-        optional_output.append(f"Only **Linux** is supported as an operating system (see [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements)). Your current OS is {operating_system}.")
+        optional_output.append(f"Only **Linux** is supported as an operating system (see [requirements](https://github.com/maxileith/homebridge-appletv-enhanced/tree/main?tab=readme-ov-file#requirements)). Your current OS is {operating_system}.")
     
     output += check_os_bits(b)
 
@@ -288,7 +288,7 @@ def check_python_version(b: str):
         with open("src/PythonChecker.ts", "r", encoding="utf-8") as f:
             content = f.read()
             # extract the lines where the versions are specified
-            content = content.split("const supportedPythonVersions: string[] = [", 1)[1].split("];", 1)[0]
+            content = content.split("let supportedPythonVersions: string[] = [", 1)[1].split("];", 1)[0]
             # remove line breaks and spaces
             content = content.replace("\n", "")
             content = content.replace(" ", "")
@@ -343,7 +343,7 @@ def check_same_subnet(b: str):
     optional_output = []
 
     if same_subnet != "yes":
-        optional_output.append("It is required to have the Apple TV on the same subnet as the Homebridge instance as written in the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced#requirements).")
+        optional_output.append("It is required to have the Apple TV on the same subnet as the Homebridge instance as written in the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced/tree/main?tab=readme-ov-file#requirements).")
 
     return output, optional_output
 

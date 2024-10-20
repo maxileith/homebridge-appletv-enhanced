@@ -224,7 +224,8 @@ configuration explicitly.');
     private warnNoDevices(): void {
         if (this.publishedUUIDs.length === 0) {
             this.log.warn('The device discovery could not find any Apple TV devices until now. Are you sure that you have a compatible \
-Apple TV and the Apple TV is in the same subnet? (see https://github.com/maxileith/homebridge-appletv-enhanced#requirements)');
+Apple TV and the Apple TV is in the same subnet? (see \
+https://github.com/maxileith/homebridge-appletv-enhanced/tree/main?tab=readme-ov-file#requirements)');
         }
     }
 }

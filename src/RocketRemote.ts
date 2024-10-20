@@ -1,3 +1,4 @@
+import type { SpawnOptionsWithoutStdio } from 'child_process';
 import { type ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { RocketRemoteKey } from './enums';
 import PrefixLogger from './PrefixLogger';
@@ -29,16 +30,7 @@ class RocketRemote {
 
         this.avadaKedavraSequence = this.generateAvadaKedavraSequence(avadaKedavraNumberOfApps);
 
-        this.process = spawn(this.atvremotePath, [
-            '--id', this.mac,
-            '--companion-credentials', this.companionCredentials,
-            '--airplay-credentials', this.airplayCredentials,
-            'cli',
-        ]);
-        this.process.stdout.setEncoding('utf8');
-        this.process.stderr.setEncoding('utf8');
-        this.process.stdout.on('data', this.stdoutListener);
-        this.process.stderr.on('data', this.stderrListener);
+        this.process = this.spawnATVRemote(['cli']);
 
         this.initHeartbeat();
     }
@@ -51,16 +43,7 @@ class RocketRemote {
     public avadaKedavra(): void {
         this.log.info('Avada Kedavra');
         this.log.debug(`Avada Kedavra sequence: ${this.avadaKedavraSequence.join(', ')}`);
-        const ak: ChildProcessWithoutNullStreams = spawn(this.atvremotePath, [
-            '--scan-hosts', this.mac,
-            '--companion-credentials', this.companionCredentials,
-            '--airplay-credentials', this.airplayCredentials,
-            ...this.avadaKedavraSequence,
-        ]);
-        ak.stdout.setEncoding('utf8');
-        ak.stderr.setEncoding('utf8');
-        ak.stdout.on('data', this.stdoutListener);
-        ak.stderr.on('data', this.stderrListener);
+        this.spawnATVRemote(this.avadaKedavraSequence);
     }
 
     public channelDown(hideLog: boolean = false): void {
@@ -223,6 +206,28 @@ class RocketRemote {
                 this.log.debug(`Skipping heartbeat since last command was only ${secondsFromLastCommand}s before.`);
             }
         }, 60000);
+    }
+
+    private spawnATVRemote(
+        args?: readonly string[],
+        options?: SpawnOptionsWithoutStdio,
+    ): ChildProcessWithoutNullStreams {
+        const finalArgs: string[] = [
+            '--id', this.mac,
+            '--companion-credentials', this.companionCredentials,
+            '--airplay-credentials', this.airplayCredentials,
+        ];
+        if (args !== undefined) {
+            finalArgs.push(...args);
+        }
+
+        const process: ChildProcessWithoutNullStreams = spawn(this.atvremotePath, finalArgs, options);
+        process.stdout.setEncoding('utf8');
+        process.stderr.setEncoding('utf8');
+        process.stdout.on('data', this.stdoutListener);
+        process.stderr.on('data', this.stderrListener);
+
+        return process;
     }
 
     private stderrLog(data: string): void {

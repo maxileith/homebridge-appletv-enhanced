@@ -96,12 +96,19 @@ manually.');
 
     private async ensurePythonVersion(): Promise<void> {
         const version: string = await this.getSystemPythonVersion();
-        if (supportedPythonVersions.findIndex((e) => version.includes(e)) === -1) {
+        if (supportedPythonVersions.findIndex((e) => version.startsWith(e)) === -1) {
             while (true) {
                 this.log.error(`Python ${version} is installed. However, only Python \
 ${supportedPythonVersions[0]} to ${supportedPythonVersions[supportedPythonVersions.length - 1]} is supported.`);
                 await delay(300000);
             }
+        } else if (version.startsWith('3.8')) {
+            const p38warning: () => void = () => {
+                this.log.warn('Python 3.8 is EOL and won\'t be supported in future Apple TV Enhanced versions. Please upgrade to \
+Python 3.9 or above.');
+            };
+            p38warning();
+            setInterval(p38warning, 1800 * 1000);
         } else {
             this.log.info(`Python ${version} is installed and supported by the plugin.`);
         }

@@ -1,4 +1,4 @@
-aiohttp==3.10.8
+aiohttp==3.10.10
 aiosignal==1.3.1
 annotated-types==0.7.0
 async-timeout==4.0.3
@@ -6,7 +6,7 @@ attrs==24.2.0
 certifi==2024.8.30
 cffi==1.17.1
 chacha20poly1305-reuseable==0.13.2
-charset-normalizer==3.3.2
+charset-normalizer==3.4.0
 cryptography==43.0.1
 frozenlist==1.4.1
 idna==3.10
@@ -26,5 +26,5 @@ srptools==1.0.1
 tabulate==0.9.0
 typing_extensions==4.12.2
 urllib3==2.2.3
-yarl==1.13.1
+yarl==1.15.2
 zeroconf==0.135.0
