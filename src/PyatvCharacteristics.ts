@@ -13,6 +13,7 @@ const STRING_CHARACTERISTIC_PROPS: CharacteristicProps = {
 const NUMBER_CHARACTERISTIC_PROPS: CharacteristicProps = {
     format: Formats.UINT32,
     perms: [Perms.PAIRED_READ, Perms.NOTIFY],
+    minStep: 1,
 };
 
 

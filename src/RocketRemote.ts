@@ -3,6 +3,7 @@ import { type ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { RocketRemoteKey } from './enums';
 import PrefixLogger from './PrefixLogger';
 import type LogLevelLogger from './LogLevelLogger';
+import { NodePyATVRepeatState, NodePyATVShuffleState } from '@sebbo2002/node-pyatv';
 
 class RocketRemote {
 
@@ -144,6 +145,39 @@ class RocketRemote {
     public setOutputDevices(identifiers: string[], hideLog: boolean = false): void {
         const i: string = identifiers.join(',');
         this.sendCommand(`set_output_devices=${i}`, hideLog);
+    }
+
+    public setRepeat(state: NodePyATVRepeatState, hideLog: boolean = false): void {
+        let repeatState: 0 | 1 | 2 = 0;
+        switch (state) {
+            case NodePyATVRepeatState.off:
+                repeatState = 0;
+                break;
+            case NodePyATVRepeatState.track:
+                repeatState = 1;
+                break;
+            case NodePyATVRepeatState.all:
+                repeatState = 2;
+                break;
+        }
+        this.sendCommand(`set_repeat=${repeatState}`, hideLog);
+    }
+
+
+    public setShuffle(state: NodePyATVShuffleState, hideLog: boolean = false): void {
+        let shuffleState: 0 | 1 | 2 = 0;
+        switch (state) {
+            case NodePyATVShuffleState.off:
+                shuffleState = 0;
+                break;
+            case NodePyATVShuffleState.albums:
+                shuffleState = 1;
+                break;
+            case NodePyATVShuffleState.songs:
+                shuffleState = 2;
+                break;
+        }
+        this.sendCommand(`set_shuffle=${shuffleState}`, hideLog);
     }
 
     public setVolume(percentage: number, hideLog: boolean = false): void {
