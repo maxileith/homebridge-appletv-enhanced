@@ -17,7 +17,7 @@ const NUMBER_CHARACTERISTIC_PROPS: CharacteristicProps = {
 };
 
 
-export default function newCharacteristic(hap: HAP, char: PyATVCustomCharacteristicID): Characteristic {
+export function newPyatvCharacteristic(hap: HAP, char: PyATVCustomCharacteristicID): Characteristic {
     let props: CharacteristicProps | undefined = undefined;
     switch (char) {
         case PyATVCustomCharacteristicID.ALBUM:
@@ -43,5 +43,9 @@ export default function newCharacteristic(hap: HAP, char: PyATVCustomCharacteris
             props = { ...NUMBER_CHARACTERISTIC_PROPS, unit: Units.SECONDS };
             break;
     }
-    return new hap.Characteristic(camelCaseToTitleCase(char), hap.uuid.generate(char), props);
+    return new hap.Characteristic(camelCaseToTitleCase(char), hap.uuid.generate(`uuid-${char}`), props);
+}
+
+export function newStringCharacteristic(hap: HAP, name: string): Characteristic {
+    return new hap.Characteristic(name, hap.uuid.generate(`uuid-${name}`), STRING_CHARACTERISTIC_PROPS);
 }

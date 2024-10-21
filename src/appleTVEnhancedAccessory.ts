@@ -45,7 +45,7 @@ import { DisplayOrderTypes, PyATVCustomCharacteristicID, RocketRemoteKey } from 
 import type { TDeviceStateConfigs, TMediaConfigs, TRemoteKeysAsSwitchConfigs } from './types';
 import RocketRemote from './RocketRemote';
 import tvOS18InputBugSolver from './tvOS18InputBugSolver';
-import newCharacteristic from './PyatvCharacteristics';
+import { newPyatvCharacteristic, newStringCharacteristic } from './Characteristics';
 
 const HIDE_BY_DEFAULT_APPS: string[] = [
     'com.apple.podcasts',
@@ -676,7 +676,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
     private async createPyATVCharacteristics(): Promise<void> {
         for (const pyatvChar of Object.values(PyATVCustomCharacteristicID)) {
             const characteristic: Characteristic =
-                this.service!.addCharacteristic(newCharacteristic(this.platform.api.hap, pyatvChar));
+                this.service!.addCharacteristic(newPyatvCharacteristic(this.platform.api.hap, pyatvChar));
             this.pyatvCharacteristics[pyatvChar] = characteristic;
 
             this.log.debug(`Adding custom characteristic ${characteristic.displayName}.`);
@@ -1705,6 +1705,23 @@ ${characteristic.props.unit}".`);
             )
             .setCharacteristic(this.platform.characteristic.CurrentMediaState, this.platform.characteristic.CurrentMediaState.INTERRUPTED)
             .setCharacteristic(this.platform.characteristic.FirmwareRevision, this.device.version!);
+
+        // add custom static characteristics
+        this.service
+            .addCharacteristic(newStringCharacteristic(this.platform.api.hap, 'MAC Address'))
+            .setValue(this.device.mac ?? '');
+        this.service
+            .addCharacteristic(newStringCharacteristic(this.platform.api.hap, 'Model'))
+            .setValue(this.device.model ?? '');
+        this.service
+            .addCharacteristic(newStringCharacteristic(this.platform.api.hap, 'Model Name'))
+            .setValue(this.device.modelName ?? '');
+        this.service
+            .addCharacteristic(newStringCharacteristic(this.platform.api.hap, 'OS'))
+            .setValue(this.device.os ?? '');
+        this.service
+            .addCharacteristic(newStringCharacteristic(this.platform.api.hap, 'Host'))
+            .setValue(this.device.host ?? '');
 
         // create handlers for required characteristics of the service
         this.service.getCharacteristic(this.platform.characteristic.Active)
