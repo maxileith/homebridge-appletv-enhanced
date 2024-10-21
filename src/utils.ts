@@ -4,6 +4,7 @@ import { networkInterfaces } from 'os';
 import type { NetworkInterfaceInfo } from 'os';
 import type PrefixLogger from './PrefixLogger';
 import type LogLevelLogger from './LogLevelLogger';
+import path from 'path';
 
 export function capitalizeFirstLetter(value: string): string {
     return value.charAt(0).toUpperCase() + value.slice(1);
@@ -22,6 +23,15 @@ export function getLocalIP(): string {
         }
     }
     return 'homebridge.local';
+}
+
+export function normalizePath(p: string): string {
+    if (p.startsWith('~') && process.env.HOME !== undefined) {
+        // join method does also normalize
+        return path.join(process.env.HOME, p.slice(1));
+    } else {
+        return path.normalize(p);
+    }
 }
 
 export function trimToMaxLength(value: string, maxLength: number): string {

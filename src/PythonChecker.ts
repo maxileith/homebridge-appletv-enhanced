@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import { delay, runCommand } from './utils';
+import { delay, normalizePath, runCommand } from './utils';
 import PrefixLogger from './PrefixLogger';
 import type LogLevelLogger from './LogLevelLogger';
 import type { AxiosResponse } from 'axios';
@@ -32,7 +32,7 @@ class PythonChecker {
     public constructor(logger: LogLevelLogger | PrefixLogger, storagePath: string, pythonExecutable?: string) {
         this.log = new PrefixLogger(logger, 'Python check');
 
-        this.pythonExecutable = pythonExecutable ?? 'python3';
+        this.pythonExecutable = pythonExecutable !== undefined ? normalizePath(pythonExecutable) : 'python3';
         this.log.debug(`Using ${this.pythonExecutable} as the python executable`);
 
         this.pluginDirPath = path.join(storagePath, 'appletv-enhanced');

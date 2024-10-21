@@ -11,7 +11,13 @@ import {
     Formats,
 } from 'homebridge';
 import type { AppleTVEnhancedPlatform } from './appleTVEnhancedPlatform';
-import { NodePyATVDeviceState, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
+import {
+    NodePyATVDeviceState,
+    NodePyATVMediaType,
+    NodePyATVPowerState,
+    NodePyATVRepeatState,
+    NodePyATVShuffleState,
+} from '@sebbo2002/node-pyatv';
 import type { NodePyATVDevice, NodePyATVDeviceEvent, NodePyATVEventValueType } from '@sebbo2002/node-pyatv';
 import md5 from 'md5';
 import { type ChildProcessWithoutNullStreams, spawn } from 'child_process';
@@ -683,19 +689,22 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
                     characteristic.setValue(await this.device.getArtist() ?? '');
                     break;
                 case 'episodeNumber':
+                    characteristic.setValue(await this.device.getEpisodeNumber() ?? -1);
                     break;
                 case 'genre':
                     characteristic.setValue(await this.device.getGenre() ?? '');
                     break;
                 case 'repeat':
-                    characteristic.setValue(await this.device.getRepeat() ?? 'off');
+                    characteristic.setValue(await this.device.getRepeat() ?? NodePyATVRepeatState.off);
                     break;
                 case 'seasonNumber':
+                    characteristic.setValue(await this.device.getSeasonNumber() ?? -1);
                     break;
                 case 'seriesName':
+                    characteristic.setValue(await this.device.getSeriesName() ?? '');
                     break;
                 case 'shuffle':
-                    characteristic.setValue(await this.device.getShuffle() ?? 'off');
+                    characteristic.setValue(await this.device.getShuffle() ?? NodePyATVShuffleState.off);
                     break;
                 case 'title':
                     characteristic.setValue(await this.device.getTitle() ?? '');
@@ -1630,7 +1639,12 @@ media-src * \'self\'');
             this.accessory.getService(this.platform.service.Television) || this.addServiceSave(this.platform.service.Television)!;
         this.service.addCharacteristic(this.platform.characteristic.FirmwareRevision);
         this.service
-            .setCharacteristic(this.platform.characteristic.Active, this.platform.characteristic.Active.INACTIVE)
+            .setCharacteristic(
+                this.platform.characteristic.Active,
+                await this.device.getPowerState() === NodePyATVPowerState.on
+                    ? this.platform.characteristic.Active.ACTIVE
+                    : this.platform.characteristic.Active.INACTIVE,
+            )
             .setCharacteristic(
                 this.platform.characteristic.ActiveIdentifier,
                 this.getCommonConfig().activeIdentifier ?? HOME_IDENTIFIER,
