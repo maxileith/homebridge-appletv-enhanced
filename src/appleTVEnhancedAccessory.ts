@@ -95,6 +95,7 @@ export class AppleTVEnhancedAccessory {
     private readonly inputs: IInputs = {};
     private lastDeviceState: NodePyATVDeviceState | null = null;
     private lastDeviceStateChange: number = 0;
+    private lastDeviceStateDraft: NodePyATVDeviceState | null = null;
     private lastNonZeroVolume: number = 50;
     private lastTurningOnEvent: number = 0;
     private readonly log: PrefixLogger;
@@ -1200,6 +1201,7 @@ the plugin after you have fixed the root cause. Enable debug logging to see the 
 
     private async handleDeviceStateUpdate(event: NodePyATVDeviceEvent): Promise<void> {
         this.lastDeviceStateChange = Date.now();
+        this.lastDeviceStateDraft = event.value as NodePyATVDeviceState | null;
 
         // check if the state has changed
         if (this.lastDeviceState === event.value) {
@@ -1209,6 +1211,7 @@ the plugin after you have fixed the root cause. Enable debug logging to see the 
         // only make device state changes if Apple TV is on
         if (this.service!.getCharacteristic(this.platform.characteristic.Active).value === this.platform.characteristic.Active.INACTIVE) {
             this.log.debug(`New Device State Draft discarded (since Apple TV is off): ${event.value}`);
+            this.lastDeviceStateDraft = null;
             this.lastDeviceState = null;
             return;
         }
@@ -1654,7 +1657,7 @@ media-src * \'self\'');
                 return;
             }
 
-            if (this.lastDeviceState !== NodePyATVDeviceState.playing) {
+            if (this.lastDeviceStateDraft !== NodePyATVDeviceState.playing) {
                 this.log.verbose('Skipping position update since not playing.');
                 return;
             }
