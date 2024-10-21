@@ -222,9 +222,8 @@ environment ...');
             this.log.warn('Could not verify that the correct OpenSSL version is installed. Falling back to openssl legacy mode. Be aware \
 that Python 3.12 is not compatible with openssl legacy mode.');
         } else {
-            this.log.warn(`You are using OpenSSL ${r[0]}. However, OpenSSL ${MIN_OPENSSL_VERSION} or later is required for the most \
-AppleTV enhanced in it's latest version. Falling back to openssl legacy mode. Be aware that Python 3.12 is not compatible with openssl \
-legacy mode.`);
+            this.log.warn(`You are using OpenSSL ${r[0]}. However, OpenSSL ${MIN_OPENSSL_VERSION} or later is required for the most recent \
+AppleTV enhanced version. Falling back to openssl legacy mode. Be aware that Python 3.12 is not compatible with openssl legacy mode.`);
         }
         this.requirementsPath = path.join(__dirname, '..', 'python_requirements', 'openssl_legacy', 'requirements.txt');
         supportedPythonVersions = supportedPythonVersions.filter((e) => e !== '3.12');
