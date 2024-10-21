@@ -52,6 +52,11 @@ export function snakeCaseToTitleCase(str: string): string {
         .replace(/[-_]+(.)/g, (_, c: string) => ' ' + c.toUpperCase()); // First char after each -/_
 }
 
+export function camelCaseToTitleCase(str: string): string {
+    const spacedStr: string = str.replace(/([A-Z])/g, ' $1');
+    return spacedStr.charAt(0).toUpperCase() + spacedStr.slice(1);
+}
+
 export async function runCommand(
     logger: LogLevelLogger | PrefixLogger,
     command: string,

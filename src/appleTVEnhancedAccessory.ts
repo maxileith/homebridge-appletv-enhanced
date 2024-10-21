@@ -41,11 +41,11 @@ import type {
     NodePyATVApp,
 } from './interfaces';
 import PrefixLogger from './PrefixLogger';
-import { DisplayOrderTypes, RocketRemoteKey } from './enums';
-import type { TDeviceStateConfigs, TMediaConfigs, TPyatvCharacteristicID, TRemoteKeysAsSwitchConfigs } from './types';
+import { DisplayOrderTypes, PyatvCustomCharacteristicID, RocketRemoteKey } from './enums';
+import type { TDeviceStateConfigs, TMediaConfigs, TRemoteKeysAsSwitchConfigs } from './types';
 import RocketRemote from './RocketRemote';
-import pyatvCharacteristicGenerators from './PyatvCharacteristics';
 import tvOS18InputBugSolver from './tvOS18InputBugSolver';
+import newCharacteristic from './PyatvCharacteristics';
 
 const HIDE_BY_DEFAULT_APPS: string[] = [
     'com.apple.podcasts',
@@ -92,7 +92,7 @@ export class AppleTVEnhancedAccessory {
     private deviceStateConfigs: TDeviceStateConfigs | undefined = undefined;
     private readonly deviceStateServices: Partial<Record<NodePyATVDeviceState, Service>> = {};
     private homeInputService: Service | undefined = undefined;
-    private inputs: IInputs = {};
+    private readonly inputs: IInputs = {};
     private lastDeviceState: NodePyATVDeviceState | null = null;
     private lastDeviceStateChange: number = 0;
     private lastNonZeroVolume: number = 50;
@@ -101,8 +101,8 @@ export class AppleTVEnhancedAccessory {
     private mediaConfigs: TMediaConfigs | undefined = undefined;
     private readonly mediaTypeServices: Partial<Record<NodePyATVMediaType, Service>> = {};
     private offline: boolean = false;
-    private readonly pyatvCharacteristics: Partial<Record<TPyatvCharacteristicID, Characteristic>> = {};
-    private readonly pyatvListenerHandlers: Partial<Record<TPyatvCharacteristicID, (e: Error | NodePyATVDeviceEvent) => void>> = {};
+    private readonly pyatvCharacteristics: Partial<Record<PyatvCustomCharacteristicID, Characteristic>> = {};
+    private readonly pyatvListenerHandlers: Partial<Record<PyatvCustomCharacteristicID, (e: Error | NodePyATVDeviceEvent) => void>> = {};
     private remoteKeyAsSwitchConfigs: TRemoteKeysAsSwitchConfigs | undefined = undefined;
     private readonly remoteKeyServices: Partial<Record<RocketRemoteKey, Service>> = {};
     private rocketRemote: RocketRemote | undefined = undefined;
@@ -582,8 +582,8 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
             filterErrorHandler(e, this.handleVolumeUpdate.bind(this));
         };
 
-        const pyatvCharacteristicListener = (e: Error | NodePyATVDeviceEvent, characteristic: TPyatvCharacteristicID): void => {
-            filterErrorHandler(e, this.handlePyatvCharacteristicUpdate.bind(this, characteristic));
+        const pyatvCharacteristicListener = (e: Error | NodePyATVDeviceEvent, characteristicID: PyatvCustomCharacteristicID): void => {
+            filterErrorHandler(e, this.handlePyatvCharacteristicUpdate.bind(this, characteristicID));
         };
 
         this.device.on('update:powerState', powerStateListener);
@@ -593,12 +593,12 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         this.device.on('update:mediaType', mediaTypeListener);
         this.device.on('update:volume', volumeListener);
 
-        for (const characteristic in this.pyatvCharacteristics) {
+        for (const characteristicID of Object.values(PyatvCustomCharacteristicID)) {
             const handler: (e: Error | NodePyATVDeviceEvent) => void = (e): void => {
-                pyatvCharacteristicListener(e, characteristic as TPyatvCharacteristicID);
+                pyatvCharacteristicListener(e, characteristicID);
             };
-            this.pyatvListenerHandlers[characteristic] = handler;
-            this.device.on(`update:${characteristic}`, handler);
+            this.pyatvListenerHandlers[characteristicID] = handler;
+            this.device.on(`update:${characteristicID}`, handler);
         }
 
         this.device.once('error', ((e: Error | NodePyATVDeviceEvent): void => {
@@ -674,43 +674,46 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
     }
 
     private async createPyATVCharacteristics(): Promise<void> {
-        for (const pyatvId in pyatvCharacteristicGenerators) {
+        for (const pyatvChar of Object.values(PyatvCustomCharacteristicID)) {
             const characteristic: Characteristic =
-                this.service!.addCharacteristic(pyatvCharacteristicGenerators[pyatvId](this.platform.api.hap));
-            this.pyatvCharacteristics[pyatvId] = characteristic;
+                this.service!.addCharacteristic(newCharacteristic(this.platform.api.hap, pyatvChar));
+            this.pyatvCharacteristics[pyatvChar] = characteristic;
 
             this.log.debug(`Adding custom characteristic ${characteristic.displayName}.`);
 
-            switch (pyatvId) {
-                case 'album':
+            switch (pyatvChar) {
+                case PyatvCustomCharacteristicID.ALBUM:
                     characteristic.setValue(await this.device.getAlbum() ?? '');
                     break;
-                case 'artist':
+                case PyatvCustomCharacteristicID.ARTIST:
                     characteristic.setValue(await this.device.getArtist() ?? '');
                     break;
-                case 'episodeNumber':
-                    characteristic.setValue(await this.device.getEpisodeNumber() ?? -1);
+                case PyatvCustomCharacteristicID.EPISODE_NUMBER:
+                    characteristic.setValue(await this.device.getEpisodeNumber() ?? 0);
                     break;
-                case 'genre':
+                case PyatvCustomCharacteristicID.GENRE:
                     characteristic.setValue(await this.device.getGenre() ?? '');
                     break;
-                case 'repeat':
+                case PyatvCustomCharacteristicID.POSITION:
+                    characteristic.setValue(await this.device.getPosition() ?? 0);
+                    break;
+                case PyatvCustomCharacteristicID.REPEAT:
                     characteristic.setValue(await this.device.getRepeat() ?? NodePyATVRepeatState.off);
                     break;
-                case 'seasonNumber':
-                    characteristic.setValue(await this.device.getSeasonNumber() ?? -1);
+                case PyatvCustomCharacteristicID.SEASON_NUMBER:
+                    characteristic.setValue(await this.device.getSeasonNumber() ?? 0);
                     break;
-                case 'seriesName':
+                case PyatvCustomCharacteristicID.SERIES_NAME:
                     characteristic.setValue(await this.device.getSeriesName() ?? '');
                     break;
-                case 'shuffle':
+                case PyatvCustomCharacteristicID.SHUFFLE:
                     characteristic.setValue(await this.device.getShuffle() ?? NodePyATVShuffleState.off);
                     break;
-                case 'title':
+                case PyatvCustomCharacteristicID.TITLE:
                     characteristic.setValue(await this.device.getTitle() ?? '');
                     break;
-                case 'totalTime':
-                    characteristic.setValue(await this.device.getTotalTime() ?? -1);
+                case PyatvCustomCharacteristicID.TOTAL_TIME:
+                    characteristic.setValue(await this.device.getTotalTime() ?? 0);
                     break;
             }
 
@@ -1306,20 +1309,39 @@ ${deviceStateDelay}ms is over): ${event.value}`);
         }
     }
 
-    private handlePyatvCharacteristicUpdate(pyatvId: TPyatvCharacteristicID, event: NodePyATVDeviceEvent): void {
-        const characteristic: Characteristic | undefined = this.pyatvCharacteristics[pyatvId];
+    private handlePyatvCharacteristicUpdate(characteristicID: PyatvCustomCharacteristicID, event: NodePyATVDeviceEvent): void {
+        const characteristic: Characteristic | undefined = this.pyatvCharacteristics[characteristicID];
 
         if (characteristic === undefined) {
-            this.log.error(`Could not update ${pyatvId} since no corresponding characteristic was found.`);
+            this.log.error(`Could not update ${characteristicID} since no corresponding characteristic was found.`);
             return;
         }
 
         let value: NodePyATVEventValueType = event.newValue;
-        if ((characteristic.props.format as Formats) === Formats.STRING) {
-            value = trimToMaxLength(value as string, characteristic.props.maxLen ?? 64);
+        switch (characteristic.props.format as Formats) {
+            case Formats.STRING:
+                if (value === null) {
+                    value = '';
+                }
+                value = trimToMaxLength(value as string, characteristic.props.maxLen ?? 64);
+                break;
+            case Formats.INT:
+            case Formats.FLOAT:
+            case Formats.UINT8:
+            case Formats.UINT16:
+            case Formats.UINT32:
+            case Formats.UINT64:
+                if (value === null) {
+                    value = 0;
+                }
+                break;
         }
 
-        this.log.info(`Updating characteristic ${characteristic.displayName} to "${value}".`);
+        const unit: string = characteristic.props.unit !== undefined
+            ? ` ${characteristic.props.unit}`
+            : '';
+
+        this.log.info(`Updating characteristic ${characteristic.displayName} to "${value}${unit}".`);
         characteristic.setValue(value);
     }
 

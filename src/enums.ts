@@ -28,3 +28,17 @@ export enum RocketRemoteKey {
     VOLUME_DOWN = 'volume_down',
     VOLUME_UP = 'volume_up',
 }
+
+export enum PyatvCustomCharacteristicID {
+    ALBUM = 'album',
+    ARTIST = 'artist',
+    EPISODE_NUMBER = 'episodeNumber',
+    GENRE = 'genre',
+    REPEAT = 'repeat',
+    POSITION = 'position',
+    SEASON_NUMBER = 'seasonNumber',
+    SERIES_NAME = 'seriesName',
+    SHUFFLE = 'shuffle',
+    TITLE = 'title',
+    TOTAL_TIME = 'totalTime',
+}
