@@ -688,6 +688,9 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
                 case PyATVCustomCharacteristicID.ARTIST:
                     characteristic.setValue(await this.device.getArtist() ?? '');
                     break;
+                case PyATVCustomCharacteristicID.CONTENT_IDENTIFIER:
+                    characteristic.setValue(await this.device.getContentIdentifier() ?? '');
+                    break;
                 case PyATVCustomCharacteristicID.EPISODE_NUMBER:
                     characteristic.setValue(await this.device.getEpisodeNumber() ?? 0);
                     break;

@@ -22,6 +22,7 @@ export default function newCharacteristic(hap: HAP, char: PyATVCustomCharacteris
     switch (char) {
         case PyATVCustomCharacteristicID.ALBUM:
         case PyATVCustomCharacteristicID.ARTIST:
+        case PyATVCustomCharacteristicID.CONTENT_IDENTIFIER:
         case PyATVCustomCharacteristicID.GENRE:
         case PyATVCustomCharacteristicID.SERIES_NAME:
         case PyATVCustomCharacteristicID.TITLE:

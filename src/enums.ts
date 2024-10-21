@@ -32,6 +32,7 @@ export enum RocketRemoteKey {
 export enum PyATVCustomCharacteristicID {
     ALBUM = 'album',
     ARTIST = 'artist',
+    CONTENT_IDENTIFIER = 'contentIdentifier',
     EPISODE_NUMBER = 'episodeNumber',
     GENRE = 'genre',
     REPEAT = 'repeat',
