@@ -29,7 +29,7 @@ export enum RocketRemoteKey {
     VOLUME_UP = 'volume_up',
 }
 
-export enum PyatvCustomCharacteristicID {
+export enum PyATVCustomCharacteristicID {
     ALBUM = 'album',
     ARTIST = 'artist',
     EPISODE_NUMBER = 'episodeNumber',
