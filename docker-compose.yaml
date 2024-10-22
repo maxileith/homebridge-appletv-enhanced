@@ -1,4 +1,3 @@
-version: "2"
 services:
     homebridge:
         image: homebridge/homebridge:2024-10-09
