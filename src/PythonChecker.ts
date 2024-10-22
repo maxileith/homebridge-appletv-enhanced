@@ -29,11 +29,11 @@ class PythonChecker {
     private readonly venvPipExecutable: string;
     private readonly venvPythonExecutable: string;
 
-    public constructor(logger: LogLevelLogger | PrefixLogger, storagePath: string, pythonExecutable?: string) {
+    public constructor(logger: LogLevelLogger | PrefixLogger, storagePath: string, customPythonExecutable?: string) {
         this.log = new PrefixLogger(logger, 'Python check');
 
-        this.pythonExecutable = pythonExecutable !== undefined ? normalizePath(pythonExecutable) : 'python3';
-        this.log.debug(`Using ${this.pythonExecutable} as the python executable`);
+        this.pythonExecutable = this.getPythonExecutable('python3', customPythonExecutable);
+        this.log.info(`Using "${this.pythonExecutable}" as the python executable.`);
 
         this.pluginDirPath = path.join(storagePath, 'appletv-enhanced');
         this.venvPath = path.join(this.pluginDirPath, '.venv');
@@ -152,12 +152,11 @@ Python 3.9 or above.');
         const venvPythonHome: string = await this.getPythonHome(this.venvPythonExecutable);
         const pythonHome: string = await this.getPythonHome(this.pythonExecutable);
         if (venvPythonHome !== pythonHome) {
-            this.log.warn('The virtual environment does not use the systems default python environment. Recreating virtual \
-environment ...');
+            this.log.warn('The virtual environment does not use the configured python environment. Recreating virtual environment ...');
             this.log.debug(`System Python ${pythonHome}; Venv Python ${venvPythonHome}`);
             await this.createVenv();
         } else {
-            this.log.info('Virtual environment is using the systems default python environment. Continuing ...');
+            this.log.info('Virtual environment is using the configured python environment. Continuing ...');
         }
     }
 
@@ -179,6 +178,28 @@ environment ...');
             this.log.error(e as string);
             return 'error';
         }
+    }
+
+    private getPythonExecutable(defaultsTo: string, customPythonExecutable: string | undefined): string {
+        if (customPythonExecutable === undefined) {
+            this.log.debug('Using the systems default python installation since there is no custom python installation specified.');
+            return defaultsTo;
+        }
+
+        const pythonCandidate: string | undefined = normalizePath(customPythonExecutable);
+        if (pythonCandidate === undefined) {
+            this.log.warn(`Could not normalize the python executable path ${pythonCandidate}. Falling back to the systems default python \
+installation`);
+            return defaultsTo;
+        }
+        if (fs.existsSync(pythonCandidate)) {
+            this.log.debug(`The specified python installation "${pythonCandidate}" does exist. Using it ...`);
+            return pythonCandidate;
+        }
+
+        this.log.warn(`The python executable "${pythonCandidate}" set in the configuration does not exist. Falling back to the \
+systems default python installation.`);
+        return defaultsTo;
     }
 
     private async getPythonHome(executable: string): Promise<string> {

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+hb-service update-node
 hb-service add homebridge-appletv-enhanced@$(cat /tmp/package.json | jq --raw-output '.version')
 
 #

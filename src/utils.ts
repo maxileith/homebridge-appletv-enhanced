@@ -25,8 +25,11 @@ export function getLocalIP(): string {
     return 'homebridge.local';
 }
 
-export function normalizePath(p: string): string {
-    if (p.startsWith('~') && process.env.HOME !== undefined) {
+export function normalizePath(p: string): string | undefined {
+    if (p.startsWith('~')) {
+        if (process.env.HOME === undefined) {
+            return undefined;
+        }
         // join method does also normalize
         return path.join(process.env.HOME, p.slice(1));
     } else {

@@ -3,6 +3,8 @@ services:
     homebridge:
         image: homebridge/homebridge:2024-10-09
         network_mode: host
+        environment:
+            APPLETV_ENHANCED_DEV: "true"
         volumes:
             - ./user_storage/accessories:/homebridge/accessories
             - ./user_storage/appletv-enhanced:/homebridge/appletv-enhanced
