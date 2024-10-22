@@ -189,7 +189,7 @@ Python 3.9 or above.');
         const pythonCandidate: string | undefined = normalizePath(customPythonExecutable);
         if (pythonCandidate === undefined) {
             this.log.warn(`Could not normalize the python executable path ${pythonCandidate}. Falling back to the systems default python \
-installation`);
+installation.`);
             return defaultsTo;
         }
         if (fs.existsSync(pythonCandidate)) {
