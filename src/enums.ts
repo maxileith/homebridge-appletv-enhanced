@@ -28,3 +28,18 @@ export enum RocketRemoteKey {
     VOLUME_DOWN = 'volume_down',
     VOLUME_UP = 'volume_up',
 }
+
+export enum PyATVCustomCharacteristicID {
+    ALBUM = 'album',
+    ARTIST = 'artist',
+    CONTENT_IDENTIFIER = 'contentIdentifier',
+    EPISODE_NUMBER = 'episodeNumber',
+    GENRE = 'genre',
+    REPEAT = 'repeat',
+    POSITION = 'position',
+    SEASON_NUMBER = 'seasonNumber',
+    SERIES_NAME = 'seriesName',
+    SHUFFLE = 'shuffle',
+    TITLE = 'title',
+    TOTAL_TIME = 'totalTime',
+}

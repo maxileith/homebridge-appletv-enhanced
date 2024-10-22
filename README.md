@@ -6,7 +6,7 @@
 [![npm](https://badgen.net/npm/v/homebridge-appletv-enhanced/latest?label=latest)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
 [![npm](https://badgen.net/npm/v/homebridge-appletv-enhanced/beta?label=beta&color=cyan)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
 [![PyPI pyversions](https://badgen.net/npm/node/homebridge-appletv-enhanced?color=green)](https://pypi.python.org/pypi/pyatv/)
-[![PyPI pyversions](https://img.shields.io/badge/Python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.python.org/pypi/pyatv/)
+![PyPI pyversions](https://img.shields.io/badge/Python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue)
 
 [![npm downloads total](https://badgen.net/npm/dt/homebridge-appletv-enhanced?color=gray)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
 [![npm downloads month](https://badgen.net/npm/dm/homebridge-appletv-enhanced?color=gray)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
@@ -58,7 +58,7 @@ This plugin automatically discovers Apple TV devices on the local network and ex
 
 -   Only Linux will be supported by the maintainer (although since MacOS / UNIX is similar to Linux, it should run on MacOS just fine)
 -   Most recent Version of **Node 22 LTS, 20 LTS or 18 LTS**.
--   **Python 3.8, 3.9, 3.10, 3.11 or 3.12**
+-   **Python 3.9, 3.10, 3.11 or 3.12**
 -   Python virtual environment module `virtualenv`. (the plugin will create a virtual environment on startup and will install python dependencies in this virtual environment)
     -   On homebridge **[apt-package >=1.1.4](https://github.com/homebridge/homebridge-apt-pkg/releases/tag/1.1.4)** the python module is installed automatically as a dependency, see [homebridge/homebridge-apt-pkg#16](https://github.com/homebridge/homebridge-apt-pkg/issues/16)
         -   **[raspian image >= 1.1.2](https://github.com/homebridge/homebridge-raspbian-image/releases/tag/v1.1.2)** includes this apt-package, so there is no need to install it manually.
