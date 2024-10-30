@@ -10,7 +10,6 @@ import fs from 'fs';
 import { pathExistsSync } from 'fs-extra';
 import { runCommand } from './utils';
 import type { TUpdateCheckTime } from './types';
-import { platform } from 'os';
 
 interface INpmPublishConfig {
     access: string;
@@ -245,13 +244,6 @@ betas): ${currentVersion}`;
             this.log.debug(`Not triggering the check method as the update check is configured to run between ${this.updateCheckHour}:00 \
 and ${this.updateCheckHour}:59.`);
         }
-    }
-
-    private isGloballyInstalled(): boolean {
-        const globalPaths: string[] = require.main?.paths.filter((p) => p.includes('node_modules')) ?? [];
-        const modulePath: string = path.resolve(__dirname);
-
-        return globalPaths.some((gp: string) => modulePath.startsWith(gp));
     }
 
     // eslint-disable-next-line max-len
