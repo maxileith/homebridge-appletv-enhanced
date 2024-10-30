@@ -259,6 +259,12 @@ and ${this.updateCheckHour}:59.`);
     private async update(version: string): Promise<void> {
         this.log.info(`Attempting to update AppleTV Enhanced to version ${version}`);
 
+        if (UIX_CUSTOM_PLUGIN_PATH === undefined) {
+            this.log.error('Could not determine the path where to install the plugin since the environment variable UIX_CUSTOM_PLUGIN_PATH \
+is not set.');
+            return;
+        }
+
         const npm: string = UIX_USE_PNPM ? 'pnpm' : 'npm';
 
         let installPath: string = path.resolve(__dirname, '..', '..');
@@ -282,15 +288,6 @@ and ${this.updateCheckHour}:59.`);
 
         // install path is one level up
         installPath = path.resolve(installPath, '..');
-
-        // set global flag
-        if (
-            UIX_CUSTOM_PLUGIN_PATH === undefined ||
-            platform() === 'win32' ||
-            this.isGloballyInstalled()
-        ) {
-            installOptions.push('--global');
-        }
 
         const args: string[] = ['install', ...installOptions, `homebridge-appletv-enhanced@${version}`];
 
