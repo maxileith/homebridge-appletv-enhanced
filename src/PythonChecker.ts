@@ -131,11 +131,15 @@ Python 3.9 or above.');
         this.log.info(`Venv pip version: ${venvPipVersion}`);
         this.log.info('Checking if there is an update for venv pip ...');
         if (venvPipVersion === await this.getMostRecentPipVersion()) {
-            this.log.info('Venv pip is up-to-date');
+            this.log.info('Venv pip is up to date');
         } else {
             this.log.warn('Venv pip is outdated. Updating now ...');
-            await this.updatePip();
-            this.log.success('Venv pip updated');
+            const success: boolean = await this.updatePip();
+            if (success === true) {
+                this.log.success('Venv pip successfully updated.');
+            } else {
+                this.log.warn('Failed to update venv pip. Continuing anyhow ...');
+            }
         }
     }
 
@@ -144,7 +148,15 @@ Python 3.9 or above.');
             this.log.info('Python requirements are satisfied.');
         } else {
             this.log.warn('Python requirements are not satisfied. Installing them now ...');
-            await this.installRequirements();
+            const success: boolean = await this.installRequirements();
+            if (success === true) {
+                this.log.success('Python requirements successfully installed.');
+            } else {
+                while (true) {
+                    this.log.error('There was an error installing the python dependencies. Cannot proceed!');
+                    await delay(300000);
+                }
+            }
         }
     }
 
@@ -220,9 +232,8 @@ systems default python installation.`);
         return version.trim().replace('pip ', '').split(' ')[0];
     }
 
-    private async installRequirements(): Promise<void> {
-        await runCommand(this.log, this.venvPipExecutable, ['install', '-r', this.requirementsPath]);
-        this.log.success('Python requirements installed.');
+    private async installRequirements(): Promise<boolean> {
+        return (await runCommand(this.log, this.venvPipExecutable, ['install', '-r', this.requirementsPath])).at(2) === 0;
     }
 
     private isVenvCreated(): boolean {
@@ -250,8 +261,8 @@ AppleTV enhanced version. Falling back to openssl legacy mode. Be aware that Pyt
         supportedPythonVersions = supportedPythonVersions.filter((e) => e !== '3.12');
     }
 
-    private async updatePip(): Promise<void> {
-        await runCommand(this.log, this.venvPipExecutable, ['install', '--upgrade', 'pip']);
+    private async updatePip(): Promise<boolean> {
+        return (await runCommand(this.log, this.venvPipExecutable, ['install', '--upgrade', 'pip'])).at(2) === 0;
     }
 }
 

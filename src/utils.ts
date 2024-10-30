@@ -84,10 +84,13 @@ export async function runCommand(
     p.stderr.setEncoding('utf8');
     p.stderr.on('data', (data: string) => {
         stderr += data;
+        data = data.trim();
         if (!hideStderr) {
             if (data.startsWith('WARNING')) {
+                data = data.replace('WARNING: ', '');
                 logger.warn(data.replaceAll('\n', ''));
             } else {
+                data = data.replace('ERROR: ', '');
                 logger.error(data);
             }
         }
