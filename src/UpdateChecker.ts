@@ -7,9 +7,10 @@ import { compareVersions } from 'compare-versions';
 import packageJson from '../package.json';
 import path from 'path';
 import fs from 'fs';
-import { pathExists } from 'fs-extra';
+import { pathExistsSync } from 'fs-extra';
 import { runCommand } from './utils';
 import type { TUpdateCheckTime } from './types';
+import { platform } from 'os';
 
 interface INpmPublishConfig {
     access: string;
@@ -246,16 +247,17 @@ and ${this.updateCheckHour}:59.`);
         }
     }
 
-    // update process according to hb-service
-    // https://github.com/homebridge/homebridge-config-ui-x/blob/1b52f15984374ab5a244dec8761c15a701de0cea/src/bin/hb-service.ts#L1327-L1381
+    private isGloballyInstalled(): boolean {
+        const globalPaths: string[] = require.main?.paths.filter((p) => p.includes('node_modules')) ?? [];
+        const modulePath: string = path.resolve(__dirname);
+
+        return globalPaths.some((gp: string) => modulePath.startsWith(gp));
+    }
+
+    // eslint-disable-next-line max-len
+    // https://github.com/homebridge/homebridge-config-ui-x/blob/01a008227b8b8f3650b23eaac3e9370347cec4f8/src/modules/plugins/plugins.service.ts#L384-L493
     private async update(version: string): Promise<void> {
         this.log.info(`Attempting to update AppleTV Enhanced to version ${version}`);
-
-        if (UIX_CUSTOM_PLUGIN_PATH === undefined) {
-            this.log.error('Could not determine the path where to install the plugin since the environment variable UIX_CUSTOM_PLUGIN_PATH \
-is not set.');
-            return;
-        }
 
         const npm: string = UIX_USE_PNPM ? 'pnpm' : 'npm';
 
@@ -267,18 +269,28 @@ is not set.');
             ? [
                 '--no-audit',
                 '--no-fund',
-                '--global-style',
             ]
             : [];
 
+        // check to see if custom plugin path is using a package.json file
         if (
             installPath === UIX_CUSTOM_PLUGIN_PATH &&
-            pathExists(path.resolve(installPath, '../package.json')) === true
+            pathExistsSync(path.resolve(installPath, '../package.json')) === true
         ) {
             installOptions.push('--save');
         }
 
+        // install path is one level up
         installPath = path.resolve(installPath, '..');
+
+        // set global flag
+        if (
+            UIX_CUSTOM_PLUGIN_PATH === undefined ||
+            platform() === 'win32' ||
+            this.isGloballyInstalled()
+        ) {
+            installOptions.push('--global');
+        }
 
         const args: string[] = ['install', ...installOptions, `homebridge-appletv-enhanced@${version}`];
 
