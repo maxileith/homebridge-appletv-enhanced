@@ -70,7 +70,7 @@ This plugin automatically discovers Apple TV devices on the local network and ex
 -   **OpenSSL 3** or later
     -   If an older OpenSSL version is installed, the plugin will automatically boot into an OpenSSL legacy compatibility mode. Be aware that this mode does not support Python 3.12.
 -   Apple TV Models with **tvOS 15** and upwards are supported (all 4K ones and the latest HD one)
--   The access of Speakers & TVs should be either set to "Everybody" or "Anybody On the Same Network" in the Home app
+-   The access of Speakers & TVs should be either set to "Everybody" or "Anybody On the Same Network" without a password in the Home app
     -   Additionally, make sure to check the TV's HomeKit settings.
 -   The homebridge instance and Apple TVs need to be on the **same subnet**.
 
