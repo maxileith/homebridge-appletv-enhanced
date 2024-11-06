@@ -926,7 +926,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
                     this.log.debug(error.message);
                     this.log.debug(error.stack as string);
                     while (true) {
-                        this.log.warn('The plugin is receiving errors that look like you have not set the access level of Speakers & TVs \
+                        this.log.error('The plugin is receiving errors that look like you have not set the access level of Speakers & TVs \
 in your home app to "Everybody" or "Anybody On the Same Network". Fix this and restart the plugin to continue initializing the Apple TV \
 device. Additionally, make sure to check the TV\'s HomeKit settings. Enable debug logging to see the original errors.');
                         await delay(300000);
@@ -940,7 +940,7 @@ device. Additionally, make sure to check the TV\'s HomeKit settings. Enable debu
                     this.log.debug(error.message);
                     this.log.debug(error.stack as string);
                     while (true) {
-                        this.log.warn('Apple TV can be reached on OSI Layer 2 but not on 3. This is likely a network problem. Restart \
+                        this.log.error('Apple TV can be reached on OSI Layer 2 but not on 3. This is likely a network problem. Restart \
 the plugin after you have fixed the root cause. Enable debug logging to see the original errors.');
                         await delay(300000);
                     }

@@ -6,23 +6,30 @@ import type LogLevelLogger from './LogLevelLogger';
 import type { AxiosResponse } from 'axios';
 import axios from 'axios';
 import { compareVersions } from 'compare-versions';
+import os from 'os';
 
 let supportedPythonVersions: string[] = [
     '3.9',
     '3.10',
     '3.11',
+    '3.12',
     '3.13',
 ];
 
 const MIN_OPENSSL_VERSION: string = '3.0.0';
 
+const UID: number = os.userInfo().uid;
+const GID: number = os.userInfo().gid;
+
 class PythonChecker {
 
+    private readonly customPythonExecutable: string | undefined;
     private readonly log: PrefixLogger;
-
     private readonly pluginDirPath: string;
-    private readonly pythonExecutable: string;
+    private pythonExecutable: string = 'python3';
     private requirementsPath: string = path.join(__dirname, '..', 'python_requirements', 'default', 'requirements.txt');
+    private readonly venvAtvremoteExecutable: string;
+    private readonly venvAtvscriptExecutable: string;
     private readonly venvConfigPath: string;
     private readonly venvPath: string;
     private readonly venvPipExecutable: string;
@@ -30,19 +37,22 @@ class PythonChecker {
 
     public constructor(logger: LogLevelLogger | PrefixLogger, storagePath: string, customPythonExecutable?: string) {
         this.log = new PrefixLogger(logger, 'Python check');
-
-        this.pythonExecutable = this.getPythonExecutable('python3', customPythonExecutable);
-        this.log.info(`Using "${this.pythonExecutable}" as the python executable.`);
-
+        this.customPythonExecutable = customPythonExecutable;
         this.pluginDirPath = path.join(storagePath, 'appletv-enhanced');
         this.venvPath = path.join(this.pluginDirPath, '.venv');
         this.venvPythonExecutable = path.join(this.venvPath, 'bin', 'python3');
         this.venvPipExecutable = path.join(this.venvPath, 'bin', 'pip3');
         this.venvConfigPath = path.join(this.venvPath, 'pyvenv.cfg');
+        this.venvAtvremoteExecutable = path.join(this.venvPath, 'bin', 'atvremote');
+        this.venvAtvscriptExecutable = path.join(this.venvPath, 'bin', 'atvscript');
     }
 
     public async allInOne(forceVenvRecreate: boolean = false): Promise<void> {
         this.log.info('Starting python check.');
+
+        this.pythonExecutable = this.getPythonExecutable('python3', this.customPythonExecutable);
+        this.log.info(`Using "${this.pythonExecutable}" as the python executable.`);
+
         this.ensurePluginDir();
         await this.openSSL();
         await this.ensurePythonVersion();
@@ -113,6 +123,13 @@ ${supportedPythonVersions[0]} to ${supportedPythonVersions[supportedPythonVersio
         } else if (this.isVenvCreated() === false) {
             this.log.info('Virtual python environment is not present. Creating now ...');
             await this.createVenv();
+        } else if (this.isVenvExecutable() === false) {
+            while (true) {
+                this.log.error(`The current user ${UID}:${GID} does not have the permissions to execute the virtual python environment. \
+Make sure the user has the permissions to execute the above mentioned files. \`chmod +x ./appletv-enhanced/.venv/bin/*\` should do the \
+trick. Restart the plugin after fixing the permissions.`);
+                await delay(300000);
+            }
         } else {
             this.log.info('Virtual environment already exists.');
         }
@@ -197,7 +214,16 @@ installation.`);
             return defaultsTo;
         }
         if (fs.existsSync(pythonCandidate)) {
-            this.log.debug(`The specified python installation "${pythonCandidate}" does exist. Using it ...`);
+            this.log.debug(`The specified python installation "${pythonCandidate}" does exist.`);
+            try {
+                fs.accessSync(pythonCandidate, fs.constants.X_OK);
+                this.log.debug(`The current user ${UID}:${GID} has the permissions to execute "${pythonCandidate}".`);
+            } catch {
+                this.log.warn(`The current user ${UID}:${GID} does not have the permissions to execute "${pythonCandidate}". Falling back \
+to the systems default python installation.`);
+                return defaultsTo;
+            }
+            this.log.debug(`Using the specified python installation "${pythonCandidate}".`);
             return pythonCandidate;
         }
 
@@ -229,9 +255,42 @@ systems default python installation.`);
     }
 
     private isVenvCreated(): boolean {
-        return fs.existsSync(this.venvPipExecutable) &&
-            fs.existsSync(this.venvConfigPath) &&
-            fs.existsSync(this.venvPythonExecutable);
+        let success: boolean = true;
+
+        for (const f of [
+            this.venvConfigPath,
+            this.venvPythonExecutable,
+            this.venvPipExecutable,
+            this.venvAtvremoteExecutable,
+            this.venvAtvscriptExecutable,
+        ]) {
+            if (fs.existsSync(f) === false) {
+                this.log.debug(`${f} does not exist --> venv is not present`);
+                success = false;
+            }
+        }
+
+        return success;
+    }
+
+    private isVenvExecutable(): boolean {
+        let success: boolean = true;
+
+        for (const f of [
+            this.venvPythonExecutable,
+            this.venvPipExecutable,
+            this.venvAtvremoteExecutable,
+            this.venvAtvscriptExecutable,
+        ]) {
+            try {
+                fs.accessSync(f, fs.constants.X_OK);
+            } catch {
+                this.log.warn(`The current user ${UID}:${GID} does not have the permissions to execute "${f}".`);
+                success = false;
+            }
+        }
+
+        return success;
     }
 
     private async openSSL(): Promise<void> {
