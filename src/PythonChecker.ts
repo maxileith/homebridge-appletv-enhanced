@@ -60,6 +60,7 @@ class PythonChecker {
         await this.ensureVenvUsesCorrectPythonHome();
         await this.ensureVenvPipUpToDate();
         await this.ensureVenvRequirementsSatisfied();
+
         this.log.success('Finished');
     }
 
