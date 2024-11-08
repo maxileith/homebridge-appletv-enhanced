@@ -64,7 +64,7 @@
         "@stylistic/eslint-plugin-ts": "^2.10.1",
         "@types/fs-extra": "^11.0.4",
         "@types/md5": "^2.3.5",
-        "@types/node": "^22.8.7",
+        "@types/node": "^22.9.0",
         "@typescript-eslint/eslint-plugin": "^8.13.0",
         "@typescript-eslint/parser": "^8.13.0",
         "eslint": "^9.14.0",
