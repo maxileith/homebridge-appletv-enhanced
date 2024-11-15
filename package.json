@@ -81,7 +81,7 @@
         "typescript": "^5.6.3"
     },
     "dependencies": {
-        "@sebbo2002/node-pyatv": "^8.1.0-develop.4",
+        "@sebbo2002/node-pyatv": "^8.1.0",
         "axios": "^1.7.7",
         "compare-versions": "^6.1.1",
         "fs-extra": "^11.2.0",
