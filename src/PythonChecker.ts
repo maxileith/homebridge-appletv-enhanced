@@ -168,6 +168,14 @@ trick. Restart the plugin after fixing the permissions.`);
                 }
             }
         }
+        if (this.isPyatvExecutable() === false) {
+            while (true) {
+                this.log.error(`The current user ${UID}:${GID} does not have the permissions to execute the PyATV scripts. \
+Make sure the user has the permissions to execute the above mentioned files. \`chmod +x ./appletv-enhanced/.venv/bin/*\` should do the \
+trick. Restart the plugin after fixing the permissions.`);
+                await delay(300000);
+            }
+        }
     }
 
     private async ensureVenvUsesCorrectPythonHome(): Promise<void> {
@@ -255,6 +263,24 @@ systems default python installation.`);
         return (await runCommand(this.log, this.venvPipExecutable, ['install', '-r', this.requirementsPath])).at(2) === 0;
     }
 
+    private isPyatvExecutable(): boolean {
+        let success: boolean = true;
+
+        for (const f of [
+            this.venvAtvremoteExecutable,
+            this.venvAtvscriptExecutable,
+        ]) {
+            try {
+                fs.accessSync(f, fs.constants.X_OK);
+            } catch {
+                this.log.warn(`The current user ${UID}:${GID} does not have the permissions to execute "${f}".`);
+                success = false;
+            }
+        }
+
+        return success;
+    }
+
     private isVenvCreated(): boolean {
         let success: boolean = true;
 
@@ -262,8 +288,6 @@ systems default python installation.`);
             this.venvConfigPath,
             this.venvPythonExecutable,
             this.venvPipExecutable,
-            this.venvAtvremoteExecutable,
-            this.venvAtvscriptExecutable,
         ]) {
             if (fs.existsSync(f) === false) {
                 this.log.debug(`${f} does not exist --> venv is not present`);
@@ -280,8 +304,6 @@ systems default python installation.`);
         for (const f of [
             this.venvPythonExecutable,
             this.venvPipExecutable,
-            this.venvAtvremoteExecutable,
-            this.venvAtvscriptExecutable,
         ]) {
             try {
                 fs.accessSync(f, fs.constants.X_OK);
