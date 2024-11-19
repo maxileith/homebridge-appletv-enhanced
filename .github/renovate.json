@@ -45,11 +45,11 @@
     },
     "packageRules": [
         {
-            "matchDepNames": ["node-22"],
+            "matchDepNames": ["node-22", "node"],
             "allowedVersions": "^22"
         },
         {
-            "matchDepNames": ["node-20", "node"],
+            "matchDepNames": ["node-20"],
             "allowedVersions": "^20"
         },
         {

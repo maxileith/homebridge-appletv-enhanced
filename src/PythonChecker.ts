@@ -1,49 +1,58 @@
 import path from 'path';
 import fs from 'fs';
-import { delay, runCommand } from './utils';
+import { delay, normalizePath, runCommand } from './utils';
 import PrefixLogger from './PrefixLogger';
 import type LogLevelLogger from './LogLevelLogger';
 import type { AxiosResponse } from 'axios';
 import axios from 'axios';
 import { compareVersions } from 'compare-versions';
+import os from 'os';
 
 let supportedPythonVersions: string[] = [
-    '3.8',
     '3.9',
     '3.10',
     '3.11',
     '3.12',
+    '3.13',
 ];
 
 const MIN_OPENSSL_VERSION: string = '3.0.0';
 
+const UID: number = os.userInfo().uid;
+const GID: number = os.userInfo().gid;
+
 class PythonChecker {
 
+    private readonly customPythonExecutable: string | undefined;
     private readonly log: PrefixLogger;
-
     private readonly pluginDirPath: string;
-    private readonly pythonExecutable: string;
+    private pythonExecutable: string = 'python3';
     private requirementsPath: string = path.join(__dirname, '..', 'python_requirements', 'default', 'requirements.txt');
+    private readonly venvAtvremoteExecutable: string;
+    private readonly venvAtvscriptExecutable: string;
     private readonly venvConfigPath: string;
     private readonly venvPath: string;
     private readonly venvPipExecutable: string;
     private readonly venvPythonExecutable: string;
 
-    public constructor(logger: LogLevelLogger | PrefixLogger, storagePath: string, pythonExecutable?: string) {
+    public constructor(logger: LogLevelLogger | PrefixLogger, storagePath: string, customPythonExecutable?: string) {
         this.log = new PrefixLogger(logger, 'Python check');
-
-        this.pythonExecutable = pythonExecutable ?? 'python3';
-        this.log.debug(`Using ${this.pythonExecutable} as the python executable`);
-
+        this.customPythonExecutable = customPythonExecutable;
         this.pluginDirPath = path.join(storagePath, 'appletv-enhanced');
         this.venvPath = path.join(this.pluginDirPath, '.venv');
         this.venvPythonExecutable = path.join(this.venvPath, 'bin', 'python3');
         this.venvPipExecutable = path.join(this.venvPath, 'bin', 'pip3');
         this.venvConfigPath = path.join(this.venvPath, 'pyvenv.cfg');
+        this.venvAtvremoteExecutable = path.join(this.venvPath, 'bin', 'atvremote');
+        this.venvAtvscriptExecutable = path.join(this.venvPath, 'bin', 'atvscript');
     }
 
     public async allInOne(forceVenvRecreate: boolean = false): Promise<void> {
         this.log.info('Starting python check.');
+
+        this.pythonExecutable = this.getPythonExecutable('python3', this.customPythonExecutable);
+        this.log.info(`Using "${this.pythonExecutable}" as the python executable.`);
+
         this.ensurePluginDir();
         await this.openSSL();
         await this.ensurePythonVersion();
@@ -51,6 +60,7 @@ class PythonChecker {
         await this.ensureVenvUsesCorrectPythonHome();
         await this.ensureVenvPipUpToDate();
         await this.ensureVenvRequirementsSatisfied();
+
         this.log.success('Finished');
     }
 
@@ -102,13 +112,6 @@ manually.');
 ${supportedPythonVersions[0]} to ${supportedPythonVersions[supportedPythonVersions.length - 1]} is supported.`);
                 await delay(300000);
             }
-        } else if (version.startsWith('3.8')) {
-            const p38warning: () => void = () => {
-                this.log.warn('Python 3.8 is EOL and won\'t be supported in future Apple TV Enhanced versions. Please upgrade to \
-Python 3.9 or above.');
-            };
-            p38warning();
-            setInterval(p38warning, 1800 * 1000);
         } else {
             this.log.info(`Python ${version} is installed and supported by the plugin.`);
         }
@@ -121,6 +124,13 @@ Python 3.9 or above.');
         } else if (this.isVenvCreated() === false) {
             this.log.info('Virtual python environment is not present. Creating now ...');
             await this.createVenv();
+        } else if (this.isVenvExecutable() === false) {
+            while (true) {
+                this.log.error(`The current user ${UID}:${GID} does not have the permissions to execute the virtual python environment. \
+Make sure the user has the permissions to execute the above mentioned files. \`chmod +x ./appletv-enhanced/.venv/bin/*\` should do the \
+trick. Restart the plugin after fixing the permissions.`);
+                await delay(300000);
+            }
         } else {
             this.log.info('Virtual environment already exists.');
         }
@@ -131,11 +141,15 @@ Python 3.9 or above.');
         this.log.info(`Venv pip version: ${venvPipVersion}`);
         this.log.info('Checking if there is an update for venv pip ...');
         if (venvPipVersion === await this.getMostRecentPipVersion()) {
-            this.log.info('Venv pip is up-to-date');
+            this.log.info('Venv pip is up to date');
         } else {
             this.log.warn('Venv pip is outdated. Updating now ...');
-            await this.updatePip();
-            this.log.success('Venv pip updated');
+            const success: boolean = await this.updatePip();
+            if (success === true) {
+                this.log.success('Venv pip successfully updated.');
+            } else {
+                this.log.warn('Failed to update venv pip. Continuing anyhow ...');
+            }
         }
     }
 
@@ -144,7 +158,15 @@ Python 3.9 or above.');
             this.log.info('Python requirements are satisfied.');
         } else {
             this.log.warn('Python requirements are not satisfied. Installing them now ...');
-            await this.installRequirements();
+            const success: boolean = await this.installRequirements();
+            if (success === true) {
+                this.log.success('Python requirements successfully installed.');
+            } else {
+                while (true) {
+                    this.log.error('There was an error installing the python dependencies. Cannot proceed!');
+                    await delay(300000);
+                }
+            }
         }
     }
 
@@ -152,12 +174,11 @@ Python 3.9 or above.');
         const venvPythonHome: string = await this.getPythonHome(this.venvPythonExecutable);
         const pythonHome: string = await this.getPythonHome(this.pythonExecutable);
         if (venvPythonHome !== pythonHome) {
-            this.log.warn('The virtual environment does not use the systems default python environment. Recreating virtual \
-environment ...');
+            this.log.warn('The virtual environment does not use the configured python environment. Recreating virtual environment ...');
             this.log.debug(`System Python ${pythonHome}; Venv Python ${venvPythonHome}`);
             await this.createVenv();
         } else {
-            this.log.info('Virtual environment is using the systems default python environment. Continuing ...');
+            this.log.info('Virtual environment is using the configured python environment. Continuing ...');
         }
     }
 
@@ -181,6 +202,37 @@ environment ...');
         }
     }
 
+    private getPythonExecutable(defaultsTo: string, customPythonExecutable: string | undefined): string {
+        if (customPythonExecutable === undefined) {
+            this.log.debug('Using the systems default python installation since there is no custom python installation specified.');
+            return defaultsTo;
+        }
+
+        const pythonCandidate: string | undefined = normalizePath(customPythonExecutable);
+        if (pythonCandidate === undefined) {
+            this.log.warn(`Could not normalize the python executable path ${pythonCandidate}. Falling back to the systems default python \
+installation.`);
+            return defaultsTo;
+        }
+        if (fs.existsSync(pythonCandidate)) {
+            this.log.debug(`The specified python installation "${pythonCandidate}" does exist.`);
+            try {
+                fs.accessSync(pythonCandidate, fs.constants.X_OK);
+                this.log.debug(`The current user ${UID}:${GID} has the permissions to execute "${pythonCandidate}".`);
+            } catch {
+                this.log.warn(`The current user ${UID}:${GID} does not have the permissions to execute "${pythonCandidate}". Falling back \
+to the systems default python installation.`);
+                return defaultsTo;
+            }
+            this.log.debug(`Using the specified python installation "${pythonCandidate}".`);
+            return pythonCandidate;
+        }
+
+        this.log.warn(`The python executable "${pythonCandidate}" set in the configuration does not exist. Falling back to the \
+systems default python installation.`);
+        return defaultsTo;
+    }
+
     private async getPythonHome(executable: string): Promise<string> {
         const [venvPythonHome]: [string, string, number | null] =
             await runCommand(this.log, executable, [path.join(__dirname, 'determinePythonHome.py')], undefined, true);
@@ -199,15 +251,47 @@ environment ...');
         return version.trim().replace('pip ', '').split(' ')[0];
     }
 
-    private async installRequirements(): Promise<void> {
-        await runCommand(this.log, this.venvPipExecutable, ['install', '-r', this.requirementsPath]);
-        this.log.success('Python requirements installed.');
+    private async installRequirements(): Promise<boolean> {
+        return (await runCommand(this.log, this.venvPipExecutable, ['install', '-r', this.requirementsPath])).at(2) === 0;
     }
 
     private isVenvCreated(): boolean {
-        return fs.existsSync(this.venvPipExecutable) &&
-            fs.existsSync(this.venvConfigPath) &&
-            fs.existsSync(this.venvPythonExecutable);
+        let success: boolean = true;
+
+        for (const f of [
+            this.venvConfigPath,
+            this.venvPythonExecutable,
+            this.venvPipExecutable,
+            this.venvAtvremoteExecutable,
+            this.venvAtvscriptExecutable,
+        ]) {
+            if (fs.existsSync(f) === false) {
+                this.log.debug(`${f} does not exist --> venv is not present`);
+                success = false;
+            }
+        }
+
+        return success;
+    }
+
+    private isVenvExecutable(): boolean {
+        let success: boolean = true;
+
+        for (const f of [
+            this.venvPythonExecutable,
+            this.venvPipExecutable,
+            this.venvAtvremoteExecutable,
+            this.venvAtvscriptExecutable,
+        ]) {
+            try {
+                fs.accessSync(f, fs.constants.X_OK);
+            } catch {
+                this.log.warn(`The current user ${UID}:${GID} does not have the permissions to execute "${f}".`);
+                success = false;
+            }
+        }
+
+        return success;
     }
 
     private async openSSL(): Promise<void> {
@@ -220,18 +304,18 @@ environment ...');
         }
         if (r === null) {
             this.log.warn('Could not verify that the correct OpenSSL version is installed. Falling back to openssl legacy mode. Be aware \
-that Python 3.12 is not compatible with openssl legacy mode.');
+that Python 3.12 or later is not compatible with openssl legacy mode.');
         } else {
-            this.log.warn(`You are using OpenSSL ${r[0]}. However, OpenSSL ${MIN_OPENSSL_VERSION} or later is required for the most \
-AppleTV enhanced in it's latest version. Falling back to openssl legacy mode. Be aware that Python 3.12 is not compatible with openssl \
-legacy mode.`);
+            this.log.warn(`You are using OpenSSL ${r[0]}. However, OpenSSL ${MIN_OPENSSL_VERSION} or later is required for the most recent \
+AppleTV enhanced version. Falling back to openssl legacy mode. Be aware that Python 3.12 or later is not compatible with openssl legacy \
+mode.`);
         }
         this.requirementsPath = path.join(__dirname, '..', 'python_requirements', 'openssl_legacy', 'requirements.txt');
-        supportedPythonVersions = supportedPythonVersions.filter((e) => e !== '3.12');
+        supportedPythonVersions = supportedPythonVersions.filter((e) => e !== '3.12' && e !== '3.13');
     }
 
-    private async updatePip(): Promise<void> {
-        await runCommand(this.log, this.venvPipExecutable, ['install', '--upgrade', 'pip']);
+    private async updatePip(): Promise<boolean> {
+        return (await runCommand(this.log, this.venvPipExecutable, ['install', '--upgrade', 'pip'])).at(2) === 0;
     }
 }
 

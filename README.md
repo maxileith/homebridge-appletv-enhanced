@@ -6,7 +6,7 @@
 [![npm](https://badgen.net/npm/v/homebridge-appletv-enhanced/latest?label=latest)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
 [![npm](https://badgen.net/npm/v/homebridge-appletv-enhanced/beta?label=beta&color=cyan)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
 [![PyPI pyversions](https://badgen.net/npm/node/homebridge-appletv-enhanced?color=green)](https://pypi.python.org/pypi/pyatv/)
-[![PyPI pyversions](https://img.shields.io/badge/Python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.python.org/pypi/pyatv/)
+![PyPI pyversions](https://img.shields.io/badge/Python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)
 
 [![npm downloads total](https://badgen.net/npm/dt/homebridge-appletv-enhanced?color=gray)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
 [![npm downloads month](https://badgen.net/npm/dm/homebridge-appletv-enhanced?color=gray)](https://www.npmjs.com/package/homebridge-appletv-enhanced)
@@ -58,7 +58,7 @@ This plugin automatically discovers Apple TV devices on the local network and ex
 
 -   Only Linux will be supported by the maintainer (although since MacOS / UNIX is similar to Linux, it should run on MacOS just fine)
 -   Most recent Version of **Node 22 LTS, 20 LTS or 18 LTS**.
--   **Python 3.8, 3.9, 3.10, 3.11 or 3.12**
+-   **Python 3.9, 3.10, 3.11, 3.12 or 3.13**
 -   Python virtual environment module `virtualenv`. (the plugin will create a virtual environment on startup and will install python dependencies in this virtual environment)
     -   On homebridge **[apt-package >=1.1.4](https://github.com/homebridge/homebridge-apt-pkg/releases/tag/1.1.4)** the python module is installed automatically as a dependency, see [homebridge/homebridge-apt-pkg#16](https://github.com/homebridge/homebridge-apt-pkg/issues/16)
         -   **[raspian image >= 1.1.2](https://github.com/homebridge/homebridge-raspbian-image/releases/tag/v1.1.2)** includes this apt-package, so there is no need to install it manually.
@@ -68,9 +68,9 @@ This plugin automatically discovers Apple TV devices on the local network and ex
         -   Installation on other distros may vary
 -   [Homebridge Config UI >= 4.54.2](https://github.com/homebridge/homebridge-config-ui-x/releases/tag/4.54.2) when creating backups
 -   **OpenSSL 3** or later
-    -   If an older OpenSSL version is installed, the plugin will automatically boot into an OpenSSL legacy compatibility mode. Be aware that this mode does not support Python 3.12.
+    -   If an older OpenSSL version is installed, the plugin will automatically boot into an OpenSSL legacy compatibility mode. Be aware that this mode does not support Python 3.12 or later.
 -   Apple TV Models with **tvOS 15** and upwards are supported (all 4K ones and the latest HD one)
--   The access of Speakers & TVs should be either set to "Everybody" or "Anybody On the Same Network" in the Home app
+-   The access of Speakers & TVs should be either set to "Everybody" or "Anybody On the Same Network" without a password in the Home app
     -   Additionally, make sure to check the TV's HomeKit settings.
 -   The homebridge instance and Apple TVs need to be on the **same subnet**.
 
@@ -175,6 +175,7 @@ Also see [device specific overrides](https://github.com/maxileith/homebridge-app
     ],
     "disableVolumeControlRemote": false,
     "absoluteVolumeControl": false,
+    "setTopBox": false,
     "deviceSpecificOverrides": [
         {
             "mac": "AA:BB:CC:DD:EE:FF",
@@ -201,7 +202,9 @@ Also see [device specific overrides](https://github.com/maxileith/homebridge-app
             "overrideDisableVolumeControlRemote": true,
             "disableVolumeControlRemote": true,
             "overrideAbsoluteVolumeControl": true,
-            "absoluteVolumeControl": true
+            "absoluteVolumeControl": true,
+            "overrideSetTopBox": true,
+            "setTopBox": true
         }
     ],
     "discover": {
@@ -229,6 +232,7 @@ Also see [device specific overrides](https://github.com/maxileith/homebridge-app
 | `customInputURIs`            | Provide URIs for custom Inputs that open the URI on the Apple TV when selected.                                                                                                                                                                                                                                                                                                                                                                                                                | `array[string]` |                                                                                                                                                                                                                                                               | `[]`                                                        |
 | `disableVolumeControlRemote` | Disables the volume control in the iOS remote. It is recommended to disable volume control when the audio setup that the Apple TV is connected to does not support HDMI-CEC since the Apple TV does not have any control over the volume in this scenario anyways.                                                                                                                                                                                                                             | `boolean`       |                                                                                                                                                                                                                                                               | `false`                                                     |
 | `absoluteVolumeControl`      | Exposes a fan that let's you control the volume in percentage. This does only work with your audio output does allow absolute volume control like on certain HDMI-CEC setups or if using HomePods.                                                                                                                                                                                                                                                                                             | `boolean`       |                                                                                                                                                                                                                                                               | `false`                                                     |
+| `setTopBox`                  | Instead of exposing an Apple TV accessory, the plugin will expose a set-top box accessory. You need to repair the accessory with your Home app in order to see the changes.                                                                                                                                                                                                                                                                                                                    | `boolean`       |                                                                                                                                                                                                                                                               | `false`                                                     |
 | `discover.multicast`         | The default and recommended way to discover Apple TVs.                                                                                                                                                                                                                                                                                                                                                                                                                                         | `boolean`       |                                                                                                                                                                                                                                                               | `true`                                                      |
 | `discover.unicast`           | Recommended for Apple TV devices that are not discovered by multicast discovery. Add the IPv4 addresses here. Remember that this requires the Apple TV to have a static IP.                                                                                                                                                                                                                                                                                                                    | `array[string]` | valid IPv4 addresses                                                                                                                                                                                                                                          | `[]`                                                        |
 | `discover.blacklist`         | Apple TVs that should not be added as a device. You can get the MAC-Address from the logs. When using IPv4 Addresses the regarding Apple TVs need to have a static IP.                                                                                                                                                                                                                                                                                                                         | `array[string]` | valid MAC addresses                                                                                                                                                                                                                                           | `[]`                                                        |

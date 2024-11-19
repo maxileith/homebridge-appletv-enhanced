@@ -7,7 +7,7 @@ import { compareVersions } from 'compare-versions';
 import packageJson from '../package.json';
 import path from 'path';
 import fs from 'fs';
-import { pathExists } from 'fs-extra';
+import { pathExistsSync } from 'fs-extra';
 import { runCommand } from './utils';
 import type { TUpdateCheckTime } from './types';
 
@@ -246,8 +246,8 @@ and ${this.updateCheckHour}:59.`);
         }
     }
 
-    // update process according to hb-service
-    // https://github.com/homebridge/homebridge-config-ui-x/blob/1b52f15984374ab5a244dec8761c15a701de0cea/src/bin/hb-service.ts#L1327-L1381
+    // eslint-disable-next-line max-len
+    // https://github.com/homebridge/homebridge-config-ui-x/blob/01a008227b8b8f3650b23eaac3e9370347cec4f8/src/modules/plugins/plugins.service.ts#L384-L493
     private async update(version: string): Promise<void> {
         this.log.info(`Attempting to update AppleTV Enhanced to version ${version}`);
 
@@ -267,17 +267,18 @@ is not set.');
             ? [
                 '--no-audit',
                 '--no-fund',
-                '--global-style',
             ]
             : [];
 
+        // check to see if custom plugin path is using a package.json file
         if (
             installPath === UIX_CUSTOM_PLUGIN_PATH &&
-            pathExists(path.resolve(installPath, '../package.json')) === true
+            pathExistsSync(path.resolve(installPath, '../package.json')) === true
         ) {
             installOptions.push('--save');
         }
 
+        // install path is one level up
         installPath = path.resolve(installPath, '..');
 
         const args: string[] = ['install', ...installOptions, `homebridge-appletv-enhanced@${version}`];

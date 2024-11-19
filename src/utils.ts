@@ -4,6 +4,7 @@ import { networkInterfaces } from 'os';
 import type { NetworkInterfaceInfo } from 'os';
 import type PrefixLogger from './PrefixLogger';
 import type LogLevelLogger from './LogLevelLogger';
+import path from 'path';
 
 export function capitalizeFirstLetter(value: string): string {
     return value.charAt(0).toUpperCase() + value.slice(1);
@@ -24,6 +25,18 @@ export function getLocalIP(): string {
     return 'homebridge.local';
 }
 
+export function normalizePath(p: string): string | undefined {
+    if (p.startsWith('~')) {
+        if (process.env.HOME === undefined) {
+            return undefined;
+        }
+        // join method does also normalize
+        return path.join(process.env.HOME, p.slice(1));
+    } else {
+        return path.normalize(p);
+    }
+}
+
 export function trimToMaxLength(value: string, maxLength: number): string {
     if (value.length <= maxLength) {
         return value;
@@ -40,6 +53,11 @@ export function snakeCaseToTitleCase(str: string): string {
     return str
         .replace(/^[-_]*(.)/, (_, c: string) => c.toUpperCase()) // Initial char (after -/_)
         .replace(/[-_]+(.)/g, (_, c: string) => ' ' + c.toUpperCase()); // First char after each -/_
+}
+
+export function camelCaseToTitleCase(str: string): string {
+    const spacedStr: string = str.replace(/([A-Z])/g, ' $1');
+    return spacedStr.charAt(0).toUpperCase() + spacedStr.slice(1);
 }
 
 export async function runCommand(
@@ -66,10 +84,13 @@ export async function runCommand(
     p.stderr.setEncoding('utf8');
     p.stderr.on('data', (data: string) => {
         stderr += data;
+        data = data.trim();
         if (!hideStderr) {
             if (data.startsWith('WARNING')) {
+                data = data.replace('WARNING: ', '');
                 logger.warn(data.replaceAll('\n', ''));
             } else {
+                data = data.replace('ERROR: ', '');
                 logger.error(data);
             }
         }
