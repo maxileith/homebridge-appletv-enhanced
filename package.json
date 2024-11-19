@@ -20,10 +20,6 @@
         "homebridge": "^1.8.5 || ^2.0.0-beta.0",
         "node": "^22.11.0 || ^20.18.0 || ^18.20.4"
     },
-    "cpu": [
-        "x64",
-        "arm64"
-    ],
     "type": "commonjs",
     "keywords": [
         "homebridge-plugin",
