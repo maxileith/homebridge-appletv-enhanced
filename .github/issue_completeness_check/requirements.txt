@@ -2,7 +2,7 @@ certifi==2024.8.30
 cffi==1.17.1
 charset-normalizer==3.4.0
 cryptography==43.0.3
-Deprecated==1.2.14
+Deprecated==1.2.15
 idna==3.10
 packaging==24.1
 pycparser==2.22
