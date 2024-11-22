@@ -29,4 +29,4 @@ tinytag==2.0.0
 typing_extensions==4.12.2
 urllib3==2.2.3
 yarl==1.17.2
-zeroconf==0.136.0
+zeroconf==0.136.2
