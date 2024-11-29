@@ -19,7 +19,7 @@ propcache==0.2.0
 protobuf==5.28.3
 pyatv==0.16.0
 pycparser==2.22
-pydantic==2.10.1
+pydantic==2.10.2
 pydantic_core==2.27.1
 requests==2.32.3
 six==1.16.0
