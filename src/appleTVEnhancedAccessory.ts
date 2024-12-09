@@ -629,7 +629,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
             }) || this.device;
             this.log.debug(`New internal device: ${this.device}`);
 
-            this.createListeners();
+            setTimeout(this.createListeners.bind(this), 5000);
 
         }).bind(this));
     }
