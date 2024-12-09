@@ -59,7 +59,7 @@
         "url": "http://github.com/maxileith/homebridge-appletv-enhanced/issues"
     },
     "devDependencies": {
-        "@eslint/js": "^9.15.0",
+        "@eslint/js": "^9.16.0",
         "@stylistic/eslint-plugin-js": "^2.11.0",
         "@stylistic/eslint-plugin-ts": "^2.11.0",
         "@types/fs-extra": "^11.0.4",
@@ -67,7 +67,7 @@
         "@types/node": "^22.9.1",
         "@typescript-eslint/eslint-plugin": "^8.17.0",
         "@typescript-eslint/parser": "^8.17.0",
-        "eslint": "^9.15.0",
+        "eslint": "^9.16.0",
         "homebridge": "^1.8.5",
         "homebridge-config-ui-x": "^4.63.0",
         "nodemon": "^3.1.7",
