@@ -17,7 +17,7 @@ export function getLocalIP(): string {
     for (const k in interfaces) {
         const networkInterface: NetworkInterfaceInfo[] = interfaces[k]!;
         for (const info of networkInterface) {
-            if (!info.internal && info.family === 'IPv4') {
+            if (!info.internal && info.family === 'IPv4' && !info.address.startsWith('172.')) {
                 return info.address;
             }
         }
