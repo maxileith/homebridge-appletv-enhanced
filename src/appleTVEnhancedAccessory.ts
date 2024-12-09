@@ -133,7 +133,7 @@ export class AppleTVEnhancedAccessory {
         })!;
 
         const pairingRequired = async (): Promise<void> => {
-            return this.pair(this.device.host, this.device.name).then((c) => {
+            return this.pair(this.device.host, this.device.mac!, this.device.name).then((c) => {
                 this.setCredentials(c);
                 this.device = CustomPyAtvInstance.deviceAdvanced({
                     mac: this.device.mac!,
@@ -1450,7 +1450,7 @@ ${deviceStateDelay}ms is over): ${event.value}`);
         this.rocketRemote?.setVolume(0, true);
     }
 
-    private async pair(ip: string, appleTVName: string): Promise<string> {
+    private async pair(ip: string, mac: string, appleTVName: string): Promise<string> {
         this.log.debug('Got empty credentials, initiating pairing process.');
 
         const ipSplitted: string[] = ip.split('.');
@@ -1509,7 +1509,7 @@ http://${localIP}:${httpPort}/. Then, enter the pairing code that will be displa
             let processClosed: boolean = false;
 
             const process: ChildProcessWithoutNullStreams = spawn(CustomPyAtvInstance.getAtvremotePath(), [
-                '--scan-hosts', ip,
+                '--id', mac,
                 '--protocol', 'companion',
                 '--remote-name', `Homebridge AppleTV Enhanced (${localIP})`,
                 '--storage', 'none',
