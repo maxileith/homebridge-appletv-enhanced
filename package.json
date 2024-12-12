@@ -1,7 +1,7 @@
 {
     "name": "homebridge-appletv-enhanced",
     "displayName": "Apple TV Enhanced",
-    "version": "1.10.1",
+    "version": "1.10.2-0",
     "description": "Plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV implementation of HomeKit.",
     "main": "dist/index.js",
     "author": "Maximilian Leith",
@@ -18,7 +18,7 @@
     ],
     "engines": {
         "homebridge": "^1.8.5 || ^2.0.0-beta.0",
-        "node": "^22.11.0 || ^20.18.0 || ^18.20.5"
+        "node": "^22.12.0 || ^20.18.1 || ^18.20.5"
     },
     "type": "commonjs",
     "keywords": [
@@ -59,26 +59,26 @@
         "url": "http://github.com/maxileith/homebridge-appletv-enhanced/issues"
     },
     "devDependencies": {
-        "@eslint/js": "^9.15.0",
-        "@stylistic/eslint-plugin-js": "^2.11.0",
-        "@stylistic/eslint-plugin-ts": "^2.11.0",
+        "@eslint/js": "^9.16.0",
+        "@stylistic/eslint-plugin-js": "^2.12.0",
+        "@stylistic/eslint-plugin-ts": "^2.12.0",
         "@types/fs-extra": "^11.0.4",
         "@types/md5": "^2.3.5",
-        "@types/node": "^22.9.0",
-        "@typescript-eslint/eslint-plugin": "^8.15.0",
-        "@typescript-eslint/parser": "^8.15.0",
-        "eslint": "^9.15.0",
+        "@types/node": "^22.10.1",
+        "@typescript-eslint/eslint-plugin": "^8.17.0",
+        "@typescript-eslint/parser": "^8.17.0",
+        "eslint": "^9.16.0",
         "homebridge": "^1.8.5",
-        "homebridge-config-ui-x": "^4.62.0",
+        "homebridge-config-ui-x": "^4.65.0",
         "nodemon": "^3.1.7",
         "rimraf": "^6.0.1",
         "standard-version": "^9.5.0",
         "ts-node": "^10.9.2",
-        "typescript": "^5.6.3"
+        "typescript": "^5.7.2"
     },
     "dependencies": {
         "@sebbo2002/node-pyatv": "^8.1.0",
-        "axios": "^1.7.7",
+        "axios": "^1.7.9",
         "compare-versions": "^6.1.1",
         "fs-extra": "^11.2.0",
         "md5": "^2.3.0"
