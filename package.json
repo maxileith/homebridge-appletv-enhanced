@@ -37,7 +37,8 @@
         "airplay",
         "roap",
         "companion",
-        "smarthome"
+        "smarthome",
+        "enhanced"
     ],
     "license": "MIT",
     "files": [
