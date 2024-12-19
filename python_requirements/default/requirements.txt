@@ -3,7 +3,7 @@ aiohttp==3.11.10
 aiosignal==1.3.1
 annotated-types==0.7.0
 async-timeout==5.0.1
-attrs==24.2.0
+attrs==24.3.0
 certifi==2024.8.30
 cffi==1.17.1
 chacha20poly1305-reuseable==0.13.2
