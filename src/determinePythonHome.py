@@ -1,3 +1,4 @@
+import os
 import sys
 
-print(f"{sys.base_prefix}/bin")
+print(f"{os.path.realpath(sys.executable)}")

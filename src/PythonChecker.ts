@@ -57,7 +57,7 @@ class PythonChecker {
         await this.openSSL();
         await this.ensurePythonVersion();
         await this.ensureVenvCreated(forceVenvRecreate);
-        await this.ensureVenvUsesCorrectPythonHome();
+        await this.ensureVenvUsesCorrectPython();
         await this.ensureVenvPipUpToDate();
         await this.ensureVenvRequirementsSatisfied();
 
@@ -178,16 +178,28 @@ trick. Restart the plugin after fixing the permissions.`);
         }
     }
 
-    private async ensureVenvUsesCorrectPythonHome(): Promise<void> {
+    private async ensureVenvUsesCorrectPython(): Promise<void> {
+        const systemPythonHome: string = await this.getPythonHome(this.pythonExecutable);
+        this.log.debug(`System python home: ${systemPythonHome}`);
         const venvPythonHome: string = await this.getPythonHome(this.venvPythonExecutable);
-        const pythonHome: string = await this.getPythonHome(this.pythonExecutable);
-        if (venvPythonHome !== pythonHome) {
+        this.log.debug(`Venv python home: ${venvPythonHome}`);
+        if (venvPythonHome !== systemPythonHome) {
             this.log.warn('The virtual environment does not use the configured python environment. Recreating virtual environment ...');
-            this.log.debug(`System Python ${pythonHome}; Venv Python ${venvPythonHome}`);
             await this.createVenv();
-        } else {
-            this.log.info('Virtual environment is using the configured python environment. Continuing ...');
+            return;
         }
+
+        const systemPythonVersion: string = await this.getSystemPythonVersion();
+        this.log.debug(`System python version: ${systemPythonVersion}`);
+        const venvPythonVersion: string = this.getVenvPythonVersion();
+        this.log.debug(`Venv python version: ${venvPythonVersion}`);
+        if (systemPythonVersion !== venvPythonVersion) {
+            this.log.warn('The virtual environment does not use the configured python environment. Recreating virtual environment ...');
+            await this.createVenv();
+            return;
+        }
+
+        this.log.info('Virtual environment is using the configured python environment. Continuing ...');
     }
 
     private freezeStringToObject(value: string): Record<string, string> {
@@ -257,6 +269,16 @@ systems default python installation.`);
         const [version]: [string, string, number | null] =
             await runCommand(this.log, this.venvPipExecutable, ['--version'], undefined, true);
         return version.trim().replace('pip ', '').split(' ')[0];
+    }
+
+    private getVenvPythonVersion(): string {
+        const pyvenvcfgContent: string = fs.readFileSync(this.venvConfigPath, 'utf-8');
+        const lines: string[] = pyvenvcfgContent.split('\n');
+        const versionLine: string | undefined = lines.find((e) => e.startsWith('version'));
+        if (versionLine === undefined) {
+            return '?';
+        }
+        return versionLine.replace('version', '').replace('=', '').trim();
     }
 
     private async installRequirements(): Promise<boolean> {

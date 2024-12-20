@@ -1,6 +1,6 @@
 services:
     homebridge:
-        image: homebridge/homebridge:2024-12-11
+        image: homebridge/homebridge:2024-12-19
         network_mode: host
         environment:
             APPLETV_ENHANCED_DEV: "true"
@@ -15,3 +15,5 @@ services:
             - ./user_storage/config.json:/homebridge/config.json
             - ./docker-startup.sh:/homebridge/startup.sh:ro
             - ./package.json:/tmp/package.json:ro
+        ports:
+            - "8581:8581/tcp"
