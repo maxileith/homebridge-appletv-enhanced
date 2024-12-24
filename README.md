@@ -51,7 +51,7 @@ This plugin automatically discovers Apple TV devices on the local network and ex
 ## Requirements
 
 > [!TIP]
-> Using the **[latest docker image](https://hub.docker.com/r/homebridge/homebridge/)** or **[latest Raspberry Pi image](https://github.com/homebridge/homebridge-raspbian-image/releases)** will fulfill all requirements out of the box.
+> Using the **[latest docker image](https://hub.docker.com/r/homebridge/homebridge/)** or **[latest Raspberry Pi 64-bit image](https://github.com/homebridge/homebridge-raspbian-image/releases)** will fulfill all requirements out of the box.
 
 > [!WARNING]
 > Raspberry Pi 1, 2, 3 and Zero 1, 2 are not recommended for performance reasons. Recommended are 3B+, 4B, 5B.
