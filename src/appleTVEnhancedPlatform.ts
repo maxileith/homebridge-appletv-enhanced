@@ -111,16 +111,23 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             this.config.discover?.multicast === undefined ||
             this.config.discover.multicast === true
         ) {
-            const multicastResults: NodePyATVFindResponseObject = await CustomPyAtvInstance.customFind();
-            multicastResults.errors.forEach((error) => {
-                if (typeof error === 'object' && 'error' in error && 'exception' in error) {
-                    this.log.error(`multicast scan: ${error.exception} (${error.error})`);
-                } else {
+            try {
+                const multicastResults: NodePyATVFindResponseObject = await CustomPyAtvInstance.customFind();
+                multicastResults.errors.forEach((error) => {
                     this.log.error(JSON.stringify(error, undefined, 2));
+                });
+                scanResults = multicastResults.devices;
+                this.log.debug('finished multicast device discovery');
+            } catch (e: unknown) {
+                if (typeof e === 'object' && e instanceof Error) {
+                    this.log.error(`${e.name}: ${e.message}`);
+                    if (e.stack !== undefined && e.stack !== null) {
+                        this.log.debug(e.stack);
+                    }
+                } else {
+                    throw e;
                 }
-            });
-            scanResults = multicastResults.devices;
-            this.log.debug('finished multicast device discovery');
+            }
         }
 
         // unicast discovery
@@ -128,17 +135,24 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             this.config.discover?.unicast &&
             this.config.discover.unicast.length !== 0
         ) {
-            const unicastResults: NodePyATVFindResponseObject =
-                await CustomPyAtvInstance.customFind({ hosts: this.config.discover?.unicast });
-            unicastResults.errors.forEach((error) => {
-                if (typeof error === 'object' && 'error' in error && 'exception' in error) {
-                    this.log.error(`unicast scan: ${error.exception} (${error.error})`);
-                } else {
+            try {
+                const unicastResults: NodePyATVFindResponseObject =
+                    await CustomPyAtvInstance.customFind({ hosts: this.config.discover?.unicast });
+                unicastResults.errors.forEach((error) => {
                     this.log.error(JSON.stringify(error, undefined, 2));
+                });
+                scanResults = [...scanResults, ...unicastResults.devices];
+                this.log.debug('finished unicast device discovery');
+            } catch (e: unknown) {
+                if (typeof e === 'object' && e instanceof Error) {
+                    this.log.error(`${e.name}: ${e.message}`);
+                    if (e.stack !== undefined && e.stack !== null) {
+                        this.log.debug(e.stack);
+                    }
+                } else {
+                    throw e;
                 }
-            });
-            scanResults = [...scanResults, ...unicastResults.devices];
-            this.log.debug('finished unicast device discovery');
+            }
         }
 
         const appleTVs: NodePyATVDevice[] = scanResults.filter((d) => ALLOWED_MODELS.includes(d.model ?? '') && d.os === 'TvOS');
