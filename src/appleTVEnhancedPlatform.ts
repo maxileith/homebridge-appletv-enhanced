@@ -114,7 +114,12 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             try {
                 const multicastResults: NodePyATVFindResponseObject = await CustomPyAtvInstance.customFind();
                 multicastResults.errors.forEach((error) => {
-                    this.log.error(JSON.stringify(error, undefined, 2));
+                    if (error.exception !== undefined && typeof error.exception === 'string') {
+                        this.log.error(`multicast discovery - ${error.exception}`);
+                        this.log.debug(JSON.stringify(error, undefined, 2));
+                    } else {
+                        this.log.error(JSON.stringify(error, undefined, 2));
+                    }
                 });
                 scanResults = multicastResults.devices;
                 this.log.debug('finished multicast device discovery');
@@ -139,7 +144,12 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
                 const unicastResults: NodePyATVFindResponseObject =
                     await CustomPyAtvInstance.customFind({ hosts: this.config.discover?.unicast });
                 unicastResults.errors.forEach((error) => {
-                    this.log.error(JSON.stringify(error, undefined, 2));
+                    if (error.exception !== undefined && typeof error.exception === 'string') {
+                        this.log.error(`unicast discovery - ${error.exception}`);
+                        this.log.debug(JSON.stringify(error, undefined, 2));
+                    } else {
+                        this.log.error(JSON.stringify(error, undefined, 2));
+                    }
                 });
                 scanResults = [...scanResults, ...unicastResults.devices];
                 this.log.debug('finished unicast device discovery');
