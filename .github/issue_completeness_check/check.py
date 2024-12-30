@@ -456,14 +456,4 @@ if __name__ == "__main__":
 
     i.create_comment(md)
 
-    try:
-        if valid:
-            print("removing the \"bad request\" label")
-            i.remove_from_labels("bad request")
-        else:
-            print("adding the \"bad request\" label")
-            i.add_to_labels("bad request")
-    except Exception:
-        pass
-
     g.close()
