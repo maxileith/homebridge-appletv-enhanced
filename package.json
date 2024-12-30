@@ -17,7 +17,9 @@
         "darwin"
     ],
     "cpu": [
+        "x32",
         "x64",
+        "arm",
         "arm64"
     ],
     "engines": {
