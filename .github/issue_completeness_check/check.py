@@ -280,7 +280,7 @@ def check_python_version(b: str):
     output = []
     optional_output = []
 
-    version_pattern = re.compile("^(Python )?\d+\.\d+\.\d+$")
+    version_pattern = re.compile("^(Python\s)?\d+\.\d+\.\d+", re.IGNORECASE)
     if not version_pattern.match(version):
         output.append(f"The Python version {version} does not match the expected version pattern of Python. Please provide a version that exists, e.g. 3.11.6. Remember that the version that you are providing should include the patch version.")
     else:
@@ -316,7 +316,7 @@ def check_pip_version(b: str):
     output = []
     optional_output = []
 
-    version_pattern = re.compile("^\d+\.\d+(\.\d+)?$")
+    version_pattern = re.compile("^(Pip\s)?\d+\.\d+(\.\d+)?", re.IGNORECASE)
 
     if not version_pattern.match(version):
         output.append(f"The PIP version {version} does not match the expected version pattern of PIP. Please provide a version that exists.")
@@ -439,7 +439,7 @@ if __name__ == "__main__":
         md += "There are a few problems with your opened issue. Please fix them by editing the issue:\n\n"
         for todo in todos:
             md += f"- {todo}\n"
-        md += "\nOften the problem you are experiencing will be solved by simply making your environment compliant with the requirements (fulfilling the pre-checks).\n\n"
+        md += "\nOften the problem you are experiencing will be solved by simply making your environment compliant with the requirements.\n\n"
         if len(todos_optional) != 0:
             md += "## 🔍 Have you already considered the following?\n\n"
             for todo in todos_optional:
