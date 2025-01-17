@@ -12,4 +12,4 @@ PyNaCl==1.5.0
 requests==2.32.3
 typing_extensions==4.12.2
 urllib3==2.3.0
-wrapt==1.17.0
+wrapt==1.17.2
