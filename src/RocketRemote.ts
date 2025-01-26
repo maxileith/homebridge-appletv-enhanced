@@ -125,6 +125,10 @@ class RocketRemote {
         this.sendCommand(RocketRemoteKey.RIGHT, hideLog);
     }
 
+    public screensaver(hideLog: boolean = false): void {
+        this.sendCommand(RocketRemoteKey.SCREENSAVER, hideLog);
+    }
+
     public select(hideLog: boolean = false): void {
         this.sendCommand(RocketRemoteKey.SELECT, hideLog);
     }

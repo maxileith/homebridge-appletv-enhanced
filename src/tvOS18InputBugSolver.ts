@@ -57,7 +57,7 @@ export default function tvOS18InputBugSolver(log: PrefixLogger, storagePath: str
 by a bug in tvOS 18. Please refer to the following GitHub issues:`);
     log.warn('- https://github.com/homebridge/homebridge/issues/3703');
     log.warn('- https://github.com/maxileith/homebridge-appletv-enhanced/issues/627');
-    log.warn('To resolve this issue the configuration of the Apple TV will now be automatically reset. This issue only occurs during the \
+    log.warn('To resolve this issue the configuration of the Apple TV will now be reset automatically. This issue only occurs during the \
 pairing process.');
 
     const commonConfigFilePath: string = path.join(dir, 'common.json');

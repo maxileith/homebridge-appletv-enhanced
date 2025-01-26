@@ -17,6 +17,7 @@ export enum RocketRemoteKey {
     PLAY_PAUSE = 'play_pause',
     PREVIOUS = 'previous',
     RIGHT = 'right',
+    SCREENSAVER = 'screensaver',
     SELECT = 'select',
     SKIP_BACKWARD = 'skip_backward',
     SKIP_FORWARD = 'skip_forward',
