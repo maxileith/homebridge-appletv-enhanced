@@ -185,12 +185,38 @@
             },
             "logLevel": {
                 "title": "Log Level",
-                "description": "Set the log level. (0 - None; 1 - Error; 2 - Warn; 3 - Info; 4 - Debug; 5 - Verbose)",
+                "description": "Set the log level.",
                 "type": "integer",
                 "default": 3,
                 "minimum": 0,
                 "maximum": 5,
-                "required": true
+                "required": true,
+                "oneOf": [
+                    {
+                        "title": "None",
+                        "enum": [0]
+                    },
+                    {
+                        "title": "Error",
+                        "enum": [1]
+                    },
+                    {
+                        "title": "Warn",
+                        "enum": [2]
+                    },
+                    {
+                        "title": "Info",
+                        "enum": [3]
+                    },
+                    {
+                        "title": "Debug",
+                        "enum": [4]
+                    },
+                    {
+                        "title": "Verbose",
+                        "enum": [5]
+                    }
+                ]
             },
             "updateCheckLevel": {
                 "title": "Update Check Level",
@@ -254,6 +280,35 @@
                 "type": "string",
                 "placeholder": "/path/to/python3",
                 "required": false
+            },
+            "customPyatvCommands": {
+                "title": "Custom PyATV Commands",
+                "description": "Define custom PyATV commands or sequences of commands and expose them as switches. Please refer to the PyATV documentation (https://pyatv.dev/documentation/atvremote/). Keep in mind that this is an advanced feature which can lead to errors when configured incorrectly.",
+                "type": "array",
+                "default": [],
+                "required": true,
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "title": "Name",
+                            "description": "Name of the switch.",
+                            "type": "string",
+                            "placeholder": "App Drawer",
+                            "required": true,
+                            "pattern": "^\\S.*\\S$",
+                            "maxLength": 64
+                        },
+                        "command": {
+                            "title": "Command",
+                            "description": "Specify the PyATV command that should be executed. A sequence of commands separated by spaces is possible as well.",
+                            "type": "string",
+                            "placeholder": "home delay=300 home",
+                            "required": true,
+                            "pattern": "^[a-z]+(_[a-z]+)*(=\\S+)?(\\s[a-z]+(_[a-z]+)*(=\\S+)?)*$"
+                        }
+                    }
+                }
             },
             "deviceSpecificOverrides": {
                 "title": "Device Specific Overrides",
@@ -369,6 +424,38 @@
                             },
                             "required": true
                         },
+                        "overrideCustomPyatvCommands": {
+                            "title": "Override: Custom PyATV Commands",
+                            "type": "boolean",
+                            "default": false,
+                            "required": true
+                        },
+                        "customPyatvCommands": {
+                            "title": "Custom PyATV Commands",
+                            "type": "array",
+                            "default": [],
+                            "required": true,
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "title": "Name",
+                                        "type": "string",
+                                        "placeholder": "App Drawer",
+                                        "required": true,
+                                        "pattern": "^\\S.*\\S$",
+                                        "maxLength": 64
+                                    },
+                                    "command": {
+                                        "title": "Command",
+                                        "type": "string",
+                                        "placeholder": "home delay=300 home",
+                                        "required": true,
+                                        "pattern": "^[a-z]+(_[a-z]+)*(=\\S+)?(\\s[a-z]+(_[a-z]+)*(=\\S+)?)*$"
+                                    }
+                                }
+                            }
+                        },
                         "overrideAvadaKedavraAppAmount": {
                             "title": "Override: Avada Kedavra App Amount",
                             "type": "boolean",
@@ -457,10 +544,16 @@
                 "remoteKeysAsSwitch",
                 {
                     "key": "customInputURIs",
-                    "type": "array",
                     "items": {
                         "key": "customInputURIs[]"
                     }
+                },
+                {
+                    "key": "customPyatvCommands",
+                    "items": [
+                        "customPyatvCommands[].name",
+                        "customPyatvCommands[].command"
+                    ]
                 },
                 "avadaKedavraAppAmount",
                 "disableVolumeControlRemote",
@@ -527,6 +620,25 @@
                             "key": "deviceSpecificOverrides[].remoteKeysAsSwitch",
                             "condition": {
                                 "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideRemoteKeysAsSwitch === true;"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].overrideCustomPyatvCommands",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac);"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].customPyatvCommands",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideCustomPyatvCommands === true;"
+                            },
+                            "items": {
+                                "key": "deviceSpecificOverrides[].customPyatvCommands[]",
+                                "items": [
+                                    "deviceSpecificOverrides[].customPyatvCommands[].name",
+                                    "deviceSpecificOverrides[].customPyatvCommands[].command"
+                                ]
                             }
                         },
                         {

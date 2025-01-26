@@ -133,17 +133,23 @@ class RocketRemote {
         this.sendCommand(RocketRemoteKey.SELECT, hideLog);
     }
 
-    public sendCommand(cmd: RocketRemoteKey | string, hideLog: boolean = false): void {
+    public sendCommand(cmd: RocketRemoteKey | string, hideLog: boolean = false, dedicatedProcess: boolean = false): void {
         if (hideLog) {
             this.log.debug(cmd);
         } else {
             this.log.info(cmd);
         }
+
         if (this.onHomeCallable !== undefined && cmd === 'home') {
             void this.onHomeCallable();
         }
-        this.process.stdin.write(`${cmd}\n`);
-        this.lastCommandSend = Date.now();
+
+        if (dedicatedProcess === true) {
+            this.spawnATVRemote(cmd.split(' '));
+        } else {
+            this.process.stdin.write(`${cmd}\n`);
+            this.lastCommandSend = Date.now();
+        }
     }
 
     public setOutputDevices(identifiers: string[], hideLog: boolean = false): void {

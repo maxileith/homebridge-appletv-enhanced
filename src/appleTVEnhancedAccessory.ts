@@ -33,6 +33,7 @@ import {
 } from './utils';
 import type {
     AppleTVEnhancedPlatformConfig,
+    CustomPyATVCommandConfig,
     DeviceConfigOverride,
     IAppConfig,
     IAppConfigs,
@@ -88,6 +89,7 @@ export class AppleTVEnhancedAccessory {
     private commonConfig: ICommonConfig | undefined = undefined;
     private config: AppleTVEnhancedPlatformConfig;
     private credentials: string | undefined = undefined;
+    private readonly customPyatvCommandServices: Record<string, Service> = {};
     private device: NodePyATVDevice;
     private deviceStateConfigs: TDeviceStateConfigs | undefined = undefined;
     private readonly deviceStateServices: Partial<Record<NodePyATVDeviceState, Service>> = {};
@@ -247,6 +249,9 @@ remaining)`);
         if (override.overrideCustomInputURIs === true) {
             config.customInputURIs = override.customInputURIs;
         }
+        if (override.overrideCustomPyatvCommands === true) {
+            config.customPyatvCommands = override.customPyatvCommands;
+        }
         if (override.overrideDisableVolumeControlRemote === true) {
             config.disableVolumeControlRemote = override.disableVolumeControlRemote;
         }
@@ -308,6 +313,7 @@ remaining)`);
                 if (value === '') {
                     return;
                 }
+                value = trimToMaxLength(removeSpecialCharacters(value.toString()), 64);
                 const oldValue: Nullable<CharacteristicValue> =
                     this.avadaKedavraService!.getCharacteristic(this.platform.characteristic.ConfiguredName).value;
                 if (oldValue === value) {
@@ -337,6 +343,37 @@ remaining)`);
         this.service!.addLinkedService(this.avadaKedavraService);
     }
 
+    private createCustomPyatvCommandSwitches(commandConfigs: CustomPyATVCommandConfig[]): void {
+        for (const commandConfig of commandConfigs) {
+            const name: string = trimToMaxLength(removeSpecialCharacters(commandConfig.name), 64);
+            this.log.debug(`Adding custom PyATV command ${name} as a switch.`);
+            const s: Service = this.accessory.getService(name) ||
+                this.addServiceSave(this.platform.service.Switch, name, `custom-pyatv-command-${name.replace(' ', '-')}`)!;
+            s.addOptionalCharacteristic(this.platform.characteristic.ConfiguredName);
+            s
+                .setCharacteristic(this.platform.characteristic.Name, name)
+                .setCharacteristic(this.platform.characteristic.ConfiguredName, name)
+                .setCharacteristic(this.platform.characteristic.On, false);
+            s.getCharacteristic(this.platform.characteristic.On)
+                .onSet(async (value: CharacteristicValue): Promise<void> => {
+                    if (value === true) {
+                        this.rocketRemote?.sendCommand(commandConfig.command, false, true);
+                        setTimeout(() => {
+                            s.updateCharacteristic(this.platform.characteristic.On, false);
+                        }, 700);
+                    }
+                })
+                .onGet(async (): Promise<CharacteristicValue> => {
+                    if (this.offline) {
+                        throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+                    }
+                    return false;
+                });
+            this.service!.addLinkedService(s);
+            this.customPyatvCommandServices[name] = s;
+        }
+    }
+
     private createDeviceStateSensors(): void {
         const deviceStates: NodePyATVDeviceState[] = Object.keys(NodePyATVDeviceState) as NodePyATVDeviceState[];
         for (const deviceState of deviceStates) {
@@ -358,6 +395,7 @@ remaining)`);
                     if (value === '') {
                         return;
                     }
+                    value = trimToMaxLength(removeSpecialCharacters(value.toString()), 64);
                     const oldConfiguredName: Nullable<CharacteristicValue> =
                         s.getCharacteristic(this.platform.characteristic.ConfiguredName).value;
                     if (oldConfiguredName === value) {
@@ -406,6 +444,7 @@ ${value}.`);
                 if (value === '') {
                     return;
                 }
+                value = trimToMaxLength(removeSpecialCharacters(value.toString()), 64);
                 const oldValue: Nullable<CharacteristicValue> =
                     this.homeInputService!.getCharacteristic(this.platform.characteristic.ConfiguredName).value;
                 if (oldValue === value) {
@@ -483,10 +522,10 @@ The following services have been added:
 - ${Object.keys(this.deviceStateServices).length.toString().padStart(2, '0')} motion sensors for device states
 - ${Object.keys(this.mediaTypeServices).length.toString().padStart(2, '0')} motion sensors for media types
 - ${Object.keys(this.remoteKeyServices).length.toString().padStart(2, '0')} switches for remote keys
-- ${Object.keys(this.remoteKeyServices).length.toString().padStart(2, '0')} switches for remote keys
 - 01 Avada Kedavra as an input
 - 01 Home as an input
 - 01 AirPlay as an dynamic input
+- ${(this.config.customPyatvCommands ?? '0').length.toString().padStart(2, '0')} switches for custom PyATV commands
 - ${addedApps.toString().padStart(2, '0')} apps as inputs have been added (${apps.length - addedApps} apps could not be added; including \
 custom Inputs)
 It might be a good idea to uninstall unused apps.`);
@@ -506,11 +545,12 @@ It might be a good idea to uninstall unused apps.`);
                     if (value === '') {
                         return;
                     }
+                    value = trimToMaxLength(removeSpecialCharacters(value.toString()), 64);
                     if (appConfigs[app.id].configuredName === value) {
                         return;
                     }
                     this.log.info(`Changing configured name of ${app.id} from ${appConfigs[app.id].configuredName} to ${value}.`);
-                    appConfigs[app.id].configuredName = value.toString();
+                    appConfigs[app.id].configuredName = value;
                     this.setAppConfigs(appConfigs);
                 })
                 .onGet(async (): Promise<Nullable<CharacteristicValue>> => {
@@ -655,6 +695,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
                     if (value === '') {
                         return;
                     }
+                    value = trimToMaxLength(removeSpecialCharacters(value.toString()), 64);
                     const oldConfiguredName: Nullable<CharacteristicValue> =
                         s.getCharacteristic(this.platform.characteristic.ConfiguredName).value;
                     if (oldConfiguredName === value) {
@@ -663,7 +704,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
                     if (oldConfiguredName !== '') {
                         this.log.info(`Changing configured name of media type sensor ${mediaType} from ${oldConfiguredName} to ${value}.`);
                     }
-                    this.setMediaTypeConfig(mediaType, value.toString());
+                    this.setMediaTypeConfig(mediaType, value);
                 });
             s.getCharacteristic(this.platform.characteristic.MotionDetected)
                 .onGet(async (): Promise<CharacteristicValue> => {
@@ -775,6 +816,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
                     if (value === '') {
                         return;
                     }
+                    value = trimToMaxLength(removeSpecialCharacters(value.toString()), 64);
                     const oldConfiguredName: Nullable<CharacteristicValue> =
                         s.getCharacteristic(this.platform.characteristic.ConfiguredName).value;
                     if (oldConfiguredName === value) {
@@ -783,7 +825,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
                     if (oldConfiguredName !== '') {
                         this.log.info(`Changing configured name of remote key switch ${remoteKey} from ${oldConfiguredName} to ${value}.`);
                     }
-                    this.setRemoteKeyAsSwitchConfig(remoteKey, value.toString());
+                    this.setRemoteKeyAsSwitchConfig(remoteKey, value);
                 });
             s.getCharacteristic(this.platform.characteristic.On)
                 .onSet(async (value: CharacteristicValue): Promise<void> => {
@@ -864,13 +906,14 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
                 if (value === '') {
                     return;
                 }
+                value = trimToMaxLength(removeSpecialCharacters(value.toString()), 64);
                 const oldValue: Nullable<CharacteristicValue> =
                     this.volumeFanService!.getCharacteristic(this.platform.characteristic.ConfiguredName).value;
                 if (oldValue === value) {
                     return;
                 }
                 this.log.info(`Changing configured name of Volume Fan from ${oldValue} to ${value}.`);
-                this.setCommonConfig('volumeFanName', value.toString());
+                this.setCommonConfig('volumeFanName', value);
             })
             .onGet(async (): Promise<Nullable<CharacteristicValue>> => {
                 if (this.offline) {
@@ -1687,7 +1730,8 @@ ${characteristic.props.unit}".`);
             ? this.platform.api.hap.Categories.TV_SET_TOP_BOX
             : this.platform.api.hap.Categories.APPLE_TV;
 
-        const configuredName: string = this.getCommonConfig().configuredName ?? removeSpecialCharacters(this.accessory.displayName);
+        const configuredName: string =
+            this.getCommonConfig().configuredName ?? trimToMaxLength(removeSpecialCharacters(this.accessory.displayName), 64);
 
         // set accessory information
         this.accessory.getService(this.platform.service.AccessoryInformation)!
@@ -1768,6 +1812,7 @@ ${characteristic.props.unit}".`);
         this.createAvadaKedavra();
         this.createHomeInput();
         this.createAirPlayInput();
+        this.createCustomPyatvCommandSwitches(this.config.customPyatvCommands || []);
         const apps: NodePyATVApp[] = await this.device.listApps();
         this.createInputs(apps, this.config.customInputURIs || []);
 
