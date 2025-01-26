@@ -789,9 +789,10 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
                 .onSet(async (value: CharacteristicValue): Promise<void> => {
                     if (value === true) {
                         this.rocketRemote?.sendCommand(remoteKey);
+                        setTimeout(() => {
+                            s.updateCharacteristic(this.platform.characteristic.On, false);
+                        }, 200);
                     }
-                    await delay(1000);
-                    s.updateCharacteristic(this.platform.characteristic.On, false);
                 })
                 .onGet(async (): Promise<CharacteristicValue> => {
                     if (this.offline) {
