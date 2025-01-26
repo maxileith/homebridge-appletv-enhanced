@@ -357,6 +357,7 @@ remaining)`);
             s.getCharacteristic(this.platform.characteristic.On)
                 .onSet(async (value: CharacteristicValue): Promise<void> => {
                     if (value === true) {
+                        this.log.info(`Triggered custom PyATV command ${commandConfig.name}`);
                         this.rocketRemote?.sendCommand(commandConfig.command, false, true);
                         setTimeout(() => {
                             s.updateCharacteristic(this.platform.characteristic.On, false);
