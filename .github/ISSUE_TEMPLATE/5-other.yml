@@ -7,7 +7,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        ### Hi!
+        ### Hello there!
 
         Thanks for taking the time to submit an issue. This issue template should only be used if non of the following issue templates is a good fit for the issue that you want to submit:
 
@@ -15,13 +15,6 @@ body:
         - [support request](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new?template=2-support_request.yml)
         - [feature request](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new?template=3-feature_request.yml)
         - [general question](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new?template=1-general_question.yml)
-
-  - type: checkboxes
-    attributes:
-      label: Preconditions
-      options:
-        - label: The issue is not covered by any of the other issue templates
-          required: true
 
   - type: textarea
     id: analysis

@@ -9,14 +9,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        ### Hi!
+        ### Hello there!
 
-        Thanks for taking the time to fill out this support request report. :heart:
+        Thanks for taking the time to fill out this support request report. :
 
-  - type: checkboxes
-    attributes:
-      label: Preconditions
-      description: |
+        ### Preconditions
+
         Before we start, be sure you are aware of the following points:
 
         - Review the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced/tree/main?tab=readme-ov-file#requirements) to ensure you are not missing any.
@@ -24,17 +22,6 @@ body:
         - Check whether or not the support request that is on your mind has already been answered in the past. To check that, search through the [resolved issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aclosed).
         - Check whether or not the support request that is on your mind is already in the [open issues](https://github.com/maxileith/homebridge-appletv-enhanced/issues?q=is%3Aissue+is%3Aopen).
         - You may find an answer in the [discussions](https://github.com/maxileith/homebridge-appletv-enhanced/discussions).
-      options:
-        - label: Requirements fulfilled
-          required: true
-        - label: The known issues did not answer my question
-          required: true
-        - label: The question has not been asked in the past or the answer does not satisfy me
-          required: true
-        - label: There is currently no other opened issue that matches my question
-          required: true
-        - label: I cannot find any answer to my question in GitHub discussions
-          required: true
 
   - type: textarea
     id: problem

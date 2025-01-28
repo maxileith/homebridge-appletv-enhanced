@@ -9,14 +9,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        ### Hi!
+        ### Hello there!
 
-        Thanks for taking the time to fill out this bug report! :heart:
+        Thanks for taking the time to fill out this bug report! :
 
-  - type: checkboxes
-    attributes:
-      label: Preconditions
-      description: |
+        ### Preconditions
+
         Before we start, be sure you are aware of the following points:
 
         - Review the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced/tree/main?tab=readme-ov-file#requirements) to ensure you are not missing any.
@@ -31,20 +29,6 @@ body:
             - Issues during the installation of Apple TV Enhanced (especially regarding the python module virtualenv).
             - The Apple TV cannot be paired because the Apple TV does not accept pairing attempts until a timer expires (warning: `Too many attempts. Waiting for 212 seconds before retrying.`).
           - Sometimes it is not easy to say from a user perspective if a problem is a bug. If you are unsure, open a [support request](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new?template=2-support_request.yml). The maintainer will change the type of the issue to bug if it is a bug.
-
-      options:
-        - label: Requirements fulfilled
-          required: true
-        - label: The bug is not a known issue
-          required: true
-        - label: The bug has not been solved in the past or the solution that was provided in the past does not work on my system
-          required: true
-        - label: There is currently no other opened issue that describes this bug
-          required: true
-        - label: I cannot find any solution to the problem in GitHub discussions
-          required: true
-        - label: I am certain that the problem that I am having is a bug
-          required: true
 
   - type: textarea
     id: analysis
