@@ -229,6 +229,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
                 return true;
             case 'off':
                 return false;
+            case undefined:
             default:
                 // by default, autoUpdate should be turned on when the plugin is running as a child bridge
                 const ogConfig: HomebridgeConfig = JSON.parse(fs.readFileSync(this.api.user.configPath(), 'utf-8'));

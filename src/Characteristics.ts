@@ -7,7 +7,7 @@ import { PyATVCustomCharacteristicID } from './enums';
 const STRING_CHARACTERISTIC_PROPS: CharacteristicProps = {
     format: Formats.STRING,
     perms: [Perms.PAIRED_READ, Perms.NOTIFY],
-    maxLen: 64,
+    maxLen: 256,
 };
 
 const NUMBER_CHARACTERISTIC_PROPS: CharacteristicProps = {
@@ -24,6 +24,7 @@ export function newPyatvCharacteristic(hap: HAP, char: PyATVCustomCharacteristic
         case PyATVCustomCharacteristicID.ARTIST:
         case PyATVCustomCharacteristicID.CONTENT_IDENTIFIER:
         case PyATVCustomCharacteristicID.GENRE:
+        case PyATVCustomCharacteristicID.OUTPUT_DEVICES:
         case PyATVCustomCharacteristicID.SERIES_NAME:
         case PyATVCustomCharacteristicID.TITLE:
             props = STRING_CHARACTERISTIC_PROPS;
@@ -36,6 +37,7 @@ export function newPyatvCharacteristic(hap: HAP, char: PyATVCustomCharacteristic
             break;
         case PyATVCustomCharacteristicID.EPISODE_NUMBER:
         case PyATVCustomCharacteristicID.SEASON_NUMBER:
+        case PyATVCustomCharacteristicID.ITUNES_STORE_IDENTIFIER:
             props = NUMBER_CHARACTERISTIC_PROPS;
             break;
         case PyATVCustomCharacteristicID.POSITION:
