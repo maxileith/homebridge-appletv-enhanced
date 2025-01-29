@@ -31,13 +31,18 @@ This plugin automatically discovers Apple TV devices on the local network and ex
 ## Features
 
 > [!TIP]
-> You might want to watch [this video](https://www.tiktok.com/@b_turner50/video/7330389563946339589) to get an idea what this plugin is all about.
+> You might want to watch one of the following videos to get an idea what this plugin is all about.
+>
+> -   [Apple TV 4K - The Ultimate Smart Home Theater Setup with Apple HomeKit](https://www.youtube.com/watch?v=w7sNcX7o38c) on YouTube by [Eddie dSuZa](https://www.youtube.com/@eddiedsuza)
+> -   [Unlock NEW Apple TV Features with Homebridge! (How-To)](https://www.youtube.com/watch?v=_8ObNKMJO84) on YouTube by [Adam's Tech Life](https://www.youtube.com/@AdamsTechLife)
+> -   [This video](https://www.tiktok.com/@b_turner50/video/7330389563946339589) on TikTok by [brett.tech](https://www.tiktok.com/@brett.tech)
+> -   [Automate your lights from Apple TV](https://www.youtube.com/watch?v=24VadGLx1E0) on YouTube by [Home Is Where The Smart Is](https://www.youtube.com/@HomeIsWhereTheSmartIs)
 
 -   Automatically discover Apple TVs in your local network.
 -   Pairing process without the need to access the command line like with other plugins.
 -   Change the current App by selecting an input in HomeKit.
     -   The plugin is developed in a way that makes it possible to rename, hide or show inputs in HomeKit natively ... and saves it.
-    -   You can even define own inputs based on URIs in the configuration. For instance, you can create an input to open a certain Disney+ movie or show ... or pretty much anything you can think of. Take a look at the example `config.json` ;).
+    -   You can even define own inputs based on URIs in the configuration. For instance, you can create an input to open a certain Disney+ movie or show ... or pretty much anything you can think of. Take a look at the example `config.json`.
 -   The automation triggers that you are probably here for ...
     -   Since every Apple TV is exposed as a Set-Top Box, you can create a trigger on the power state to execute automations when turning on or off.
     -   For each media type (music, video, tv and unknown) the plugin will create a motion sensor (media types can be hidden or shown by changing the configuration).
@@ -47,6 +52,31 @@ This plugin automatically discovers Apple TV devices on the local network and ex
 -   Absolute volume control via a fan accessory.
 -   If you do not want all Apple TVs to be exposed, it is possible to blacklist them by providing the MAC-Address.
 -   "Avada Kedavra" which is exposed as an input to close all apps.
+-   <details> 
+      <summary>Exposing different metadata information as device characteristics</summary>
+      <ul>
+        <li>Album</li>
+        <li>Artist</li>
+        <li>Content Identifier</li>
+        <li>Current Media State</li>
+        <li>Episode Number</li>
+        <li>Firmware Revision</li>
+        <li>Genre</li>
+        <li>Host</li>
+        <li>iTunes Store Identifier</li>
+        <li>MAC Address</li>
+        <li>Model</li>
+        <li>Model Name</li>
+        <li>OS</li>
+        <li>Output Devices</li>
+        <li>Position (seconds)</li>
+        <li>Repeat (Off/Track/All)</li>
+        <li>Season Number</li>
+        <li>Shuffle (On/Off)</li>
+        <li>Title</li>
+        <li>Total Time</li>
+      </ul> 
+    </details>
 
 ## Requirements
 
