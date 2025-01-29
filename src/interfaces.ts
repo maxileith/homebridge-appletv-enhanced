@@ -11,16 +11,16 @@ export interface NodePyATVApp {
 
 export type IInputs = Record<string, Service>;
 
-export interface IAppConfig {
+export interface AppConfig {
     configuredName: string;
     identifier: number;
     isConfigured: 0 | 1;
     visibilityState: 0 | 1;
 }
 
-export type IAppConfigs = Record<string, IAppConfig>;
+export type AppConfigs = Record<string, AppConfig>;
 
-export interface ICommonConfig {
+export interface CommonConfig {
     activeIdentifier?: number;
     avadaKedavraName?: string;
     configuredName?: string;
@@ -87,5 +87,10 @@ export interface AlternatePyATVDeviceOptions {
 
 export interface CustomPyATVCommandConfig {
     command: string;
+    name: string;
+}
+
+export interface OutputDevice {
+    identifier: string;
     name: string;
 }

@@ -15,8 +15,6 @@ import {
     NodePyATVDeviceState,
     NodePyATVMediaType,
     NodePyATVPowerState,
-    NodePyATVRepeatState,
-    NodePyATVShuffleState,
 } from '@sebbo2002/node-pyatv';
 import type { NodePyATVDevice, NodePyATVDeviceEvent, NodePyATVEventValueType } from '@sebbo2002/node-pyatv';
 import md5 from 'md5';
@@ -30,16 +28,18 @@ import {
     getLocalIP,
     snakeCaseToTitleCase,
     trimToMaxLength,
+    camelCaseToTitleCase,
 } from './utils';
 import type {
     AppleTVEnhancedPlatformConfig,
     CustomPyATVCommandConfig,
     DeviceConfigOverride,
-    IAppConfig,
-    IAppConfigs,
-    ICommonConfig,
+    AppConfig,
+    AppConfigs,
+    CommonConfig,
     IInputs,
     NodePyATVApp,
+    OutputDevice,
 } from './interfaces';
 import PrefixLogger from './PrefixLogger';
 import { DisplayOrderTypes, PyATVCustomCharacteristicID, RocketRemoteKey } from './enums';
@@ -83,10 +83,10 @@ const AIR_PLAY_IDENTIFIER: number = 7567;
  */
 export class AppleTVEnhancedAccessory {
     private airPlayInputService: Service | undefined = undefined;
-    private appConfigs: IAppConfigs | undefined = undefined;
+    private appConfigs: AppConfigs | undefined = undefined;
     private avadaKedavraService: Service | undefined = undefined;
     private booted: boolean = false;
-    private commonConfig: ICommonConfig | undefined = undefined;
+    private commonConfig: CommonConfig | undefined = undefined;
     private config: AppleTVEnhancedPlatformConfig;
     private credentials: string | undefined = undefined;
     private readonly customPyatvCommandServices: Record<string, Service> = {};
@@ -482,7 +482,7 @@ ${value}.`);
             }), ...apps,
         ];
 
-        const appConfigs: IAppConfigs = this.getAppConfigs();
+        const appConfigs: AppConfigs = this.getAppConfigs();
 
         appsAndCustomInputs.forEach((app: NodePyATVApp) => {
             if (!Object.keys(appConfigs).includes(app.id)) {
@@ -729,40 +729,46 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
 
             switch (pyatvChar) {
                 case PyATVCustomCharacteristicID.ALBUM:
-                    characteristic.setValue(await this.device.getAlbum() ?? '');
+                    characteristic.updateValue(await this.device.getAlbum() ?? null);
                     break;
                 case PyATVCustomCharacteristicID.ARTIST:
-                    characteristic.setValue(await this.device.getArtist() ?? '');
+                    characteristic.updateValue(await this.device.getArtist() ?? null);
                     break;
                 case PyATVCustomCharacteristicID.CONTENT_IDENTIFIER:
-                    characteristic.setValue(await this.device.getContentIdentifier() ?? '');
+                    characteristic.updateValue(await this.device.getContentIdentifier() ?? null);
                     break;
                 case PyATVCustomCharacteristicID.EPISODE_NUMBER:
-                    characteristic.setValue(await this.device.getEpisodeNumber() ?? 0);
+                    characteristic.updateValue(await this.device.getEpisodeNumber() ?? null);
                     break;
                 case PyATVCustomCharacteristicID.GENRE:
-                    characteristic.setValue(await this.device.getGenre() ?? '');
+                    characteristic.updateValue(await this.device.getGenre() ?? null);
+                    break;
+                case PyATVCustomCharacteristicID.ITUNES_STORE_IDENTIFIER:
+                    characteristic.updateValue(await this.device.getITunesStoreIdentifier() ?? null);
+                    break;
+                case PyATVCustomCharacteristicID.OUTPUT_DEVICES:
+                    characteristic.updateValue(this.outputDevicesToString(await this.device.getOutputDevices()) ?? null);
                     break;
                 case PyATVCustomCharacteristicID.POSITION:
-                    characteristic.setValue(await this.device.getPosition() ?? 0);
+                    characteristic.updateValue(await this.device.getPosition() ?? null);
                     break;
                 case PyATVCustomCharacteristicID.REPEAT:
-                    characteristic.setValue(await this.device.getRepeat() ?? NodePyATVRepeatState.off);
+                    characteristic.updateValue(await this.device.getRepeat() ?? null);
                     break;
                 case PyATVCustomCharacteristicID.SEASON_NUMBER:
-                    characteristic.setValue(await this.device.getSeasonNumber() ?? 0);
+                    characteristic.updateValue(await this.device.getSeasonNumber() ?? null);
                     break;
                 case PyATVCustomCharacteristicID.SERIES_NAME:
-                    characteristic.setValue(await this.device.getSeriesName() ?? '');
+                    characteristic.updateValue(await this.device.getSeriesName() ?? null);
                     break;
                 case PyATVCustomCharacteristicID.SHUFFLE:
-                    characteristic.setValue(await this.device.getShuffle() ?? NodePyATVShuffleState.off);
+                    characteristic.updateValue(await this.device.getShuffle() ?? null);
                     break;
                 case PyATVCustomCharacteristicID.TITLE:
-                    characteristic.setValue(await this.device.getTitle() ?? '');
+                    characteristic.updateValue(await this.device.getTitle() ?? null);
                     break;
                 case PyATVCustomCharacteristicID.TOTAL_TIME:
-                    characteristic.setValue(await this.device.getTotalTime() ?? 0);
+                    characteristic.updateValue(await this.device.getTotalTime() ?? null);
                     break;
             }
 
@@ -1006,12 +1012,12 @@ plugin after you have fixed the root cause. Enable debug logging to see the orig
         return false;
     }
 
-    private getAppConfigs(): IAppConfigs {
+    private getAppConfigs(): AppConfigs {
         if (this.appConfigs === undefined) {
             const jsonPath: string = this.getPath('apps.json');
             this.log.debug(`Loading app config from ${jsonPath}`);
             try {
-                this.appConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as IAppConfigs;
+                this.appConfigs = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as AppConfigs;
             } catch (err: unknown) {
                 if (err instanceof Error && err.name === 'SyntaxError') {
                     this.log.warn(`The file ${jsonPath} does not contain a valid JSON. Resetting to its defaults ...`);
@@ -1025,12 +1031,12 @@ plugin after you have fixed the root cause. Enable debug logging to see the orig
         return this.appConfigs;
     }
 
-    private getCommonConfig(): ICommonConfig {
+    private getCommonConfig(): CommonConfig {
         if (this.commonConfig === undefined) {
             const jsonPath: string = this.getPath('common.json');
             this.log.debug(`Loading common config from ${jsonPath}`);
             try {
-                this.commonConfig = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as ICommonConfig;
+                this.commonConfig = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as CommonConfig;
             } catch (err: unknown) {
                 if (err instanceof Error && err.name === 'SyntaxError') {
                     this.log.warn(`The file ${jsonPath} does not contain a valid JSON. Resetting to its defaults ...`);
@@ -1162,7 +1168,7 @@ plugin after you have fixed the root cause. Enable debug logging to see the orig
             return;
         }
 
-        const appConfigs: IAppConfigs = this.getAppConfigs();
+        const appConfigs: AppConfigs = this.getAppConfigs();
         let appId: string | undefined = undefined;
         for (const key in appConfigs) {
             if (appConfigs[key].identifier === state) {
@@ -1340,7 +1346,7 @@ ${deviceStateDelay}ms is over): ${event.value}`);
         if (appId === AIR_PLAY_URI) {
             this.service!.updateCharacteristic(this.platform.characteristic.ActiveIdentifier, AIR_PLAY_IDENTIFIER);
         } else {
-            const appConfig: IAppConfig = this.getAppConfigs()[appId];
+            const appConfig: AppConfig = this.getAppConfigs()[appId];
             if (appConfig !== undefined) {
                 const appIdentifier: number = appConfig.identifier;
                 this.setCommonConfig('activeIdentifier', appIdentifier);
@@ -1374,24 +1380,16 @@ ${deviceStateDelay}ms is over): ${event.value}`);
             return;
         }
 
-        let value: NodePyATVEventValueType = event.newValue;
-        switch (characteristic.props.format as Formats) {
-            case Formats.STRING:
-                if (value === null) {
-                    value = '';
-                }
-                value = trimToMaxLength(value as string, characteristic.props.maxLen ?? 64);
-                break;
-            case Formats.INT:
-            case Formats.FLOAT:
-            case Formats.UINT8:
-            case Formats.UINT16:
-            case Formats.UINT32:
-            case Formats.UINT64:
-                if (value === null) {
-                    value = 0;
-                }
-                break;
+        let value: NodePyATVEventValueType | null = event.newValue;
+
+        // convert output device object to string
+        if (characteristic.displayName === camelCaseToTitleCase(PyATVCustomCharacteristicID.OUTPUT_DEVICES)) {
+            value = this.outputDevicesToString(value as unknown as OutputDevice[]);
+        }
+
+        // trim strings
+        if ((characteristic.props.format as Formats) === Formats.STRING && value !== null) {
+            value = trimToMaxLength(value.toString(), characteristic.props.maxLen ?? 256);
         }
 
         const unit: string = characteristic.props.unit !== undefined
@@ -1399,10 +1397,11 @@ ${deviceStateDelay}ms is over): ${event.value}`);
             : '';
 
         this.log.info(`Updating characteristic ${characteristic.displayName} to "${value}${unit}".`);
-        characteristic.setValue(value);
+        characteristic.updateValue(value);
     }
 
     private async handleRemoteKeySet(state: CharacteristicValue): Promise<void> {
+        // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
         switch (state) {
             case this.platform.characteristic.RemoteKey.REWIND:
                 this.rocketRemote?.skipBackward();
@@ -1442,8 +1441,6 @@ ${deviceStateDelay}ms is over): ${event.value}`);
                 break;
             case this.platform.characteristic.RemoteKey.INFORMATION:
                 this.rocketRemote?.topMenu();
-                break;
-            default:
                 break;
         }
     }
@@ -1496,6 +1493,10 @@ ${deviceStateDelay}ms is over): ${event.value}`);
     private mute(): void {
         this.log.info('Muting');
         this.rocketRemote?.setVolume(0, true);
+    }
+
+    private outputDevicesToString(outputDevices: OutputDevice[] | null): string | null {
+        return outputDevices?.map((d) => `${d.name} (${d.identifier})`).join(', ') ?? null;
     }
 
     private async pair(ip: string, mac: string, appleTVName: string): Promise<string> {
@@ -1647,7 +1648,7 @@ media-src * \'self\'');
         return credentials;
     }
 
-    private setAppConfigs(value: IAppConfigs): void {
+    private setAppConfigs(value: AppConfigs): void {
         this.appConfigs = value;
         const jsonPath: string = this.getPath('apps.json');
         this.log.debug(`Updating app config at ${jsonPath}`);
@@ -1720,7 +1721,7 @@ media-src * \'self\'');
 
             this.log.verbose(`Updating characteristic ${PyATVCustomCharacteristicID.POSITION} to "${newValue} \
 ${characteristic.props.unit}".`);
-            characteristic.setValue(newValue);
+            characteristic.updateValue(newValue);
         }).bind(this), 1000);
     }
 
@@ -1768,19 +1769,19 @@ ${characteristic.props.unit}".`);
         // add custom static characteristics
         this.service
             .addCharacteristic(newStringCharacteristic(this.platform.api.hap, 'MAC Address'))
-            .setValue(this.device.mac ?? '');
+            .updateValue(this.device.mac ?? null);
         this.service
             .addCharacteristic(newStringCharacteristic(this.platform.api.hap, 'Model'))
-            .setValue(this.device.model ?? '');
+            .updateValue(this.device.model ?? null);
         this.service
             .addCharacteristic(newStringCharacteristic(this.platform.api.hap, 'Model Name'))
-            .setValue(this.device.modelName ?? '');
+            .updateValue(this.device.modelName ?? null);
         this.service
             .addCharacteristic(newStringCharacteristic(this.platform.api.hap, 'OS'))
-            .setValue(this.device.os ?? '');
+            .updateValue(this.device.os ?? null);
         this.service
             .addCharacteristic(newStringCharacteristic(this.platform.api.hap, 'Host'))
-            .setValue(this.device.host ?? '');
+            .updateValue(this.device.host ?? null);
 
         // create handlers for required characteristics of the service
         this.service.getCharacteristic(this.platform.characteristic.Active)

@@ -57,7 +57,8 @@ export function snakeCaseToTitleCase(str: string): string {
 
 export function camelCaseToTitleCase(str: string): string {
     const spacedStr: string = str.replace(/([A-Z])/g, ' $1');
-    return spacedStr.charAt(0).toUpperCase() + spacedStr.slice(1);
+    const titleCase: string = spacedStr.charAt(0).toUpperCase() + spacedStr.slice(1);
+    return titleCase.replace('I Tunes', 'iTunes');
 }
 
 export async function runCommand(

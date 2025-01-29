@@ -195,6 +195,7 @@ export default [
             '@typescript-eslint/restrict-template-expressions': 'off',
             '@typescript-eslint/strict-boolean-expressions': 'warn',
             '@typescript-eslint/sort-type-constituents': 'warn',
+            '@typescript-eslint/switch-exhaustiveness-check': 'warn',
             '@typescript-eslint/typedef': [
                 'warn',
                 {

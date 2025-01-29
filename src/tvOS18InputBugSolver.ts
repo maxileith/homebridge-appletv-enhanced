@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import type { IAppConfigs } from './interfaces';
+import type { AppConfigs } from './interfaces';
 import PrefixLogger from './PrefixLogger';
 
 export default function tvOS18InputBugSolver(log: PrefixLogger, storagePath: string, mac: string): void {
@@ -14,7 +14,7 @@ export default function tvOS18InputBugSolver(log: PrefixLogger, storagePath: str
         log.debug('No apps.json exists until now. Exiting ...');
         return;
     }
-    const appConfigs: IAppConfigs = JSON.parse(fs.readFileSync(appConfigFilePath, 'utf8'));
+    const appConfigs: AppConfigs = JSON.parse(fs.readFileSync(appConfigFilePath, 'utf8'));
     const appNames: string[] = [];
     for (const appId in appConfigs) {
         appNames.push(appConfigs[appId].configuredName);
