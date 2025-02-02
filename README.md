@@ -131,7 +131,7 @@ This plugin automatically discovers Apple TV devices on the local network and ex
         - If the pairing requests fails to often due to too many incorrect entered codes or too many timed out requests, the Apple TV will start a "Back Off Timer" which blocks all pairing request for a certain period. This is period is set by the Apple TV, not the plugin. Restarting or reinstalling the plugin won't reset the timer.
     4. Done ... do this with all your Apple TVs.
 7.  You have paired all Apple TVs (with the plugin, not with Apple Home yet).
-8.  Every Apple TV is exposed as an Apple TV device and is its own bridge. Therefore, we need to add every Apple TV separately to Apple Home. In order to do that, open the Home app, go to add devices > more options, then type in the pairing code from the logs (Logs: `Please add [Apple TV Wohnzimmer (2)] manually in
+8.  Every Apple TV is exposed as an Apple TV device and is its own bridge. Therefore, we need to add every Apple TV separately to Apple Home. In order to do that, open the Home app, go to add accessory > more options, then type in the pairing code from the logs (Logs: `Please add [Apple TV Living Room] manually in
 Home app. Setup Code: xxxx-xxxx` this is not the code that you have seen on the Apple TV display).
 
 <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/docs/img/enterPIN.jpg" width=280/> <img src="https://raw.githubusercontent.com/maxileith/homebridge-appletv-enhanced/develop/docs/img/pinTransmitted.jpg" width=280/>
