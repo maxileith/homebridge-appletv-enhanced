@@ -65,21 +65,24 @@ pairing process.');
     const mediaTypesConfigFilePath: string = path.join(dir, 'mediaTypes.json');
     const remoteKeySwitchesConfigFilePath: string = path.join(dir, 'remoteKeySwitches.json');
 
-    try {
-        fs.unlinkSync(appConfigFilePath);
-    } finally { /* empty */ }
-    try {
-        fs.unlinkSync(commonConfigFilePath);
-    } finally { /* empty */ }
-    try {
-        fs.unlinkSync(deviceStatesConfigFilePath);
-    } finally { /* empty */ }
-    try {
-        fs.unlinkSync(mediaTypesConfigFilePath);
-    } finally { /* empty */ }
-    try {
-        fs.unlinkSync(remoteKeySwitchesConfigFilePath);
-    } finally { /* empty */ }
+    unlink(log, appConfigFilePath);
+    unlink(log, commonConfigFilePath);
+    unlink(log, deviceStatesConfigFilePath);
+    unlink(log, mediaTypesConfigFilePath);
+    unlink(log, remoteKeySwitchesConfigFilePath);
 
     log.success('The configuration of the Apple TV has successfully been reset.');
+}
+
+function unlink(log: PrefixLogger, path: string): void {
+    try {
+        fs.unlinkSync(path);
+        log.debug(`${path} has been deleted.`);
+    } catch (e: unknown) {
+        if (e instanceof Error && e.message.startsWith('ENOENT')) {
+            log.debug(`${path} has not been deleted since it is not existing.`);
+        } else {
+            throw e;
+        }
+    }
 }
