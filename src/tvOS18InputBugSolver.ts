@@ -65,11 +65,21 @@ pairing process.');
     const mediaTypesConfigFilePath: string = path.join(dir, 'mediaTypes.json');
     const remoteKeySwitchesConfigFilePath: string = path.join(dir, 'remoteKeySwitches.json');
 
-    fs.unlinkSync(appConfigFilePath);
-    fs.unlinkSync(commonConfigFilePath);
-    fs.unlinkSync(deviceStatesConfigFilePath);
-    fs.unlinkSync(mediaTypesConfigFilePath);
-    fs.unlinkSync(remoteKeySwitchesConfigFilePath);
+    try {
+        fs.unlinkSync(appConfigFilePath);
+    } finally { /* empty */ }
+    try {
+        fs.unlinkSync(commonConfigFilePath);
+    } finally { /* empty */ }
+    try {
+        fs.unlinkSync(deviceStatesConfigFilePath);
+    } finally { /* empty */ }
+    try {
+        fs.unlinkSync(mediaTypesConfigFilePath);
+    } finally { /* empty */ }
+    try {
+        fs.unlinkSync(remoteKeySwitchesConfigFilePath);
+    } finally { /* empty */ }
 
     log.success('The configuration of the Apple TV has successfully been reset.');
 }
