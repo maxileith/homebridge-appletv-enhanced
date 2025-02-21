@@ -68,8 +68,8 @@
     },
     "devDependencies": {
         "@eslint/js": "^9.20.0",
-        "@stylistic/eslint-plugin-js": "^3.1.0",
-        "@stylistic/eslint-plugin-ts": "^3.1.0",
+        "@stylistic/eslint-plugin-js": "^4.0.1",
+        "@stylistic/eslint-plugin-ts": "^4.0.1",
         "@types/fs-extra": "^11.0.4",
         "@types/md5": "^2.3.5",
         "@types/node": "^22.13.4",
