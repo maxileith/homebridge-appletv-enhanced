@@ -15,7 +15,7 @@ ifaddr==0.2.0
 miniaudio==1.61
 multidict==6.1.0
 mutagen==1.47.0
-propcache==0.2.1
+propcache==0.3.0
 protobuf==5.29.3
 pyatv==0.16.0
 pycparser==2.22
