@@ -244,7 +244,7 @@ class RocketRemote {
     private initHeartbeat(): void {
         this.heartbeatInterval = setInterval(() => {
             if (this.lastCommandSend + 45000 < Date.now()) {
-                this.sendCommand('app_list', true);
+                this.sendCommand('power_state', true);
             } else {
                 const secondsFromLastCommand: number = Math.round((Date.now() - this.lastCommandSend) / 1000);
                 this.log.debug(`Skipping heartbeat since last command was only ${secondsFromLastCommand}s before.`);
