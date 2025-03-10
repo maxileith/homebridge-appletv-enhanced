@@ -8,6 +8,8 @@ import { NodePyATVRepeatState, NodePyATVShuffleState } from '@sebbo2002/node-pya
 class RocketRemote {
 
     private readonly avadaKedavraSequence: string[];
+    private heartbeatInterval?: NodeJS.Timeout;
+    private lastCommandSend: number = 0;
     private readonly log: PrefixLogger;
     private onCloseCallable?: (() => Promise<void> | void) = undefined;
     private onHomeCallable?: (() => Promise<void> | void) = undefined;
@@ -30,6 +32,8 @@ class RocketRemote {
         this.avadaKedavraSequence = this.generateAvadaKedavraSequence(avadaKedavraNumberOfApps);
 
         this.process = this.spawnATVRemote(['cli']);
+
+        this.initHeartbeat();
     }
 
     public addOutputDevices(identifiers: string[], hideLog: boolean = false): void {
@@ -80,6 +84,7 @@ class RocketRemote {
         this.process.once('close', () => {
             this.process.stdout.removeListener('data', this.stdoutListener);
             this.process.stderr.removeListener('data', this.stderrListener);
+            clearInterval(this.heartbeatInterval);
             this.log.warn('Lost connection. Trying to reconnect ...');
             if (this.onCloseCallable) {
                 void this.onCloseCallable();
@@ -143,6 +148,7 @@ class RocketRemote {
             this.spawnATVRemote(cmd.split(' '));
         } else {
             this.process.stdin.write(`${cmd}\n`);
+            this.lastCommandSend = Date.now();
         }
     }
 
@@ -233,6 +239,17 @@ class RocketRemote {
         }
         sequence.push('home');
         return sequence;
+    }
+
+    private initHeartbeat(): void {
+        this.heartbeatInterval = setInterval(() => {
+            if (this.lastCommandSend + 45000 < Date.now()) {
+                this.sendCommand('app_list', true);
+            } else {
+                const secondsFromLastCommand: number = Math.round((Date.now() - this.lastCommandSend) / 1000);
+                this.log.debug(`Skipping heartbeat since last command was only ${secondsFromLastCommand}s before.`);
+            }
+        }, 60000);
     }
 
     private spawnATVRemote(
