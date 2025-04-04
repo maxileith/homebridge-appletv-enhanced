@@ -6,7 +6,7 @@ export type TDeviceStateConfigs = Partial<Record<NodePyATVDeviceState, string>>;
 export type TRemoteKeysAsSwitchConfigs = Partial<Record<RocketRemoteKey, string>>;
 
 export type TUpdateCheckLevel = 'beta' | 'stable';
-export type TAutoUpdate = 'off' | 'on';
+export type TAutoUpdate = 'auto' | 'off' | 'on';
 export type TUpdateCheckTime = Mapped<24>[number];
 
 type Mapped<
