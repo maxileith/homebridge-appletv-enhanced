@@ -1,4 +1,5 @@
 import path from 'path';
+import type { Dirent } from 'fs';
 import fs from 'fs';
 import { delay, normalizePath, runCommand } from './utils';
 import PrefixLogger from './PrefixLogger';
@@ -27,7 +28,7 @@ class PythonChecker {
     private readonly log: PrefixLogger;
     private readonly pluginDirPath: string;
     private pythonExecutable: string = 'python3';
-    private requirementsPath: string = path.join(__dirname, '..', 'python_requirements', 'default', 'requirements.txt');
+    private pythonRequirementsProfile: 'default' | 'openssl_legacy' = 'default';
     private readonly venvAtvremoteExecutable: string;
     private readonly venvAtvscriptExecutable: string;
     private readonly venvConfigPath: string;
@@ -60,15 +61,20 @@ class PythonChecker {
         await this.ensureVenvUsesCorrectPython();
         await this.ensureVenvPipUpToDate();
         await this.ensureVenvRequirementsSatisfied();
+        if (this.pythonRequirementsProfile === 'default') {
+            await this.updateApiPy();
+        }
 
         this.log.success('Finished');
     }
 
     private async areRequirementsSatisfied(): Promise<boolean> {
+        const requirementsPath: string =
+            path.join(__dirname, '..', 'python_requirements', this.pythonRequirementsProfile, 'requirements.txt');
         const [freezeStdout]: [string, string, number | null] =
             await runCommand(this.log, this.venvPipExecutable, ['freeze'], undefined, true);
         const freeze: Record<string, string> = this.freezeStringToObject(freezeStdout);
-        const requirements: Record<string, string> = this.freezeStringToObject(fs.readFileSync(this.requirementsPath).toString());
+        const requirements: Record<string, string> = this.freezeStringToObject(fs.readFileSync(requirementsPath).toString());
         for (const pkg in requirements) {
             if (freeze[pkg] !== requirements[pkg]) {
                 return false;
@@ -282,7 +288,9 @@ systems default python installation.`);
     }
 
     private async installRequirements(): Promise<boolean> {
-        return (await runCommand(this.log, this.venvPipExecutable, ['install', '-r', this.requirementsPath])).at(2) === 0;
+        const requirementsPath: string =
+            path.join(__dirname, '..', 'python_requirements', this.pythonRequirementsProfile, 'requirements.txt');
+        return (await runCommand(this.log, this.venvPipExecutable, ['install', '-r', requirementsPath])).at(2) === 0;
     }
 
     private isPyatvExecutable(): boolean {
@@ -354,8 +362,53 @@ that Python 3.12 or later is not compatible with openssl legacy mode.');
 AppleTV enhanced version. Falling back to openssl legacy mode. Be aware that Python 3.12 or later is not compatible with openssl legacy \
 mode.`);
         }
-        this.requirementsPath = path.join(__dirname, '..', 'python_requirements', 'openssl_legacy', 'requirements.txt');
+        this.pythonRequirementsProfile = 'openssl_legacy';
         supportedPythonVersions = supportedPythonVersions.filter((e) => e !== '3.12' && e !== '3.13');
+    }
+
+    private async updateApiPy(): Promise<void> {
+        this.log.info('Downloading a temporary fix for the TvOS 18.4 connection issue. Refer to this GitHub issue for more information: \
+https://github.com/maxileith/homebridge-appletv-enhanced/issues/953');
+
+        // download Api.py
+        let response: AxiosResponse | undefined = undefined;
+        try {
+            response = await axios.get('https://raw.githubusercontent.com/postlund/pyatv/3fe8e36caf1977d2c7dced4767ada12c95a3e7c3/pyatv/\
+protocols/companion/api.py', { timeout: 1000 }) as AxiosResponse;
+            this.log.success('Successfully downloaded the fix');
+        } catch (e: unknown) {
+            if (e instanceof Error) {
+                this.log.warn(`Failed to download the fix, continuing without downloading the fix. (${e.name}: ${e.message})`);
+                return;
+            } else {
+                throw e;
+            }
+        }
+
+        // write Api.pyconst requirementsPath: string =
+        this.log.info('Installing the fix');
+        const libPath: string = path.join(this.venvPath, 'lib');
+        const libPath64: string = path.join(this.venvPath, 'lib');
+        const pythonDir: Dirent | undefined = fs.readdirSync(libPath, { withFileTypes: true }).find((e) => e.isDirectory());
+        if (pythonDir === undefined) {
+            this.log.warn('Failed to determine the location where the fix needs to be installed. Continuing without installing the fix.');
+            return;
+        }
+        const apiPyPath: string = path.join(libPath, pythonDir.name, 'site-packages', 'pyatv', 'protocols', 'companion', 'api.py');
+        const apiPyPath64: string = path.join(libPath64, pythonDir.name, 'site-packages', 'pyatv', 'protocols', 'companion', 'api.py');
+        const apiPyPathExists: boolean = fs.existsSync(apiPyPath);
+        const apiPyPath64Exists: boolean = fs.existsSync(apiPyPath64);
+        if (apiPyPathExists) {
+            fs.writeFileSync(apiPyPath, response.data, { encoding: 'utf8', flag: 'w' });
+        }
+        if (apiPyPath64Exists) {
+            fs.writeFileSync(apiPyPath64, response.data, { encoding: 'utf8', flag: 'w' });
+        }
+        if (apiPyPathExists === false && apiPyPath64Exists === false) {
+            this.log.warn('Failed to determine the location where the fix needs to be installed. Continuing without installing the fix.');
+        } else {
+            this.log.success('Successfully installed the fix');
+        }
     }
 
     private async updatePip(): Promise<boolean> {
