@@ -48,7 +48,7 @@ export default function tvOS18InputBugSolver(log: PrefixLogger, storagePath: str
 
     const percentageWithSameName: number = Math.round(highestCount / numOfApps * 100);
 
-    if (percentageWithSameName < 70) {
+    if (percentageWithSameName < 30) {
         log.debug('Most inputs have no similar app name. Exiting ...');
         return;
     }
