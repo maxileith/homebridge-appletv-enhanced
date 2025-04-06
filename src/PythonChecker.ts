@@ -355,8 +355,9 @@ can occur if the OpenSSL version is older than ${MIN_OPENSSL_VERSION}.`);
             while (true) {
                 this.log.error(`You are using OpenSSL ${r[0]}. However, OpenSSL ${MIN_OPENSSL_VERSION} or later is required for AppleTV \
 Enhanced. This has been a requirement for a long time. Up until now the plugin was starting in a "legacy openssl mode" if that \
-requirement was not met. TvOS 18.4 requires a fix for pyatv which is only available in the newest version, thus the legacy mode cannot be \
-provided any longer as the legacy mode requires an older version of pyatv.`);
+requirement was not met. TvOS 18.4 requires a fix for pyatv which is only available in the newest version of pyatv that requires \
+OpenSSL ${MIN_OPENSSL_VERSION}. Thus, the legacy mode cannot be provided any longer as it requires an older version of pyatv. If you \
+wonder why this fix is required, please refer to https://github.com/maxileith/homebridge-appletv-enhanced/issues/953.`);
                 await delay(300000);
             }
         }
