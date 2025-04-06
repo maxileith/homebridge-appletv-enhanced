@@ -48,7 +48,7 @@ updates:
   # Enable version updates for pip
   - package-ecosystem: pip
     # Look for a `requirements.txt` in the `root` directory
-    directory: /python_requirements/default
+    directory: /
     # Check the npm registry for updates friday
     schedule:
       interval: weekly

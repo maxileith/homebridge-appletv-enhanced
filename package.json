@@ -53,7 +53,7 @@
         "dist",
         "config.schema.json",
         "LICENSES_OF_DEPENDENCIES",
-        "python_requirements",
+        "requirements.txt",
         "homebridge-ui/public/index.html"
     ],
     "publishConfig": {

@@ -3,7 +3,7 @@ name: Pip Requirements Compatibility Check
 on:
   pull_request:
     paths:
-      - "python_requirements/default/requirements.txt"
+      - "requirements.txt"
   workflow_dispatch:
 
 jobs:
@@ -42,4 +42,4 @@ jobs:
 
       - name: Install dependencies
         shell: bash
-        run: python3 -m pip install -r python_requirements/default/requirements.txt
+        run: python3 -m pip install -r requirements.txt
