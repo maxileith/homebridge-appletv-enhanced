@@ -98,7 +98,6 @@ This plugin automatically discovers Apple TV devices on the local network and ex
         -   Installation on other distros may vary
 -   [Homebridge Config UI >= 4.54.2](https://github.com/homebridge/homebridge-config-ui-x/releases/tag/4.54.2) when creating backups
 -   **OpenSSL 3** or later
-    -   If an older OpenSSL version is installed, the plugin will automatically boot into an OpenSSL legacy compatibility mode. Be aware that this mode does not support Python 3.12 or later.
 -   Apple TV Models with **tvOS 15** and upwards are supported (all 4K ones and the latest HD one)
 -   The access of Speakers & TVs should be either set to "Everybody" or "Anybody On the Same Network" without a password in the Home app
     -   Additionally, make sure to check the TV's HomeKit settings.

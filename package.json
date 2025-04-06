@@ -1,7 +1,7 @@
 {
     "name": "homebridge-appletv-enhanced",
     "displayName": "Apple TV Enhanced",
-    "version": "1.11.2",
+    "version": "1.12.0-0",
     "description": "Plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV implementation of HomeKit.",
     "main": "dist/index.js",
     "author": "Maximilian Leith",
@@ -53,7 +53,7 @@
         "dist",
         "config.schema.json",
         "LICENSES_OF_DEPENDENCIES",
-        "python_requirements",
+        "requirements.txt",
         "homebridge-ui/public/index.html"
     ],
     "publishConfig": {

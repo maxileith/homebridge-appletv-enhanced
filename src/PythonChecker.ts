@@ -9,7 +9,7 @@ import axios from 'axios';
 import { compareVersions } from 'compare-versions';
 import os from 'os';
 
-let supportedPythonVersions: string[] = [
+const supportedPythonVersions: string[] = [
     '3.9',
     '3.10',
     '3.11',
@@ -28,7 +28,7 @@ class PythonChecker {
     private readonly log: PrefixLogger;
     private readonly pluginDirPath: string;
     private pythonExecutable: string = 'python3';
-    private pythonRequirementsProfile: 'default' | 'openssl_legacy' = 'default';
+    private readonly pythonRequirementsPath: string = path.join(__dirname, '..', 'requirements.txt');
     private readonly venvAtvremoteExecutable: string;
     private readonly venvAtvscriptExecutable: string;
     private readonly venvConfigPath: string;
@@ -61,20 +61,16 @@ class PythonChecker {
         await this.ensureVenvUsesCorrectPython();
         await this.ensureVenvPipUpToDate();
         await this.ensureVenvRequirementsSatisfied();
-        if (this.pythonRequirementsProfile === 'default') {
-            await this.updateApiPy();
-        }
+        await this.updateApiPy();
 
         this.log.success('Finished');
     }
 
     private async areRequirementsSatisfied(): Promise<boolean> {
-        const requirementsPath: string =
-            path.join(__dirname, '..', 'python_requirements', this.pythonRequirementsProfile, 'requirements.txt');
         const [freezeStdout]: [string, string, number | null] =
             await runCommand(this.log, this.venvPipExecutable, ['freeze'], undefined, true);
         const freeze: Record<string, string> = this.freezeStringToObject(freezeStdout);
-        const requirements: Record<string, string> = this.freezeStringToObject(fs.readFileSync(requirementsPath).toString());
+        const requirements: Record<string, string> = this.freezeStringToObject(fs.readFileSync(this.pythonRequirementsPath).toString());
         for (const pkg in requirements) {
             if (freeze[pkg] !== requirements[pkg]) {
                 return false;
@@ -119,7 +115,7 @@ ${supportedPythonVersions[0]} to ${supportedPythonVersions[supportedPythonVersio
                 await delay(300000);
             }
         } else {
-            this.log.info(`Python ${version} is installed and supported by the plugin.`);
+            this.log.success(`Python ${version} is installed and supported by the plugin.`);
         }
     }
 
@@ -288,9 +284,7 @@ systems default python installation.`);
     }
 
     private async installRequirements(): Promise<boolean> {
-        const requirementsPath: string =
-            path.join(__dirname, '..', 'python_requirements', this.pythonRequirementsProfile, 'requirements.txt');
-        return (await runCommand(this.log, this.venvPipExecutable, ['install', '-r', requirementsPath])).at(2) === 0;
+        return (await runCommand(this.log, this.venvPipExecutable, ['install', '-r', this.pythonRequirementsPath])).at(2) === 0;
     }
 
     private isPyatvExecutable(): boolean {
@@ -351,19 +345,22 @@ systems default python installation.`);
             await runCommand(this.log, 'openssl', ['version'], undefined, true);
         const r: RegExpMatchArray | null = openSSLVersionString.match(/\d+\.\d+\.\d+/);
         if (r !== null && compareVersions(MIN_OPENSSL_VERSION, r[0]) !== 1) {
-            this.log.info(`OpenSSL ${r[0]} is installed and compatible.`);
+            this.log.success(`OpenSSL ${r[0]} is installed and compatible.`);
             return;
         }
         if (r === null) {
-            this.log.warn('Could not verify that the correct OpenSSL version is installed. Falling back to openssl legacy mode. Be aware \
-that Python 3.12 or later is not compatible with openssl legacy mode.');
+            this.log.warn(`Could not verify that the correct OpenSSL version is installed. The plugin will continue to start but errors \
+can occur if the OpenSSL version is older than ${MIN_OPENSSL_VERSION}.`);
         } else {
-            this.log.warn(`You are using OpenSSL ${r[0]}. However, OpenSSL ${MIN_OPENSSL_VERSION} or later is required for the most recent \
-AppleTV enhanced version. Falling back to openssl legacy mode. Be aware that Python 3.12 or later is not compatible with openssl legacy \
-mode.`);
+            while (true) {
+                this.log.error(`You are using OpenSSL ${r[0]}. However, OpenSSL ${MIN_OPENSSL_VERSION} or later is required for AppleTV \
+Enhanced. This has been a requirement for a long time. Up until now the plugin was starting in a "legacy openssl mode" if that \
+requirement was not met. TvOS 18.4 requires a fix for pyatv which is only available in the newest version of pyatv that requires \
+OpenSSL ${MIN_OPENSSL_VERSION}. Thus, the legacy mode cannot be provided any longer as it requires an older version of pyatv. If you \
+wonder why this fix is required, please refer to https://github.com/maxileith/homebridge-appletv-enhanced/issues/953.`);
+                await delay(300000);
+            }
         }
-        this.pythonRequirementsProfile = 'openssl_legacy';
-        supportedPythonVersions = supportedPythonVersions.filter((e) => e !== '3.12' && e !== '3.13');
     }
 
     private async updateApiPy(): Promise<void> {
@@ -376,6 +373,7 @@ https://github.com/maxileith/homebridge-appletv-enhanced/issues/953');
             response = await axios.get('https://raw.githubusercontent.com/postlund/pyatv/3fe8e36caf1977d2c7dced4767ada12c95a3e7c3/pyatv/\
 protocols/companion/api.py', { timeout: 1000 }) as AxiosResponse;
             this.log.success('Successfully downloaded the fix');
+            this.log.debug(`\n${response.data}`);
         } catch (e: unknown) {
             if (e instanceof Error) {
                 this.log.warn(`Failed to download the fix, continuing without downloading the fix. (${e.name}: ${e.message})`);
@@ -388,26 +386,17 @@ protocols/companion/api.py', { timeout: 1000 }) as AxiosResponse;
         // write Api.pyconst requirementsPath: string =
         this.log.info('Installing the fix');
         const libPath: string = path.join(this.venvPath, 'lib');
-        const libPath64: string = path.join(this.venvPath, 'lib');
         const pythonDir: Dirent | undefined = fs.readdirSync(libPath, { withFileTypes: true }).find((e) => e.isDirectory());
         if (pythonDir === undefined) {
             this.log.warn('Failed to determine the location where the fix needs to be installed. Continuing without installing the fix.');
             return;
         }
         const apiPyPath: string = path.join(libPath, pythonDir.name, 'site-packages', 'pyatv', 'protocols', 'companion', 'api.py');
-        const apiPyPath64: string = path.join(libPath64, pythonDir.name, 'site-packages', 'pyatv', 'protocols', 'companion', 'api.py');
-        const apiPyPathExists: boolean = fs.existsSync(apiPyPath);
-        const apiPyPath64Exists: boolean = fs.existsSync(apiPyPath64);
-        if (apiPyPathExists) {
+        if (fs.existsSync(apiPyPath)) {
             fs.writeFileSync(apiPyPath, response.data, { encoding: 'utf8', flag: 'w' });
-        }
-        if (apiPyPath64Exists) {
-            fs.writeFileSync(apiPyPath64, response.data, { encoding: 'utf8', flag: 'w' });
-        }
-        if (apiPyPathExists === false && apiPyPath64Exists === false) {
-            this.log.warn('Failed to determine the location where the fix needs to be installed. Continuing without installing the fix.');
-        } else {
             this.log.success('Successfully installed the fix');
+        } else {
+            this.log.warn('Failed to determine the location where the fix needs to be installed. Continuing without installing the fix.');
         }
     }
 
