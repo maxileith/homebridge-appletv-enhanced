@@ -371,7 +371,7 @@ https://github.com/maxileith/homebridge-appletv-enhanced/issues/953');
         let response: AxiosResponse | undefined = undefined;
         try {
             response = await axios.get('https://raw.githubusercontent.com/postlund/pyatv/3fe8e36caf1977d2c7dced4767ada12c95a3e7c3/pyatv/\
-protocols/companion/api.py', { timeout: 1000 }) as AxiosResponse;
+protocols/companion/api.py', { timeout: 30000 }) as AxiosResponse;
             this.log.success('Successfully downloaded the fix');
             this.log.debug(`\n${response.data}`);
         } catch (e: unknown) {
