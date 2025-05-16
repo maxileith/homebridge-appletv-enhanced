@@ -1,6 +1,6 @@
 services:
     homebridge:
-        image: homebridge/homebridge:2025-05-14
+        image: homebridge/homebridge:2025-05-16
         network_mode: host
         environment:
             APPLETV_ENHANCED_DEV: "true"
