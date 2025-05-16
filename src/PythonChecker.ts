@@ -55,11 +55,11 @@ class PythonChecker {
         this.log.info(`Using "${this.pythonExecutable}" as the python executable.`);
 
         this.ensurePluginDir();
-        await this.openSSL();
         await this.ensurePythonVersion();
         await this.ensureVenvCreated(forceVenvRecreate);
         await this.ensureVenvUsesCorrectPython();
         await this.ensureVenvPipUpToDate();
+        await this.ensureOpenSSLVersion();
         await this.ensureVenvRequirementsSatisfied();
         await this.updateApiPy();
 
@@ -94,6 +94,29 @@ manually.');
             this.log.warn(stdout);
         }
         this.log.success('Virtual python environment (re)created');
+    }
+
+    private async ensureOpenSSLVersion(): Promise<void> {
+        const [openSSLVersionString]: [string, string, number | null] =
+            await runCommand(this.log, this.venvPythonExecutable, ['-c', 'import ssl; print(ssl.OPENSSL_VERSION);'], undefined, true);
+        const r: RegExpMatchArray | null = openSSLVersionString.match(/\d+\.\d+\.\d+/);
+        if (r !== null && compareVersions(MIN_OPENSSL_VERSION, r[0]) !== 1) {
+            this.log.success(`OpenSSL ${r[0]} is installed and compatible.`);
+            return;
+        }
+        if (r === null) {
+            this.log.warn(`Could not verify that the correct OpenSSL version is installed. The plugin will continue to start but errors \
+can occur if the OpenSSL version is older than ${MIN_OPENSSL_VERSION}.`);
+        } else {
+            while (true) {
+                this.log.error(`You are using OpenSSL ${r[0]}. However, OpenSSL ${MIN_OPENSSL_VERSION} or later is required for AppleTV \
+Enhanced. This has been a requirement for a long time. Up until now the plugin was starting in a "legacy openssl mode" if that \
+requirement was not met. TvOS 18.4 requires a fix for pyatv which is only available in the newest version of pyatv that requires \
+OpenSSL ${MIN_OPENSSL_VERSION}. Thus, the legacy mode cannot be provided any longer as it requires an older version of pyatv. If you \
+wonder why this fix is required, please refer to https://github.com/maxileith/homebridge-appletv-enhanced/issues/953.`);
+                await delay(300000);
+            }
+        }
     }
 
     private ensurePluginDir(): void {
@@ -257,7 +280,7 @@ systems default python installation.`);
 
     private async getPythonHome(executable: string): Promise<string> {
         const [venvPythonHome]: [string, string, number | null] =
-            await runCommand(this.log, executable, [path.join(__dirname, 'determinePythonHome.py')], undefined, true);
+            await runCommand(this.log, executable, ['-c', 'import os, sys; print(os.path.realpath(sys.executable));'], undefined, true);
         return venvPythonHome.trim();
     }
 
@@ -338,29 +361,6 @@ systems default python installation.`);
         }
 
         return success;
-    }
-
-    private async openSSL(): Promise<void> {
-        const [openSSLVersionString]: [string, string, number | null] =
-            await runCommand(this.log, 'openssl', ['version'], undefined, true);
-        const r: RegExpMatchArray | null = openSSLVersionString.match(/\d+\.\d+\.\d+/);
-        if (r !== null && compareVersions(MIN_OPENSSL_VERSION, r[0]) !== 1) {
-            this.log.success(`OpenSSL ${r[0]} is installed and compatible.`);
-            return;
-        }
-        if (r === null) {
-            this.log.warn(`Could not verify that the correct OpenSSL version is installed. The plugin will continue to start but errors \
-can occur if the OpenSSL version is older than ${MIN_OPENSSL_VERSION}.`);
-        } else {
-            while (true) {
-                this.log.error(`You are using OpenSSL ${r[0]}. However, OpenSSL ${MIN_OPENSSL_VERSION} or later is required for AppleTV \
-Enhanced. This has been a requirement for a long time. Up until now the plugin was starting in a "legacy openssl mode" if that \
-requirement was not met. TvOS 18.4 requires a fix for pyatv which is only available in the newest version of pyatv that requires \
-OpenSSL ${MIN_OPENSSL_VERSION}. Thus, the legacy mode cannot be provided any longer as it requires an older version of pyatv. If you \
-wonder why this fix is required, please refer to https://github.com/maxileith/homebridge-appletv-enhanced/issues/953.`);
-                await delay(300000);
-            }
-        }
     }
 
     private async updateApiPy(): Promise<void> {
