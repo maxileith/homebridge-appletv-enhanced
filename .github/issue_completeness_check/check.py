@@ -11,22 +11,29 @@ package_json = ""
 
 
 def check_logs(b: str):
-    logs = b.split("### Logs", 1)[1].split('### Configuration')[0].strip()
+    logs = b.split("### Logs", 1)[1].split("### Configuration")[0].strip()
 
     output = []
     optional_output = []
 
     if "[I] Platform: Finished initializing platform: Apple TV Enhanced" not in logs:
-        optional_output.append("Provide the **logs from the start** of the plugin, starting with `[I] Platform: Finished initializing platform: Apple TV Enhanced`")
-    
+        optional_output.append(
+            "Provide the **logs from the start** of the plugin, starting with `[I] Platform: Finished initializing platform: Apple TV Enhanced`"
+        )
+
     if "[D]" not in logs:
         output.append("Enable **debug logging** (loglevel 4)")
-    
+
     return output, optional_output
 
 
 def check_config(b: str):
-    conf = b.split("### Configuration", 1)[1].split('### Operating System')[0].strip()[7:-3].strip()
+    conf = (
+        b.split("### Configuration", 1)[1]
+        .split("### Operating System")[0]
+        .strip()[7:-3]
+        .strip()
+    )
 
     output = []
     optional_output = []
@@ -35,38 +42,50 @@ def check_config(b: str):
         json.loads(conf)
     except json.decoder.JSONDecodeError:
         output.append("The configuration is **no valid JSON**")
-    
+
     return output, optional_output
 
 
 def check_os(b: str):
-    operating_system = b.split("### Operating System", 1)[1].split('### Operating System: Bits')[0].strip()
+    operating_system = (
+        b.split("### Operating System", 1)[1]
+        .split("### Operating System: Bits")[0]
+        .strip()
+    )
 
     output = []
     optional_output = []
 
     if operating_system != "Linux":
-        optional_output.append(f"Only **Linux** is supported as an operating system (see [requirements](https://github.com/maxileith/homebridge-appletv-enhanced/tree/main?tab=readme-ov-file#requirements)). Your current OS is {operating_system}.")
-    
+        optional_output.append(
+            f"Only **Linux** is supported as an operating system (see [requirements](https://github.com/maxileith/homebridge-appletv-enhanced/tree/main?tab=readme-ov-file#requirements)). Your current OS is {operating_system}."
+        )
+
     output += check_os_bits(b)
 
     return output, optional_output
 
 
 def check_os_bits(b: str):
-    operating_system_bits = b.split("### Operating System: Bits", 1)[1].split('### Operating System: Distribution')[0].strip()
+    operating_system_bits = (
+        b.split("### Operating System: Bits", 1)[1]
+        .split("### Operating System: Distribution")[0]
+        .strip()
+    )
 
     output = []
     optional_output = []
 
     if operating_system_bits != "64-bit":
-        output.append(f"Only **64-bit** architectures are supported. Your current architecture is {operating_system_bits}.")
-    
+        output.append(
+            f"Only **64-bit** architectures are supported. Your current architecture is {operating_system_bits}."
+        )
+
     return output, optional_output
 
 
 def check_docker(b: str):
-    docker = b.split("### Docker", 1)[1].split('### Docker Image')[0].strip()
+    docker = b.split("### Docker", 1)[1].split("### Docker Image")[0].strip()
 
     output = []
     optional_output = []
@@ -76,23 +95,27 @@ def check_docker(b: str):
         div = check_docker_image_version(b)
         output += div[0]
         optional_output += div[1]
-    
+
     return output, optional_output
 
 
 def check_docker_image(b: str):
-    image = b.split("### Docker Image", 1)[1].split('### Docker Image Tag')[0].strip()
+    image = b.split("### Docker Image", 1)[1].split("### Docker Image Tag")[0].strip()
 
     output = []
 
     if image != "homebridge/homebridge":
-        output.append(f"Only the docker image **homebridge/homebridge** from [Docker Hub](https://hub.docker.com/r/homebridge/homebridge/) is supported. You are currently using {image}.")
-    
+        output.append(
+            f"Only the docker image **homebridge/homebridge** from [Docker Hub](https://hub.docker.com/r/homebridge/homebridge/) is supported. You are currently using {image}."
+        )
+
     return output
 
 
 def check_docker_image_version(b: str):
-    version = b.split("### Docker Image Tag", 1)[1].split('### Homebridge Version')[0].strip()
+    version = (
+        b.split("### Docker Image Tag", 1)[1].split("### Homebridge Version")[0].strip()
+    )
 
     output = []
     optional_output = []
@@ -100,29 +123,49 @@ def check_docker_image_version(b: str):
     tag_regex = re.compile("^\d{4}-\d{2}-\d{2}$")
 
     if version == "latest":
-        output.append("Please specify the **distinct image tag** (not `latest`), e.g. `2024-01-08`")
+        output.append(
+            "Please specify the **distinct image tag** (not `latest`), e.g. `2024-01-08`"
+        )
     elif not tag_regex.match(version):
-        output.append("Please provide a tag that matches the pattern of the tagging strategy of homebridge/homebridge, e.g. `2024-01-08`")
+        output.append(
+            "Please provide a tag that matches the pattern of the tagging strategy of homebridge/homebridge, e.g. `2024-01-08`"
+        )
     else:
         tags = get_all_docker_tags()
-        latest_digest = list(filter(lambda e: e["name"] == 'latest', tags))[0]["digest"]
+        latest_digest = list(filter(lambda e: e["name"] == "latest", tags))[0]["digest"]
         if version not in map(lambda e: e["name"], tags):
-            output.append(f"The **tag `{version}` does not exist** for the docker image homebridge/homebridge from Docker Hub. Please provide an actual image tag.")
-        elif latest_digest != list(filter(lambda e: e["name"] == version, tags))[0]["digest"]:
+            output.append(
+                f"The **tag `{version}` does not exist** for the docker image homebridge/homebridge from Docker Hub. Please provide an actual image tag."
+            )
+        elif (
+            latest_digest
+            != list(filter(lambda e: e["name"] == version, tags))[0]["digest"]
+        ):
             latest_aliases = filter(lambda e: e["digest"] == latest_digest, tags)
-            latest_version = list(filter(lambda e: tag_regex.match(e["name"]), latest_aliases))[0]["name"]
-            optional_output.append(f"The docker tag `{version}` is not the latest one. Please **update your docker container to image version [`{latest_version}`](https://hub.docker.com/r/homebridge/homebridge/tags?page=1&name={latest_version})**")
+            latest_version = list(
+                filter(lambda e: tag_regex.match(e["name"]), latest_aliases)
+            )[0]["name"]
+            optional_output.append(
+                f"The docker tag `{version}` is not the latest one. Please **update your docker container to image version [`{latest_version}`](https://hub.docker.com/r/homebridge/homebridge/tags?page=1&name={latest_version})**"
+            )
 
     return output, optional_output
 
 
 def get_all_docker_tags() -> list:
-    response = requests.get("https://hub.docker.com/v2/repositories/homebridge/homebridge/tags?page_size=10000000", timeout=10)
+    response = requests.get(
+        "https://hub.docker.com/v2/repositories/homebridge/homebridge/tags?page_size=10000000",
+        timeout=10,
+    )
     return response.json()["results"]
 
 
 def check_homebridge_version(b: str):
-    version = b.split("### Homebridge Version", 1)[1].split('### Homebridge Config UI Version')[0].strip()
+    version = (
+        b.split("### Homebridge Version", 1)[1]
+        .split("### Homebridge Config UI Version")[0]
+        .strip()
+    )
 
     if version[0].lower() == "v":
         version = version[1:]
@@ -132,20 +175,34 @@ def check_homebridge_version(b: str):
 
     version_pattern = re.compile("^\d+\.\d+\.\d+(-(beta|alpha)\.\d+)?$")
 
-    min_homebridge_version = package_json["engines"]["homebridge"].split("||")[0][1:].strip()
+    min_homebridge_version = (
+        package_json["engines"]["homebridge"].split("||")[0][1:].strip()
+    )
     if not version_pattern.match(version):
-        output.append(f"The Homebridge version {version} does not match the expected version pattern of Homebridge. Please provide a version that exists, e.g. {min_homebridge_version}.")
+        output.append(
+            f"The Homebridge version {version} does not match the expected version pattern of Homebridge. Please provide a version that exists, e.g. {min_homebridge_version}."
+        )
     else:
-        if parse_version(downgrade_version_to_next_non_prerelease(version)) < parse_version(min_homebridge_version):
-            output.append(f"The current version of Apple TV Enhanced **requires Homebridge version `{min_homebridge_version}`**. You have installed version {version}.")
-        if version not in get_all_npm_package_versions('homebridge'):
-            output.append(f"Homebridge version {version} does not exist. Please **provide a Homebridge version that exists**.")
+        if parse_version(
+            downgrade_version_to_next_non_prerelease(version)
+        ) < parse_version(min_homebridge_version):
+            output.append(
+                f"The current version of Apple TV Enhanced **requires Homebridge version `{min_homebridge_version}`**. You have installed version {version}."
+            )
+        if version not in get_all_npm_package_versions("homebridge"):
+            output.append(
+                f"Homebridge version {version} does not exist. Please **provide a Homebridge version that exists**."
+            )
 
     return output, optional_output
 
 
 def check_homebridge_config_ui_version(b: str):
-    version = b.split("### Homebridge Config UI Version", 1)[1].split('### Homebridge Storage Path')[0].strip()
+    version = (
+        b.split("### Homebridge Config UI Version", 1)[1]
+        .split("### Homebridge Storage Path")[0]
+        .strip()
+    )
 
     if version[0].lower() == "v":
         version = version[1:]
@@ -156,12 +213,20 @@ def check_homebridge_config_ui_version(b: str):
     version_pattern = re.compile("^\d+\.\d+\.\d+(-(beta|alpha)\.\d+)?$")
 
     if not version_pattern.match(version):
-        output.append(f"The Homebridge Config UI version {version} does not match the expected version pattern of Homebridge Config UI. Please provide a version that exists.")
+        output.append(
+            f"The Homebridge Config UI version {version} does not match the expected version pattern of Homebridge Config UI. Please provide a version that exists."
+        )
     else:
-        if parse_version(downgrade_version_to_next_non_prerelease(version)) < parse_version('4.54.2'):
-            output.append(f"The current version of Apple TV Enhanced **requires Homebridge Config UI version `4.54.2`**. You have installed version {version}.")
-        if version not in get_all_npm_package_versions('homebridge-config-ui-x'):
-            output.append(f"Homebridge Config UI version {version} does not exist. Please **provide a Homebridge Config UI version that exists**.")
+        if parse_version(
+            downgrade_version_to_next_non_prerelease(version)
+        ) < parse_version("4.54.2"):
+            output.append(
+                f"The current version of Apple TV Enhanced **requires Homebridge Config UI version `4.54.2`**. You have installed version {version}."
+            )
+        if version not in get_all_npm_package_versions("homebridge-config-ui-x"):
+            output.append(
+                f"Homebridge Config UI version {version} does not exist. Please **provide a Homebridge Config UI version that exists**."
+            )
 
     return output, optional_output
 
@@ -173,7 +238,11 @@ def get_all_npm_package_versions(package: str):
 
 
 def check_storage_path(b: str):
-    path = b.split("### Homebridge Storage Path", 1)[1].split('### Homebridge Apple TV Enhanced Version')[0].strip()
+    path = (
+        b.split("### Homebridge Storage Path", 1)[1]
+        .split("### Homebridge Apple TV Enhanced Version")[0]
+        .strip()
+    )
 
     path_pattern = re.compile("^(\/([a-zA-Z0-9_\-\.]|\\\s)+)+\/?$")
 
@@ -181,13 +250,19 @@ def check_storage_path(b: str):
     optional_output = []
 
     if not path_pattern.match(path):
-        output.append(f"The path `{path}` is no valid absolute path. Please provide the homebridge storage **absolute** path.")
+        output.append(
+            f"The path `{path}` is no valid absolute path. Please provide the homebridge storage **absolute** path."
+        )
 
     return output, optional_output
 
 
 def check_homebridge_appletv_enhanced_version(b: str):
-    version = b.split("### Homebridge Apple TV Enhanced Version", 1)[1].split('### Node Version')[0].strip()
+    version = (
+        b.split("### Homebridge Apple TV Enhanced Version", 1)[1]
+        .split("### Node Version")[0]
+        .strip()
+    )
 
     if version[0].lower() == "v":
         version = version[1:]
@@ -198,20 +273,28 @@ def check_homebridge_appletv_enhanced_version(b: str):
     version_pattern = re.compile("^\d+\.\d+\.\d+(-\d+)?$")
 
     if not version_pattern.match(version):
-        output.append(f"The Homebridge Apple TV Enhanced version {version} does not match the expected version pattern of Homebridge Apple TV Enhanced. Please provide a version that exists. Remember that the version that you are providing should include the patch version.")
+        output.append(
+            f"The Homebridge Apple TV Enhanced version {version} does not match the expected version pattern of Homebridge Apple TV Enhanced. Please provide a version that exists. Remember that the version that you are providing should include the patch version."
+        )
     else:
         latest_homebridge_version = package_json["version"]
 
-        if version not in get_all_npm_package_versions('homebridge-appletv-enhanced'):
-            output.append(f"Homebridge Apple TV Enhanced version {version} does not exist. Please **provide a Homebridge Apple TV Enhanced version that exists**.")
-        if parse_version(downgrade_version_to_next_non_prerelease(version)) < parse_version(latest_homebridge_version):
-            output.append(f"Please use the **latest Homebridge Apple TV Enhanced version {latest_homebridge_version}**. You are currently using version {version}.")
+        if version not in get_all_npm_package_versions("homebridge-appletv-enhanced"):
+            output.append(
+                f"Homebridge Apple TV Enhanced version {version} does not exist. Please **provide a Homebridge Apple TV Enhanced version that exists**."
+            )
+        if parse_version(
+            downgrade_version_to_next_non_prerelease(version)
+        ) < parse_version(latest_homebridge_version):
+            output.append(
+                f"Please use the **latest Homebridge Apple TV Enhanced version {latest_homebridge_version}**. You are currently using version {version}."
+            )
 
     return output, optional_output
 
 
 def check_node_version(b: str, github):
-    version = b.split("### Node Version", 1)[1].split('### NPM Version')[0].strip()
+    version = b.split("### Node Version", 1)[1].split("### NPM Version")[0].strip()
 
     if version[0].lower() != "v":
         version = f"v{version}"
@@ -222,7 +305,9 @@ def check_node_version(b: str, github):
     version_pattern = re.compile("^v\d+\.\d+\.\d+?$")
 
     if not version_pattern.match(version):
-        output.append(f"The Node version {version} does not match the expected version pattern of Node. Please provide a version that exists.")
+        output.append(
+            f"The Node version {version} does not match the expected version pattern of Node. Please provide a version that exists."
+        )
     else:
         repo = github.get_repo("nodejs/node")
         tags = repo.get_tags()
@@ -234,26 +319,32 @@ def check_node_version(b: str, github):
                 break
 
         if not tag_exists:
-            output.append(f"Node version {version} does not exist. Please **provide a Node version that exists**.")
+            output.append(
+                f"Node version {version} does not exist. Please **provide a Node version that exists**."
+            )
 
-        accepted_versions = package_json["engines"]["node"].split(' || ')
+        accepted_versions = package_json["engines"]["node"].split(" || ")
         accepted_versions = list(map(lambda e: e[1:], accepted_versions))
         version_valid = False
         for av in accepted_versions:
-            major, _, _ = av.split('.', 2)
+            major, _, _ = av.split(".", 2)
             max_major = str(int(major) + 1)
-            if (parse_version(version) < parse_version(max_major) and parse_version(version) >= parse_version(av)):
+            if parse_version(version) < parse_version(max_major) and parse_version(
+                version
+            ) >= parse_version(av):
                 version_valid = True
                 break
 
         if not version_valid:
-            output.append(f"Node Version {version} is not supported. It should be an up-to-date LTS version: {' or '.join(accepted_versions)}")
+            output.append(
+                f"Node Version {version} is not supported. It should be an up-to-date LTS version: {' or '.join(accepted_versions)}"
+            )
 
     return output, optional_output
 
 
 def check_npm_version(b: str):
-    version = b.split("### NPM Version", 1)[1].split('### Python Version')[0].strip()
+    version = b.split("### NPM Version", 1)[1].split("### Python Version")[0].strip()
 
     if version[0].lower() == "v":
         version = version[1:]
@@ -264,15 +355,19 @@ def check_npm_version(b: str):
     version_pattern = re.compile("^\d+\.\d+\.\d+$")
 
     if not version_pattern.match(version):
-        output.append(f"The NPM version {version} does not match the expected version pattern of NPM. Please provide a version that exists.")
-    elif version not in get_all_npm_package_versions('npm'):
-        output.append(f"NPM version {version} does not exist. Please **provide a NPM version that exists**.")
+        output.append(
+            f"The NPM version {version} does not match the expected version pattern of NPM. Please provide a version that exists."
+        )
+    elif version not in get_all_npm_package_versions("npm"):
+        output.append(
+            f"NPM version {version} does not exist. Please **provide a NPM version that exists**."
+        )
 
     return output, optional_output
 
 
 def check_python_version(b: str):
-    version = b.split("### Python Version", 1)[1].split('### PIP Version')[0].strip()
+    version = b.split("### Python Version", 1)[1].split("### PIP Version")[0].strip()
 
     if version[0].lower() == "v":
         version = version[1:]
@@ -282,13 +377,17 @@ def check_python_version(b: str):
 
     version_pattern = re.compile("^(Python\s)?\d+\.\d+\.\d+", re.IGNORECASE)
     if not version_pattern.match(version):
-        output.append(f"The Python version {version} does not match the expected version pattern of Python. Please provide a version that exists, e.g. 3.11.6. Remember that the version that you are providing should include the patch version.")
+        output.append(
+            f"The Python version {version} does not match the expected version pattern of Python. Please provide a version that exists, e.g. 3.11.6. Remember that the version that you are providing should include the patch version."
+        )
     else:
         accepted_versions = []
         with open("src/PythonChecker.ts", "r", encoding="utf-8") as f:
             content = f.read()
             # extract the lines where the versions are specified
-            content = content.split("let supportedPythonVersions: string[] = [", 1)[1].split("];", 1)[0]
+            content = content.split("const supportedPythonVersions: string[] = [", 1)[
+                1
+            ].split("];", 1)[0]
             # remove line breaks and spaces
             content = content.replace("\n", "")
             content = content.replace(" ", "")
@@ -302,13 +401,15 @@ def check_python_version(b: str):
                 break
 
         if not valid_version:
-            output.append(f"Your Python version {version} is not supported. Please **install a supported Python version**, e.g. {accepted_versions[-1]}")
+            output.append(
+                f"Your Python version {version} is not supported. Please **install a supported Python version**, e.g. {accepted_versions[-1]}"
+            )
 
     return output, optional_output
 
 
 def check_pip_version(b: str):
-    version = b.split("### PIP Version", 1)[1].split('### HDMI Hops')[0].strip()
+    version = b.split("### PIP Version", 1)[1].split("### HDMI Hops")[0].strip()
 
     if version[0].lower() == "v":
         version = version[1:]
@@ -319,39 +420,47 @@ def check_pip_version(b: str):
     version_pattern = re.compile("^(Pip\s)?\d+\.\d+(\.\d+)?", re.IGNORECASE)
 
     if not version_pattern.match(version):
-        output.append(f"The PIP version {version} does not match the expected version pattern of PIP. Please provide a version that exists.")
+        output.append(
+            f"The PIP version {version} does not match the expected version pattern of PIP. Please provide a version that exists."
+        )
 
     return output, optional_output
 
 
 def check_audio_output(b: str):
-    audio_output = b.split("### Audio Output", 1)[1].split('### Same Subnet')[0].strip()
+    audio_output = b.split("### Audio Output", 1)[1].split("### Same Subnet")[0].strip()
 
     output = []
     optional_output = []
 
     if audio_output != "no":
-        optional_output.append("External audio outputs are not supported by the plugin as explained in the [known issues](https://github.com/maxileith/homebridge-appletv-enhanced?tab=readme-ov-file#known-issues).")
+        optional_output.append(
+            "External audio outputs are not supported by the plugin as explained in the [known issues](https://github.com/maxileith/homebridge-appletv-enhanced?tab=readme-ov-file#known-issues)."
+        )
 
     return output, optional_output
 
 
 def check_same_subnet(b: str):
-    same_subnet = b.split("### Same Subnet", 1)[1].split('### Additional Context')[0].strip()
+    same_subnet = (
+        b.split("### Same Subnet", 1)[1].split("### Additional Context")[0].strip()
+    )
 
     output = []
     optional_output = []
 
     if same_subnet != "yes":
-        optional_output.append("It is required to have the Apple TV on the same subnet as the Homebridge instance as written in the [requirements](https://github.com/maxileith/homebridge-appletv-enhanced/tree/main?tab=readme-ov-file#requirements).")
+        optional_output.append(
+            "Since AppleTV Enhanced 1.13.0 it is possible to connect to AppleTVs across different subnets. However, depending on your network setup this can cause unexpected errors. Try moving the Apple TV to the same subnet to eliminate a network issue as the cause."
+        )
 
     return output, optional_output
 
 
 def downgrade_version_to_next_non_prerelease(version: str) -> str:
-    if '-' in version:
-        version = version.split('-', 1)[0]
-        major, minor, patch = version.split('.', 2)
+    if "-" in version:
+        version = version.split("-", 1)[0]
+        major, minor, patch = version.split(".", 2)
         patch = str(int(patch) - 1)
         version = f"{major}.{minor}.{patch}"
     return version
@@ -359,7 +468,10 @@ def downgrade_version_to_next_non_prerelease(version: str) -> str:
 
 def hide_outdated_comments(issue):
     for comment in issue.get_comments():
-        if comment.user.login == "github-actions[bot]" and ("## ✔️ Have a coffee ☕" in comment.body or "## ❗ Action required" in comment.body):
+        if comment.user.login == "github-actions[bot]" and (
+            "## ✔️ Have a coffee ☕" in comment.body
+            or "## ❗ Action required" in comment.body
+        ):
             comment.delete()
 
 

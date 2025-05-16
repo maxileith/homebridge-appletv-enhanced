@@ -101,7 +101,6 @@ This plugin automatically discovers Apple TV devices on the local network and ex
 -   Apple TV Models with **tvOS 15** and upwards are supported (all 4K ones and the latest HD one)
 -   The access of Speakers & TVs should be either set to "Everybody" or "Anybody On the Same Network" without a password in the Home app
     -   Additionally, make sure to check the TV's HomeKit settings.
--   The homebridge instance and Apple TVs need to be on the **same subnet**.
 
 > [!CAUTION]
 >
