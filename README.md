@@ -87,7 +87,7 @@ This plugin automatically discovers Apple TV devices on the local network and ex
 > Raspberry Pi 1, 2, 3 and Zero 1, 2 are not recommended for performance reasons. Recommended are 3B+, 4B, 5B.
 
 -   Only Linux will be supported by the maintainer (although since MacOS / UNIX is similar to Linux, it should run on MacOS just fine)
--   Most recent Version of **Node 22 LTS, 20 LTS or 18 LTS**.
+-   Most recent Version of **Node 22 LTS or 20 LTS**.
 -   **Python 3.9, 3.10, 3.11, 3.12 or 3.13**
 -   Python virtual environment module `virtualenv`. (the plugin will create a virtual environment on startup and will install python dependencies in this virtual environment)
     -   On homebridge **[apt-package >=1.1.4](https://github.com/homebridge/homebridge-apt-pkg/releases/tag/1.1.4)** the python module is installed automatically as a dependency, see [homebridge/homebridge-apt-pkg#16](https://github.com/homebridge/homebridge-apt-pkg/issues/16)
