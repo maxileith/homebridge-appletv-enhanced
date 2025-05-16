@@ -25,10 +25,6 @@ body:
         - Are you sure that the problem you are having is a bug? If not, open a [support request](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new?template=2-support_request.yml).
           - Bugs cause the plugin to behave unexpectedly.
           - Bugs are issues of the plugin that are reproducible.
-          - These are some issues that are reported as a bug most of the time but usually aren't:
-            - Issues during the installation of Apple TV Enhanced (especially regarding the python module virtualenv).
-            - The Apple TV cannot be paired because the Apple TV does not accept pairing attempts until a timer expires (warning: `Too many attempts. Waiting for 212 seconds before retrying.`).
-          - Sometimes it is not easy to say from a user perspective if a problem is a bug. If you are unsure, open a [support request](https://github.com/maxileith/homebridge-appletv-enhanced/issues/new?template=2-support_request.yml). The maintainer will change the type of the issue to bug if it is a bug.
 
   - type: textarea
     id: analysis
