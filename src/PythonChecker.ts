@@ -101,7 +101,7 @@ manually.');
             await runCommand(this.log, this.venvPythonExecutable, ['-c', 'import ssl; print(ssl.OPENSSL_VERSION);'], undefined, true);
         const r: RegExpMatchArray | null = openSSLVersionString.match(/\d+\.\d+\.\d+/);
         if (r !== null && compareVersions(MIN_OPENSSL_VERSION, r[0]) !== 1) {
-            this.log.success(`OpenSSL ${r[0]} is installed and compatible.`);
+            this.log.success(`Python was compiled using a compatible OpenSSL version (${r[0]}).`);
             return;
         }
         if (r === null) {
