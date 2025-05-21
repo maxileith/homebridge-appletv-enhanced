@@ -44,7 +44,9 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
             }
             return super.device(this.extendOptions({
                 ...options,
-                host: cachedDevice.host,
+                // Don't add host. This ensures that pyatv does not try to connect via IP address
+                // This is required for cross subnet compatibility.
+                // host: cachedDevice.host,
                 mac: cachedDevice.mac?.toUpperCase(),
                 name: cachedDevice.name,
                 id: cachedDevice.id,

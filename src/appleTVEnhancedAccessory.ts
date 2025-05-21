@@ -135,7 +135,7 @@ export class AppleTVEnhancedAccessory {
         })!;
 
         const pairingRequired = async (): Promise<void> => {
-            return this.pair(this.device.host, this.device.mac!, this.device.name).then((c) => {
+            return this.pair(this.device.mac!, this.device.name).then((c) => {
                 this.setCredentials(c);
                 this.device = CustomPyAtvInstance.deviceAdvanced({
                     mac: this.device.mac!,
@@ -188,12 +188,6 @@ remaining)`);
             : 'AirPlay';
         this.log.debug(`AirPlay: Set dynamic input name to ${configuredName}.`);
         this.airPlayInputService!.updateCharacteristic(this.platform.characteristic.ConfiguredName, configuredName);
-    }
-
-    private appIdToNumber(appId: string): number {
-        const hash: Uint8Array = new Uint8Array(md5(appId, { asBytes: true }));
-        const view: DataView = new DataView(hash.buffer);
-        return view.getUint32(0);
     }
 
     // https://github.com/homebridge/HAP-NodeJS/issues/644#issue-409099368
@@ -492,7 +486,7 @@ ${value}.`);
                     visibilityState: HIDE_BY_DEFAULT_APPS.includes(app.id)
                         ? this.platform.characteristic.CurrentVisibilityState.HIDDEN
                         : this.platform.characteristic.CurrentVisibilityState.SHOWN,
-                    identifier: this.appIdToNumber(app.id),
+                    identifier: this.stringToNumberHash(app.id),
                 };
             }
         });
@@ -661,14 +655,6 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
             for (const characteristic in this.pyatvListenerHandlers) {
                 this.device.removeListener(`update:${characteristic}`, this.pyatvListenerHandlers[characteristic]);
             }
-
-            const credentials: string | undefined = this.getCredentials();
-            this.device = CustomPyAtvInstance.deviceAdvanced({
-                mac: this.device.mac!,
-                airplayCredentials: credentials,
-                companionCredentials: credentials,
-            }) || this.device;
-            this.log.debug(`New internal device: ${this.device}`);
 
             setTimeout(this.createListeners.bind(this), 5000);
 
@@ -1499,12 +1485,10 @@ ${deviceStateDelay}ms is over): ${event.value}`);
         return outputDevices?.map((d) => `${d.name} (${d.identifier})`).join(', ') ?? null;
     }
 
-    private async pair(ip: string, mac: string, appleTVName: string): Promise<string> {
+    private async pair(mac: string, appleTVName: string): Promise<string> {
         this.log.debug('Got empty credentials, initiating pairing process.');
 
-        const ipSplitted: string[] = ip.split('.');
-        const ipEnd: string = ipSplitted[ipSplitted.length - 1];
-        const httpPort: number = 42000 + parseInt(ipEnd);
+        const httpPort: number = 42000 + this.stringToNumberHash(mac) % 1000;
 
         const htmlInputHTML: string = fs.readFileSync(path.join(__dirname, 'html', 'input.html'), 'utf8');
         const htmlAfterPostHTML: string = fs.readFileSync(path.join(__dirname, 'html', 'afterPost.html'), 'utf8');
@@ -1829,6 +1813,12 @@ ${characteristic.props.unit}".`);
 
         this.log.info('Finished initializing');
         this.booted = true;
+    }
+
+    private stringToNumberHash(appId: string): number {
+        const hash: Uint8Array = new Uint8Array(md5(appId, { asBytes: true }));
+        const view: DataView = new DataView(hash.buffer);
+        return view.getUint32(0);
     }
 
     private unmute(): void {

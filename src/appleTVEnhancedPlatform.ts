@@ -169,23 +169,23 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
 
         // loop over the discovered devices and register each one if it has not already been registered
         for (const appleTV of appleTVs) {
-            this.log.debug(`Found ${appleTV.name} (${appleTV.mac} / ${appleTV.host}).`);
+            this.log.debug(`Found ${appleTV.name} (${appleTV.mac}).`);
 
             if (appleTV.mac === undefined || appleTV.mac === null) {
-                this.log.debug(`${appleTV.name} (${appleTV.host}) is skipped since the MAC address could not be determined.`);
+                this.log.debug(`${appleTV.name} is skipped since the MAC address could not be determined.`);
                 continue;
             }
             const mac: string = appleTV.mac.toUpperCase();
 
-            if (
-                this.config.discover?.blacklist &&
-                (
-                    this.config.discover.blacklist.map((e) => e.toUpperCase()).includes(mac) ||
-                    this.config.discover.blacklist.includes(appleTV.host)
-                )
-            ) {
-                this.log.debug(`${appleTV.name} (${appleTV.mac} / ${appleTV.host}) is on the blacklist. Skipping.`);
-                continue;
+            if (this.config.discover?.blacklist) {
+                if (this.config.discover.blacklist.map((e) => e.toUpperCase()).includes(mac)) {
+                    this.log.debug(`${appleTV.name} (${appleTV.mac}) is on the blacklist. Skipping.`);
+                    continue;
+                }
+                if (this.config.discover.blacklist.includes(appleTV.host ?? '')) {
+                    this.log.debug(`${appleTV.name} (${appleTV.host}) is on the blacklist. Skipping.`);
+                    continue;
+                }
             }
 
             // generate a unique id for the accessory this should be generated from
