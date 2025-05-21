@@ -656,14 +656,6 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
                 this.device.removeListener(`update:${characteristic}`, this.pyatvListenerHandlers[characteristic]);
             }
 
-            const credentials: string | undefined = this.getCredentials();
-            this.device = CustomPyAtvInstance.deviceAdvanced({
-                mac: this.device.mac!,
-                airplayCredentials: credentials,
-                companionCredentials: credentials,
-            }) || this.device;
-            this.log.debug(`New internal device: ${this.device}`);
-
             setTimeout(this.createListeners.bind(this), 5000);
 
         }).bind(this));
