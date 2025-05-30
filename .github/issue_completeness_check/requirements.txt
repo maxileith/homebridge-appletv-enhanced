@@ -1,7 +1,7 @@
 certifi==2025.4.26
 cffi==1.17.1
 charset-normalizer==3.4.2
-cryptography==44.0.3
+cryptography==45.0.3
 Deprecated==1.2.18
 idna==3.10
 packaging==25.0
