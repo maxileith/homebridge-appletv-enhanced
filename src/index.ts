@@ -6,6 +6,6 @@ import { AppleTVEnhancedPlatform } from './appleTVEnhancedPlatform';
 /**
  * This method registers the platform with Homebridge
  */
-export = (api: API): void => {
+export default (api: API): void => {
     api.registerPlatform(PLATFORM_NAME, AppleTVEnhancedPlatform);
 };

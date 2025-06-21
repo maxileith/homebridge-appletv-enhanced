@@ -1,6 +1,5 @@
 import fs from 'fs';
 import http, { type IncomingMessage, type ServerResponse } from 'http';
-import type { Characteristic } from 'homebridge';
 import {
     type Service,
     type PlatformAccessory,
@@ -8,6 +7,7 @@ import {
     type Nullable,
     type PrimitiveTypes,
     type ConstructorArgs,
+    type Characteristic,
     Formats,
 } from 'homebridge';
 import type { AppleTVEnhancedPlatform } from './appleTVEnhancedPlatform';
