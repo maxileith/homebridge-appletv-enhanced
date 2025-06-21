@@ -3,7 +3,7 @@ name: Pip Requirements Compatibility Check
 on:
   pull_request:
     paths:
-      - "/requirements.txt"
+      - "/.github/issue_completeness_check/requirements.txt"
   workflow_dispatch:
 
 jobs:
@@ -15,10 +15,6 @@ jobs:
       fail-fast: false
       matrix:
         python:
-          - "3.9"
-          - "3.10"
-          - "3.11"
-          - "3.12"
           - "3.13"
         os:
           - ubuntu-latest
@@ -41,4 +37,4 @@ jobs:
 
       - name: Install dependencies
         shell: bash
-        run: python3 -m pip install -r requirements.txt
+        run: python3 -m pip install -r .github/issue_completeness_check/requirements.txt
