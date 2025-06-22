@@ -91,13 +91,13 @@ This plugin automatically discovers Apple TV devices on the local network and ex
 -   **Python 3.9, 3.10, 3.11, 3.12 or 3.13**
     - Compiled with **OpenSSL 3**
 -   Python virtual environment module `virtualenv`. (the plugin will create a virtual environment on startup and will install python dependencies in this virtual environment)
-    -   On homebridge **[apt-package >=1.1.4](https://github.com/homebridge/homebridge-apt-pkg/releases/tag/1.1.4)** the python module is installed automatically as a dependency, see [homebridge/homebridge-apt-pkg#16](https://github.com/homebridge/homebridge-apt-pkg/issues/16)
-        -   **[raspian image >= 1.1.2](https://github.com/homebridge/homebridge-raspbian-image/releases/tag/v1.1.2)** includes this apt-package, so there is no need to install it manually.
-        -   **[homebridge-docker >= 2023-11-28](https://github.com/homebridge/docker-homebridge/releases/tag/2023-11-28)** includes this apt-package, so there is no need to install it manually.
+    -   On homebridge **[apt-package &#8805; 1.1.4](https://github.com/homebridge/homebridge-apt-pkg/releases/tag/1.1.4)** the python module is installed automatically as a dependency, see [homebridge/homebridge-apt-pkg#16](https://github.com/homebridge/homebridge-apt-pkg/issues/16)
+        -   **[raspian image &#8805; 1.1.2](https://github.com/homebridge/homebridge-raspbian-image/releases/tag/v1.1.2)** includes this apt-package, so there is no need to install it manually.
+        -   **[homebridge-docker &#8805; 2023-11-28](https://github.com/homebridge/docker-homebridge/releases/tag/2023-11-28)** includes this apt-package, so there is no need to install it manually.
     -   Otherwise, the python module `virtualenv` has to be installed manually. This won't be handled by the plugin itself.
         -   On debian-based distros: `sudo apt install python3-venv`
         -   Installation on other distros may vary
--   [Homebridge Config UI >= 4.54.2](https://github.com/homebridge/homebridge-config-ui-x/releases/tag/4.54.2) when creating backups
+-   [Homebridge Config UI &#8805; 4.54.2](https://github.com/homebridge/homebridge-config-ui-x/releases/tag/4.54.2) when creating backups
 -   Apple TV Models with **tvOS 15** and upwards are supported (all 4K ones and the latest HD one)
 -   The access of Speakers & TVs should be either set to "Everybody" or "Anybody On the Same Network" without a password in the Home app
     -   Additionally, make sure to check the TV's HomeKit settings.
