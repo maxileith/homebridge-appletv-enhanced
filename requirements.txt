@@ -13,7 +13,7 @@ frozenlist==1.7.0
 idna==3.10
 ifaddr==0.2.0
 miniaudio==1.61
-multidict==6.5.0
+multidict==6.6.0
 mutagen==1.47.0
 propcache==0.3.2
 protobuf==5.29.5
