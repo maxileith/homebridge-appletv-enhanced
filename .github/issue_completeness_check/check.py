@@ -120,7 +120,7 @@ def check_docker_image_version(b: str):
     output = []
     optional_output = []
 
-    tag_regex = re.compile("^\d{4}-\d{2}-\d{2}$")
+    tag_regex = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
     if version == "latest":
         output.append(
@@ -173,7 +173,7 @@ def check_homebridge_version(b: str):
     output = []
     optional_output = []
 
-    version_pattern = re.compile("^\d+\.\d+\.\d+(-(beta|alpha)\.\d+)?$")
+    version_pattern = re.compile(r"^\d+\.\d+\.\d+(-(beta|alpha)\.\d+)?$")
 
     min_homebridge_version = (
         package_json["engines"]["homebridge"].split("||")[0][1:].strip()
@@ -210,7 +210,7 @@ def check_homebridge_config_ui_version(b: str):
     output = []
     optional_output = []
 
-    version_pattern = re.compile("^\d+\.\d+\.\d+(-(beta|alpha)\.\d+)?$")
+    version_pattern = re.compile(r"^\d+\.\d+\.\d+(-(beta|alpha)\.\d+)?$")
 
     if not version_pattern.match(version):
         output.append(
@@ -244,7 +244,7 @@ def check_storage_path(b: str):
         .strip()
     )
 
-    path_pattern = re.compile("^(\/([a-zA-Z0-9_\-\.]|\\\s)+)+\/?$")
+    path_pattern = re.compile(r"^(\/([a-zA-Z0-9_\-\.]|\\\s)+)+\/?$")
 
     output = []
     optional_output = []
@@ -270,7 +270,7 @@ def check_homebridge_appletv_enhanced_version(b: str):
     output = []
     optional_output = []
 
-    version_pattern = re.compile("^\d+\.\d+\.\d+(-\d+)?$")
+    version_pattern = re.compile(r"^\d+\.\d+\.\d+(-\d+)?$")
 
     if not version_pattern.match(version):
         output.append(
@@ -302,7 +302,7 @@ def check_node_version(b: str, github):
     output = []
     optional_output = []
 
-    version_pattern = re.compile("^v\d+\.\d+\.\d+?$")
+    version_pattern = re.compile(r"^v\d+\.\d+\.\d+?$")
 
     if not version_pattern.match(version):
         output.append(
@@ -352,7 +352,7 @@ def check_npm_version(b: str):
     output = []
     optional_output = []
 
-    version_pattern = re.compile("^\d+\.\d+\.\d+$")
+    version_pattern = re.compile(r"^\d+\.\d+\.\d+$")
 
     if not version_pattern.match(version):
         output.append(
@@ -369,18 +369,17 @@ def check_npm_version(b: str):
 def check_python_version(b: str):
     version = b.split("### Python Version", 1)[1].split("### PIP Version")[0].strip()
 
-    if version[0].lower() == "v":
-        version = version[1:]
-
     output = []
     optional_output = []
 
-    version_pattern = re.compile("^(Python\s)?\d+\.\d+\.\d+", re.IGNORECASE)
-    if not version_pattern.match(version):
+    version_pattern = re.compile(r"^(Python\s)?(\d+\.\d+\.\d+)", re.IGNORECASE)
+    match = version_pattern.search(version)
+    if not match:
         output.append(
             f"The Python version {version} does not match the expected version pattern of Python. Please provide a version that exists, e.g. 3.11.6. Remember that the version that you are providing should include the patch version."
         )
     else:
+        version = match.group(2)
         accepted_versions = []
         with open("src/PythonChecker.ts", "r", encoding="utf-8") as f:
             content = f.read()
@@ -402,7 +401,7 @@ def check_python_version(b: str):
 
         if not valid_version:
             output.append(
-                f"Your Python version {version} is not supported. Please **install a supported Python version**, e.g. {accepted_versions[-1]}"
+                f"Your Python version {version} is not supported. Please **install a supported Python version**, e.g. {accepted_versions[-1]}.0"
             )
 
     return output, optional_output
@@ -417,7 +416,7 @@ def check_pip_version(b: str):
     output = []
     optional_output = []
 
-    version_pattern = re.compile("^(Pip\s)?\d+\.\d+(\.\d+)?", re.IGNORECASE)
+    version_pattern = re.compile(r"^(Pip\s)?\d+\.\d+(\.\d+)?", re.IGNORECASE)
 
     if not version_pattern.match(version):
         output.append(
