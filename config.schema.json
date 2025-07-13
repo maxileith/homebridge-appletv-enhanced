@@ -24,7 +24,7 @@
                     "type": "string",
                     "enum": ["music", "tv", "unknown", "video"]
                 },
-                "required": true
+                "required": false
             },
             "deviceStates": {
                 "title": "Device States as Motion Sensors",
@@ -43,7 +43,7 @@
                         "stopped"
                     ]
                 },
-                "required": true
+                "required": false
             },
             "deviceStateDelay": {
                 "title": "Device State Delay (seconds)",
@@ -51,7 +51,7 @@
                 "type": "integer",
                 "default": 0,
                 "placeholder": 0,
-                "required": true,
+                "required": false,
                 "minimum": 0,
                 "maximum": 15
             },
@@ -90,7 +90,7 @@
                         "volume_up"
                     ]
                 },
-                "required": true
+                "required": false
             },
             "avadaKedavraAppAmount": {
                 "title": "Avada Kedavra App Amount",
@@ -98,7 +98,7 @@
                 "type": "integer",
                 "default": 15,
                 "placeholder": 15,
-                "required": true,
+                "required": false,
                 "minimum": 5,
                 "maximum": 35
             },
@@ -107,7 +107,7 @@
                 "description": "Provide URIs for custom Inputs that open the URI on the Apple TV when selected.",
                 "type": "array",
                 "default": [],
-                "required": true,
+                "required": false,
                 "items": {
                     "type": "string",
                     "title": "URI",
@@ -120,33 +120,33 @@
                 "description": "Disables the volume control in the iOS remote. It is recommended to disable volume control when the audio setup that the Apple TV is connected to does not support HDMI-CEC since the Apple TV does not have any control over the volume in this scenario anyways.",
                 "type": "boolean",
                 "default": false,
-                "required": true
+                "required": false
             },
             "absoluteVolumeControl": {
                 "title": "Absolute volume control (fan)",
                 "description": "Exposes a fan that let's you control the volume in percentage. This does only work with your audio output does allow absolute volume control like on certain HDMI-CEC setups or if using HomePods.",
                 "type": "boolean",
                 "default": false,
-                "required": true
+                "required": false
             },
             "setTopBox": {
                 "title": "Expose Set-Top Box Accessory",
                 "description": "Instead of exposing an Apple TV accessory, the plugin will expose a set-top box accessory. You need to repair the accessory with your Home app in order to see the changes.",
                 "type": "boolean",
                 "default": false,
-                "required": true
+                "required": false
             },
             "discover": {
                 "title": "Discover",
                 "type": "object",
-                "required": true,
+                "required": false,
                 "properties": {
                     "multicast": {
                         "title": "Multicast",
                         "description": "The default and recommended way to discover Apple TVs.",
                         "type": "boolean",
                         "default": true,
-                        "required": true
+                        "required": false
                     },
                     "unicast": {
                         "title": "Unicast",
@@ -159,7 +159,7 @@
                             "format": "ipv4",
                             "placeholder": "192.168.0.42"
                         },
-                        "required": true
+                        "required": false
                     },
                     "blacklist": {
                         "title": "Blacklist",
@@ -172,7 +172,7 @@
                             "pattern": "^(((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)(\\.(?!$)|$)){4}|([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2})$",
                             "placeholder": "AA:BB:CC:DD:EE:FF / 192.168.0.42"
                         },
-                        "required": true
+                        "required": false
                     }
                 }
             },
@@ -181,7 +181,7 @@
                 "description": "Set this to force to recreate the virtual python environment with the next restart of the plugin. Remember to set this option to false after the virtual environment has been recreated.",
                 "type": "boolean",
                 "default": false,
-                "required": true
+                "required": false
             },
             "logLevel": {
                 "title": "Log Level",
@@ -190,7 +190,7 @@
                 "default": 3,
                 "minimum": 0,
                 "maximum": 5,
-                "required": true,
+                "required": false,
                 "oneOf": [
                     {
                         "title": "None",
@@ -227,7 +227,7 @@
                     { "title": "beta", "enum": ["beta"] },
                     { "title": "stable", "enum": ["stable"] }
                 ],
-                "required": true
+                "required": false
             },
             "autoUpdate": {
                 "title": "Auto Update",
@@ -238,7 +238,8 @@
                     { "title": "On", "enum": ["on"] },
                     { "title": "Off", "enum": ["off"] }
                 ],
-                "required": true
+                "default": "auto",
+                "required": false
             },
             "updateCheckTime": {
                 "title": "Update Check Time",
@@ -270,7 +271,7 @@
                     { "title": "22:00 - 22:59", "enum": [22] },
                     { "title": "23:00 - 23:59", "enum": [23] }
                 ],
-                "required": true,
+                "required": false,
                 "minimum": 0,
                 "maximum": 23,
                 "default": 3
@@ -287,7 +288,7 @@
                 "description": "Define custom PyATV commands or sequences of commands and expose them as switches. Please refer to the PyATV documentation (https://pyatv.dev/documentation/atvremote/). Keep in mind that this is an advanced feature which can lead to errors when configured incorrectly.",
                 "type": "array",
                 "default": [],
-                "required": true,
+                "required": false,
                 "items": {
                     "type": "object",
                     "properties": {
@@ -297,7 +298,7 @@
                             "type": "string",
                             "placeholder": "App Drawer",
                             "required": true,
-                            "pattern": "^\\S.*\\S$",
+                            "pattern": "^\\S(.*\\S)?$",
                             "maxLength": 64
                         },
                         "command": {
@@ -315,7 +316,7 @@
                 "title": "Device Specific Overrides",
                 "type": "array",
                 "default": [],
-                "required": true,
+                "required": false,
                 "items": {
                     "type": "object",
                     "properties": {
@@ -324,7 +325,7 @@
                             "description": "MAC address of the Apple TV for which these overrides should apply. You can get the MAC address from the logs easily.",
                             "type": "string",
                             "placeholder": "AA:BB:CC:DD:EE:FF",
-                            "required": true,
+                            "required": false,
                             "pattern": "^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$"
                         },
                         "overrideMediaTypes": {
@@ -342,7 +343,7 @@
                                 "enum": ["music", "tv", "unknown", "video"]
                             },
                             "default": [],
-                            "required": true
+                            "required": false
                         },
                         "overrideDeviceStates": {
                             "title": "Override: Device States as Motion Sensors",
@@ -366,7 +367,7 @@
                                     "stopped"
                                 ]
                             },
-                            "required": true
+                            "required": false
                         },
                         "overrideDeviceStateDelay": {
                             "title": "Override: Device State Delay (seconds)",
@@ -378,7 +379,7 @@
                             "title": "Device State Delay (seconds)",
                             "type": "integer",
                             "placeholder": 0,
-                            "required": true,
+                            "required": false,
                             "minimum": 0,
                             "maximum": 15,
                             "default": 0
@@ -423,7 +424,7 @@
                                     "volume_up"
                                 ]
                             },
-                            "required": true
+                            "required": false
                         },
                         "overrideCustomPyatvCommands": {
                             "title": "Override: Custom PyATV Commands",
@@ -435,7 +436,7 @@
                             "title": "Custom PyATV Commands",
                             "type": "array",
                             "default": [],
-                            "required": true,
+                            "required": false,
                             "items": {
                                 "type": "object",
                                 "properties": {
@@ -444,7 +445,7 @@
                                         "type": "string",
                                         "placeholder": "App Drawer",
                                         "required": true,
-                                        "pattern": "^\\S.*\\S$",
+                                        "pattern": "^\\S(.*\\S)?$",
                                         "maxLength": 64
                                     },
                                     "command": {
@@ -467,7 +468,7 @@
                             "title": "Avada Kedavra App Amount",
                             "type": "integer",
                             "placeholder": 15,
-                            "required": true,
+                            "required": false,
                             "minimum": 5,
                             "maximum": 35,
                             "default": 15
@@ -482,7 +483,7 @@
                             "title": "Custom Input URIs",
                             "type": "array",
                             "default": [],
-                            "required": true,
+                            "required": false,
                             "items": {
                                 "type": "string",
                                 "title": "URI",
@@ -500,7 +501,7 @@
                             "title": "Disable volume control in iOS remote",
                             "type": "boolean",
                             "default": false,
-                            "required": true
+                            "required": false
                         },
                         "overrideAbsoluteVolumeControl": {
                             "title": "Override: Absolute volume control (fan)",
@@ -512,7 +513,7 @@
                             "title": "Absolute volume control (fan)",
                             "type": "boolean",
                             "default": false,
-                            "required": true
+                            "required": false
                         },
                         "overrideSetTopBox": {
                             "title": "Override: Expose Set-Top Box Accessory",
@@ -524,7 +525,7 @@
                             "title": "Expose Set-Top Box Accessory",
                             "type": "boolean",
                             "default": false,
-                            "required": true
+                            "required": false
                         }
                     }
                 }

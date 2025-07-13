@@ -75,6 +75,10 @@ updates:
         patterns:
           - "cryptography"
           - "chacha20poly1305-reuseable"
+      aio:
+        patterns:
+          - "aiosignal"
+          - "aiohttp"
 
   # Enable version updates for GitHub Actions
   - package-ecosystem: github-actions
