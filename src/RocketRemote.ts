@@ -21,8 +21,7 @@ class RocketRemote {
     public constructor(
         private readonly mac: string,
         private readonly atvremotePath: string,
-        private readonly airplayCredentials: string,
-        private readonly companionCredentials: string,
+        private readonly credentials: string,
         logger: LogLevelLogger | PrefixLogger,
         avadaKedavraNumberOfApps: number,
     ) {
@@ -243,13 +242,13 @@ class RocketRemote {
 
     private initHeartbeat(): void {
         this.heartbeatInterval = setInterval(() => {
-            if (this.lastCommandSend + 45000 < Date.now()) {
+            if (this.lastCommandSend + 6000 < Date.now()) {
                 this.sendCommand('power_state', true);
             } else {
                 const secondsFromLastCommand: number = Math.round((Date.now() - this.lastCommandSend) / 1000);
                 this.log.debug(`Skipping heartbeat since last command was only ${secondsFromLastCommand}s before.`);
             }
-        }, 60000);
+        }, 10000);
     }
 
     private spawnATVRemote(
@@ -258,8 +257,8 @@ class RocketRemote {
     ): ChildProcessWithoutNullStreams {
         const finalArgs: string[] = [
             '--id', this.mac,
-            '--companion-credentials', this.companionCredentials,
-            '--airplay-credentials', this.airplayCredentials,
+            '--companion-credentials', this.credentials,
+            '--airplay-credentials', this.credentials,
         ];
         if (args !== undefined) {
             finalArgs.push(...args);

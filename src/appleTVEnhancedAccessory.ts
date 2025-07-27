@@ -773,7 +773,6 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
             this.device.mac!,
             CustomPyAtvInstance.getAtvremotePath(),
             this.getCredentials()!,
-            this.getCredentials()!,
             this.log,
             this.config.avadaKedavraAppAmount ?? 15,
         );
@@ -783,7 +782,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         }).bind(this));
 
         this.rocketRemote.onClose((async (): Promise<void> => {
-            await delay(5000);
+            await delay(2500);
             this.createRemote();
         }).bind(this));
     }
@@ -1545,7 +1544,6 @@ http://${localIP}:${httpPort}/. Then, enter the pairing code that will be displa
                 '--id', mac,
                 '--protocol', 'companion',
                 '--remote-name', `Homebridge AppleTV Enhanced (${localIP})`,
-                '--storage', 'none',
                 'pair',
             ]);
             process.stderr.setEncoding('utf8');

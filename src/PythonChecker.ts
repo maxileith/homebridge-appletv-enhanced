@@ -1,5 +1,4 @@
 import path from 'path';
-import type { Dirent } from 'fs';
 import fs from 'fs';
 import { delay, normalizePath, runCommand } from './utils';
 import PrefixLogger from './PrefixLogger';
@@ -61,7 +60,6 @@ class PythonChecker {
         await this.ensureVenvPipUpToDate();
         await this.ensureOpenSSLVersion();
         await this.ensureVenvRequirementsSatisfied();
-        await this.updateApiPy();
 
         this.log.success('Finished');
     }
@@ -361,43 +359,6 @@ systems default python installation.`);
         }
 
         return success;
-    }
-
-    private async updateApiPy(): Promise<void> {
-        this.log.info('Downloading a temporary fix for the TvOS 18.4 connection issue. Refer to this GitHub issue for more information: \
-https://github.com/maxileith/homebridge-appletv-enhanced/issues/953');
-
-        // download Api.py
-        let response: AxiosResponse | undefined = undefined;
-        try {
-            response = await axios.get('https://raw.githubusercontent.com/postlund/pyatv/3fe8e36caf1977d2c7dced4767ada12c95a3e7c3/pyatv/\
-protocols/companion/api.py', { timeout: 30000 }) as AxiosResponse;
-            this.log.success('Successfully downloaded the fix');
-            this.log.debug(`\n${response.data}`);
-        } catch (e: unknown) {
-            if (e instanceof Error) {
-                this.log.warn(`Failed to download the fix, continuing without downloading the fix. (${e.name}: ${e.message})`);
-                return;
-            } else {
-                throw e;
-            }
-        }
-
-        // write Api.pyconst requirementsPath: string =
-        this.log.info('Installing the fix');
-        const libPath: string = path.join(this.venvPath, 'lib');
-        const pythonDir: Dirent | undefined = fs.readdirSync(libPath, { withFileTypes: true }).find((e) => e.isDirectory());
-        if (pythonDir === undefined) {
-            this.log.warn('Failed to determine the location where the fix needs to be installed. Continuing without installing the fix.');
-            return;
-        }
-        const apiPyPath: string = path.join(libPath, pythonDir.name, 'site-packages', 'pyatv', 'protocols', 'companion', 'api.py');
-        if (fs.existsSync(apiPyPath)) {
-            fs.writeFileSync(apiPyPath, response.data, { encoding: 'utf8', flag: 'w' });
-            this.log.success('Successfully installed the fix');
-        } else {
-            this.log.warn('Failed to determine the location where the fix needs to be installed. Continuing without installing the fix.');
-        }
     }
 
     private async updatePip(): Promise<boolean> {
