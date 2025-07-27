@@ -11,8 +11,8 @@ class RocketRemote {
     private heartbeatInterval?: NodeJS.Timeout;
     private lastCommandSend: number = 0;
     private readonly log: PrefixLogger;
-    private onCloseCallable?: (() => Promise<void> | void) = undefined;
-    private onHomeCallable?: (() => Promise<void> | void) = undefined;
+    private onCloseCallable?: () => Promise<void> | void = undefined;
+    private onHomeCallable?: () => Promise<void> | void = undefined;
     private readonly process: ChildProcessWithoutNullStreams;
 
     private readonly stderrListener = this.stderrLog.bind(this);
