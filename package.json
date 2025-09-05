@@ -26,7 +26,7 @@
     ],
     "engines": {
         "homebridge": "^1.11.0 || ^2.0.0-beta.0",
-        "node": "^22.17.1 || ^20.19.4"
+        "node": "^22.17.1 || ^20.19.5"
     },
     "type": "commonjs",
     "keywords": [
