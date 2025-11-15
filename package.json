@@ -78,7 +78,7 @@
         "eslint": "^9.39.1",
         "homebridge": "^1.11.1",
         "homebridge-config-ui-x": "^5.9.0",
-        "nodemon": "^3.1.10",
+        "nodemon": "^3.1.11",
         "rimraf": "^6.1.0",
         "standard-version": "^9.5.0",
         "ts-node": "^10.9.2",
