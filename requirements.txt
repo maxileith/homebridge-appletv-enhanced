@@ -15,7 +15,7 @@ ifaddr==0.2.0
 miniaudio==1.61
 multidict==6.7.0
 propcache==0.3.2
-protobuf==5.29.5
+protobuf==6.33.1
 pyatv==0.16.0
 pycparser==2.23
 pydantic==2.12.4
