@@ -17,7 +17,7 @@ multidict==6.7.0
 propcache==0.3.2
 protobuf==5.29.5
 pyatv==0.16.0
-pycparser==2.22
+pycparser==2.23
 pydantic==2.12.4
 pydantic_core==2.41.5
 requests==2.32.4
