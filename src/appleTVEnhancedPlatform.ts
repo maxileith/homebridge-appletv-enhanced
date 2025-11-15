@@ -75,8 +75,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             CustomPyAtvInstance.setStoragePath(this.api.user.storagePath());
 
             if (
-                this.config.discover !== undefined &&
-                this.config.discover.multicast === false &&
+                this.config.discover?.multicast === false &&
                 (this.config.discover.unicast === undefined || this.config.discover.unicast.length === 0)
             ) {
                 this.log.error('Neither multicast nor unicast discovery is enabled.');

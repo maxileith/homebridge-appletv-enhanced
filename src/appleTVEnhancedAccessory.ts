@@ -369,7 +369,7 @@ remaining)`);
         }
     }
 
-    private createDeviceStateSensors(): void {
+    private createDeviceStateSensors(currentDeviceState: NodePyATVDeviceState | null): void {
         const deviceStates: NodePyATVDeviceState[] = Object.keys(NodePyATVDeviceState) as NodePyATVDeviceState[];
         for (const deviceState of deviceStates) {
             if (this.config.deviceStates === undefined || this.config.deviceStates.includes(deviceState) === false) {
@@ -382,7 +382,7 @@ remaining)`);
                 this.addServiceSave(this.platform.service.MotionSensor, name, deviceState)!;
             s.addOptionalCharacteristic(this.platform.characteristic.ConfiguredName);
             s
-                .setCharacteristic(this.platform.characteristic.MotionDetected, false)
+                .setCharacteristic(this.platform.characteristic.MotionDetected, currentDeviceState === deviceState)
                 .setCharacteristic(this.platform.characteristic.Name, name)
                 .setCharacteristic(this.platform.characteristic.ConfiguredName, configuredName);
             s.getCharacteristic(this.platform.characteristic.ConfiguredName)
@@ -661,7 +661,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         }).bind(this));
     }
 
-    private createMediaTypeSensors(): void {
+    private createMediaTypeSensors(currentMediaType: NodePyATVMediaType | null): void {
         const mediaTypes: NodePyATVMediaType[] = Object.keys(NodePyATVMediaType) as NodePyATVMediaType[];
         for (const mediaType of mediaTypes) {
             if (this.config.mediaTypes === undefined || this.config.mediaTypes.includes(mediaType) === false) {
@@ -674,7 +674,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
                 this.addServiceSave(this.platform.service.MotionSensor, name, mediaType)!;
             s.addOptionalCharacteristic(this.platform.characteristic.ConfiguredName);
             s
-                .setCharacteristic(this.platform.characteristic.MotionDetected, false)
+                .setCharacteristic(this.platform.characteristic.MotionDetected, currentMediaType === mediaType)
                 .setCharacteristic(this.platform.characteristic.Name, name)
                 .setCharacteristic(this.platform.characteristic.ConfiguredName, configuredName);
             s.getCharacteristic(this.platform.characteristic.ConfiguredName)
@@ -1184,7 +1184,7 @@ plugin after you have fixed the root cause. Enable debug logging to see the orig
                     this.mediaTypeServices[mediaType] &&
                     this.deviceStateServices[deviceState]
                 ) {
-                    this.log.info(`New Media Type State: ${mediaType}`);
+                    this.log.info(`New Media Type: ${mediaType}`);
                     this.mediaTypeServices[mediaType]!.updateCharacteristic(this.platform.characteristic.MotionDetected, true);
                     this.log.info(`New Device State: ${deviceState}`);
                     this.deviceStateServices[deviceState]!.updateCharacteristic(this.platform.characteristic.MotionDetected, true);
@@ -1351,7 +1351,7 @@ ${deviceStateDelay}ms is over): ${event.value}`);
         if (this.service!.getCharacteristic(this.platform.characteristic.Active).value === this.platform.characteristic.Active.INACTIVE) {
             return;
         }
-        this.log.info(`New Media Type State: ${event.value}`);
+        this.log.info(`New Media Type: ${event.value}`);
         if (event.value !== null && this.mediaTypeServices[event.value] !== undefined) {
             const s: Service = this.mediaTypeServices[event.value];
             s.updateCharacteristic(this.platform.characteristic.MotionDetected, true);
@@ -1791,8 +1791,12 @@ ${characteristic.props.unit}".`);
         this.createTelevisionSpeaker();
 
         // create input and sensor services
-        this.createDeviceStateSensors();
-        this.createMediaTypeSensors();
+        const currentDeviceState: NodePyATVDeviceState | null =
+            await this.device.getPowerState() === NodePyATVPowerState.on ? await this.device.getDeviceState() : null;
+        this.createDeviceStateSensors(currentDeviceState);
+        const currentMediaType: NodePyATVMediaType | null =
+            await this.device.getPowerState() === NodePyATVPowerState.on ? await this.device.getMediaType() : null;
+        this.createMediaTypeSensors(currentMediaType);
         this.createRemoteKeysAsSwitches();
         await this.createVolumeFan();
         this.createAvadaKedavra();
@@ -1812,6 +1816,14 @@ ${characteristic.props.unit}".`);
         this.startPositionUpdate();
 
         this.log.info('Finished initializing');
+
+        if (currentMediaType !== null) {
+            this.log.info(`New Media Type: ${currentMediaType}`);
+        }
+        if (currentDeviceState !== null) {
+            this.log.info(`New Device State: ${currentDeviceState}`);
+        }
+
         this.booted = true;
     }
 

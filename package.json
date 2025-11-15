@@ -1,12 +1,13 @@
 {
     "name": "homebridge-appletv-enhanced",
     "displayName": "Apple TV Enhanced",
-    "version": "1.13.2",
+    "version": "1.14.0-0",
     "description": "Plugin that exposes the Apple TV to HomeKit with much richer features than the vanilla Apple TV implementation of HomeKit.",
     "main": "dist/index.js",
     "author": "Maximilian Leith",
     "scripts": {
         "lint": "eslint src/**.ts --max-warnings=0",
+        "lintFix": "eslint src/**.ts --max-warnings=0 --fix",
         "watch": "npm run build && npm link && APPLETV_ENHANCED_DEV=true nodemon",
         "build": "npm ci --no-audit --no-fund && rimraf -I ./dist && npm run lint && tsc && mkdir ./dist/html && cp -r ./src/html ./dist",
         "prepublishOnly": "npm run build",
@@ -24,8 +25,8 @@
         "arm64"
     ],
     "engines": {
-        "homebridge": "^1.10.0 || ^2.0.0-beta.0",
-        "node": "^22.17.0 || ^20.19.3"
+        "homebridge": "^1.11.0 || ^2.0.0-beta.0",
+        "node": "^24.11.0 || ^22.21.1 || ^20.19.5"
     },
     "type": "commonjs",
     "keywords": [
@@ -67,26 +68,25 @@
         "url": "http://github.com/maxileith/homebridge-appletv-enhanced/issues"
     },
     "devDependencies": {
-        "@eslint/js": "^9.31.0",
-        "@stylistic/eslint-plugin-js": "^4.4.1",
-        "@stylistic/eslint-plugin-ts": "^4.4.1",
+        "@eslint/js": "^9.39.1",
+        "@stylistic/eslint-plugin": "^5.5.0",
         "@types/fs-extra": "^11.0.4",
-        "@types/md5": "^2.3.5",
-        "@types/node": "^24.0.13",
-        "@typescript-eslint/eslint-plugin": "^8.36.0",
+        "@types/md5": "^2.3.6",
+        "@types/node": "^24.10.1",
+        "@typescript-eslint/eslint-plugin": "^8.46.4",
         "@typescript-eslint/parser": "^8.32.1",
-        "eslint": "^9.31.0",
-        "homebridge": "^1.10.0",
-        "homebridge-config-ui-x": "^4.80.0",
-        "nodemon": "^3.1.10",
-        "rimraf": "^6.0.1",
+        "eslint": "^9.39.1",
+        "homebridge": "^1.11.1",
+        "homebridge-config-ui-x": "^5.9.0",
+        "nodemon": "^3.1.11",
+        "rimraf": "^6.1.0",
         "standard-version": "^9.5.0",
         "ts-node": "^10.9.2",
-        "typescript": "^5.8.3"
+        "typescript": "^5.9.3"
     },
     "dependencies": {
-        "@sebbo2002/node-pyatv": "^9.0.1",
-        "axios": "^1.10.0",
+        "@sebbo2002/node-pyatv": "^9.0.2",
+        "axios": "^1.13.2",
         "compare-versions": "^6.1.1",
         "fs-extra": "^11.3.0",
         "md5": "^2.3.0"
