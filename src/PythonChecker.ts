@@ -373,7 +373,7 @@ https://github.com/maxileith/homebridge-appletv-enhanced/issues/953');
             response = await axios.get('https://raw.githubusercontent.com/postlund/pyatv/3fe8e36caf1977d2c7dced4767ada12c95a3e7c3/pyatv/\
 protocols/companion/api.py', { timeout: 30000 }) as AxiosResponse;
             this.log.success('Successfully downloaded the fix');
-            this.log.debug(`\n${response.data}`);
+            this.log.verbose(`\n${response.data}`);
         } catch (e: unknown) {
             if (e instanceof Error) {
                 this.log.warn(`Failed to download the fix, continuing without downloading the fix. (${e.name}: ${e.message})`);
