@@ -79,7 +79,7 @@
         "homebridge": "^1.11.1",
         "homebridge-config-ui-x": "^5.9.0",
         "nodemon": "^3.1.11",
-        "rimraf": "^6.1.0",
+        "rimraf": "^6.1.2",
         "standard-version": "^9.5.0",
         "ts-node": "^10.9.2",
         "typescript": "^5.9.3"
