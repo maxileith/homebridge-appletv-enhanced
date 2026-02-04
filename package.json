@@ -25,8 +25,8 @@
         "arm64"
     ],
     "engines": {
-        "homebridge": "^1.11.0 || ^2.0.0-beta.0",
-        "node": "^24.11.0 || ^22.21.1 || ^20.19.5"
+        "homebridge": "^1.11.1 || ^2.0.0-beta.0",
+        "node": "^24.13.0 || ^22.22.0 || ^20.20.0"
     },
     "type": "commonjs",
     "keywords": [
@@ -68,25 +68,25 @@
         "url": "http://github.com/maxileith/homebridge-appletv-enhanced/issues"
     },
     "devDependencies": {
-        "@eslint/js": "^9.39.1",
-        "@stylistic/eslint-plugin": "^5.5.0",
+        "@eslint/js": "^9.39.2",
+        "@stylistic/eslint-plugin": "^5.7.1",
         "@types/fs-extra": "^11.0.4",
         "@types/md5": "^2.3.6",
-        "@types/node": "^24.10.1",
-        "@typescript-eslint/eslint-plugin": "^8.46.4",
-        "@typescript-eslint/parser": "^8.32.1",
-        "eslint": "^9.39.1",
+        "@types/node": "^24.10.10",
+        "@typescript-eslint/eslint-plugin": "^8.54.0",
+        "@typescript-eslint/parser": "^8.54.0",
+        "eslint": "^9.39.2",
         "homebridge": "^1.11.1",
-        "homebridge-config-ui-x": "^5.9.0",
+        "homebridge-config-ui-x": "^5.15.2",
         "nodemon": "^3.1.11",
-        "rimraf": "^6.1.0",
+        "rimraf": "^6.1.2",
         "standard-version": "^9.5.0",
         "ts-node": "^10.9.2",
         "typescript": "^5.9.3"
     },
     "dependencies": {
         "@sebbo2002/node-pyatv": "^9.0.2",
-        "axios": "^1.13.2",
+        "axios": "^1.13.4",
         "compare-versions": "^6.1.1",
         "fs-extra": "^11.3.0",
         "md5": "^2.3.0"
