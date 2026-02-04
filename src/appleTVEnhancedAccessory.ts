@@ -45,7 +45,6 @@ import PrefixLogger from './PrefixLogger';
 import { DisplayOrderTypes, PyATVCustomCharacteristicID, RocketRemoteKey } from './enums';
 import type { TDeviceStateConfigs, TMediaConfigs, TRemoteKeysAsSwitchConfigs } from './types';
 import RocketRemote from './RocketRemote';
-import tvOS18InputBugSolver from './tvOS18InputBugSolver';
 import { newPyatvCharacteristic, newStringCharacteristic } from './Characteristics';
 
 const HIDE_BY_DEFAULT_APPS: string[] = [
@@ -124,8 +123,6 @@ export class AppleTVEnhancedAccessory {
         this.log = new PrefixLogger(this.platform.logLevelLogger, `${this.device.name} (${this.device.mac})`);
 
         this.log.debug(`Accessory Config: ${JSON.stringify(this.config)}`);
-
-        tvOS18InputBugSolver(this.log, this.platform.api.user.storagePath(), this.device.mac!);
 
         const credentials: string | undefined = this.getCredentials();
         this.device = CustomPyAtvInstance.deviceAdvanced({
