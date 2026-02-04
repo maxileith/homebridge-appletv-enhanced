@@ -14,7 +14,6 @@ const supportedPythonVersions: string[] = [
     '3.11',
     '3.12',
     '3.13',
-    '3.14',
 ];
 
 const MIN_OPENSSL_VERSION: string = '3.0.0';
