@@ -721,6 +721,12 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
 
     private async createPyATVCharacteristics(): Promise<void> {
         for (const pyatvChar of Object.values(PyATVCustomCharacteristicID)) {
+
+            if (this.config.disableCharacteristics === true) {
+                this.service?.removeCharacteristic(newPyatvCharacteristic(this.platform.api.hap, pyatvChar));
+                continue;
+            }
+
             const characteristic: Characteristic =
                 this.service!.addCharacteristic(newPyatvCharacteristic(this.platform.api.hap, pyatvChar));
             this.pyatvCharacteristics[pyatvChar] = characteristic;
@@ -855,6 +861,15 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
     }
 
     private createTelevisionSpeaker(): void {
+
+        if (this.config.disableSpeaker === true) {
+            const existingService: Service | undefined = this.accessory.getService('televisionSpeaker');
+            if (existingService !== undefined) {
+                this.accessory.removeService(existingService);
+            }
+            return;
+        }
+
         this.log.debug('Adding television speaker.');
 
         this.televisionSpeakerService = this.accessory.getService('televisionSpeaker') ||
@@ -1799,14 +1814,10 @@ ${characteristic.props.unit}".`);
         this.log.setPrefix(`${configuredName} (${this.device.mac})`);
 
         // create pyatv characteristics
-        if (this.config.disableCharacteristics !== true) {
-            await this.createPyATVCharacteristics();
-        }
+        await this.createPyATVCharacteristics();
 
         // create television speaker
-        if (this.config.disableSpeaker !== true) {
-            this.createTelevisionSpeaker();
-        }
+        this.createTelevisionSpeaker();
 
         // create sensor services
         const currentDeviceState: NodePyATVDeviceState | null =
