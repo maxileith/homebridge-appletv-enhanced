@@ -246,6 +246,18 @@ remaining)`);
         if (override.overrideCustomPyatvCommands === true) {
             config.customPyatvCommands = override.customPyatvCommands;
         }
+        if (override.overrideDisableCharacteristics === true) {
+            config.disableCharacteristics = override.disableCharacteristics;
+        }
+        if (override.overrideDisableInputs === true) {
+            config.disableInputs = override.disableInputs;
+        }
+        if (override.overrideDisableRemote === true) {
+            config.disableRemote = override.disableRemote;
+        }
+        if (override.overrideDisableSpeaker === true) {
+            config.disableSpeaker = override.disableSpeaker;
+        }
         if (override.overrideDisableVolumeControlRemote === true) {
             config.disableVolumeControlRemote = override.disableVolumeControlRemote;
         }
@@ -632,12 +644,14 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         this.device.on('update:mediaType', mediaTypeListener);
         this.device.on('update:volume', volumeListener);
 
-        for (const characteristicID of Object.values(PyATVCustomCharacteristicID)) {
-            const handler: (e: Error | NodePyATVDeviceEvent) => void = (e): void => {
-                pyatvCharacteristicListener(e, characteristicID);
-            };
-            this.pyatvListenerHandlers[characteristicID] = handler;
-            this.device.on(`update:${characteristicID}`, handler);
+        if (this.config.disableCharacteristics !== true) {
+            for (const characteristicID of Object.values(PyATVCustomCharacteristicID)) {
+                const handler: (e: Error | NodePyATVDeviceEvent) => void = (e): void => {
+                    pyatvCharacteristicListener(e, characteristicID);
+                };
+                this.pyatvListenerHandlers[characteristicID] = handler;
+                this.device.on(`update:${characteristicID}`, handler);
+            }
         }
 
         this.device.once('error', ((e: Error | NodePyATVDeviceEvent): void => {
@@ -1785,12 +1799,16 @@ ${characteristic.props.unit}".`);
         this.log.setPrefix(`${configuredName} (${this.device.mac})`);
 
         // create pyatv characteristics
-        await this.createPyATVCharacteristics();
+        if (this.config.disableCharacteristics !== true) {
+            await this.createPyATVCharacteristics();
+        }
 
         // create television speaker
-        this.createTelevisionSpeaker();
+        if (this.config.disableSpeaker !== true) {
+            this.createTelevisionSpeaker();
+        }
 
-        // create input and sensor services
+        // create sensor services
         const currentDeviceState: NodePyATVDeviceState | null =
             await this.device.getPowerState() === NodePyATVPowerState.on ? await this.device.getDeviceState() : null;
         this.createDeviceStateSensors(currentDeviceState);
@@ -1799,18 +1817,26 @@ ${characteristic.props.unit}".`);
         this.createMediaTypeSensors(currentMediaType);
         this.createRemoteKeysAsSwitches();
         await this.createVolumeFan();
-        this.createAvadaKedavra();
-        this.createHomeInput();
-        this.createAirPlayInput();
+
+        // create inputs
+        if (this.config.disableInputs !== true) {
+            this.createAvadaKedavra();
+            this.createHomeInput();
+            this.createAirPlayInput();
+            const apps: NodePyATVApp[] = await this.device.listApps();
+            this.createInputs(apps, this.config.customInputURIs || []);
+        }
+
+        // create switches
         this.createCustomPyatvCommandSwitches(this.config.customPyatvCommands || []);
-        const apps: NodePyATVApp[] = await this.device.listApps();
-        this.createInputs(apps, this.config.customInputURIs || []);
 
         // create event listeners to keep everything up-to-date
         this.createListeners();
 
         // create remote
-        this.createRemote();
+        if (this.config.disableRemote !== true) {
+            this.createRemote();
+        }
 
         // start updating the position update
         this.startPositionUpdate();
