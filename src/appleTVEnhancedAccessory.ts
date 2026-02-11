@@ -246,6 +246,18 @@ remaining)`);
         if (override.overrideCustomPyatvCommands === true) {
             config.customPyatvCommands = override.customPyatvCommands;
         }
+        if (override.overrideDisableCharacteristics === true) {
+            config.disableCharacteristics = override.disableCharacteristics;
+        }
+        if (override.overrideDisableInputs === true) {
+            config.disableInputs = override.disableInputs;
+        }
+        if (override.overrideDisableRemote === true) {
+            config.disableRemote = override.disableRemote;
+        }
+        if (override.overrideDisableSpeaker === true) {
+            config.disableSpeaker = override.disableSpeaker;
+        }
         if (override.overrideDisableVolumeControlRemote === true) {
             config.disableVolumeControlRemote = override.disableVolumeControlRemote;
         }
@@ -632,12 +644,14 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         this.device.on('update:mediaType', mediaTypeListener);
         this.device.on('update:volume', volumeListener);
 
-        for (const characteristicID of Object.values(PyATVCustomCharacteristicID)) {
-            const handler: (e: Error | NodePyATVDeviceEvent) => void = (e): void => {
-                pyatvCharacteristicListener(e, characteristicID);
-            };
-            this.pyatvListenerHandlers[characteristicID] = handler;
-            this.device.on(`update:${characteristicID}`, handler);
+        if (this.config.disableCharacteristics !== true) {
+            for (const characteristicID of Object.values(PyATVCustomCharacteristicID)) {
+                const handler: (e: Error | NodePyATVDeviceEvent) => void = (e): void => {
+                    pyatvCharacteristicListener(e, characteristicID);
+                };
+                this.pyatvListenerHandlers[characteristicID] = handler;
+                this.device.on(`update:${characteristicID}`, handler);
+            }
         }
 
         this.device.once('error', ((e: Error | NodePyATVDeviceEvent): void => {
@@ -706,6 +720,20 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
     }
 
     private async createPyATVCharacteristics(): Promise<void> {
+
+        if (this.config.disableCharacteristics === true) {
+            const charIds: string[] = Object.values(PyATVCustomCharacteristicID);
+            const charUUIDs: Set<string> =
+                new Set<string>(charIds.map((char: string) => this.platform.api.hap.uuid.generate(`uuid-${char}`)));
+            for (const characteristic of this.service?.characteristics ?? []) {
+                if (charUUIDs.has(characteristic.UUID)) {
+                    this.service?.removeCharacteristic(characteristic);
+                    break;
+                }
+            }
+            return;
+        }
+
         for (const pyatvChar of Object.values(PyATVCustomCharacteristicID)) {
             const characteristic: Characteristic =
                 this.service!.addCharacteristic(newPyatvCharacteristic(this.platform.api.hap, pyatvChar));
@@ -841,6 +869,15 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
     }
 
     private createTelevisionSpeaker(): void {
+
+        if (this.config.disableSpeaker === true) {
+            const existingService: Service | undefined = this.accessory.getService('televisionSpeaker');
+            if (existingService !== undefined) {
+                this.accessory.removeService(existingService);
+            }
+            return;
+        }
+
         this.log.debug('Adding television speaker.');
 
         this.televisionSpeakerService = this.accessory.getService('televisionSpeaker') ||
@@ -1790,7 +1827,7 @@ ${characteristic.props.unit}".`);
         // create television speaker
         this.createTelevisionSpeaker();
 
-        // create input and sensor services
+        // create sensor services
         const currentDeviceState: NodePyATVDeviceState | null =
             await this.device.getPowerState() === NodePyATVPowerState.on ? await this.device.getDeviceState() : null;
         this.createDeviceStateSensors(currentDeviceState);
@@ -1799,18 +1836,26 @@ ${characteristic.props.unit}".`);
         this.createMediaTypeSensors(currentMediaType);
         this.createRemoteKeysAsSwitches();
         await this.createVolumeFan();
-        this.createAvadaKedavra();
-        this.createHomeInput();
-        this.createAirPlayInput();
+
+        // create inputs
+        if (this.config.disableInputs !== true) {
+            this.createAvadaKedavra();
+            this.createHomeInput();
+            this.createAirPlayInput();
+            const apps: NodePyATVApp[] = await this.device.listApps();
+            this.createInputs(apps, this.config.customInputURIs || []);
+        }
+
+        // create switches
         this.createCustomPyatvCommandSwitches(this.config.customPyatvCommands || []);
-        const apps: NodePyATVApp[] = await this.device.listApps();
-        this.createInputs(apps, this.config.customInputURIs || []);
 
         // create event listeners to keep everything up-to-date
         this.createListeners();
 
         // create remote
-        this.createRemote();
+        if (this.config.disableRemote !== true) {
+            this.createRemote();
+        }
 
         // start updating the position update
         this.startPositionUpdate();

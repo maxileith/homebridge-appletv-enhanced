@@ -37,6 +37,10 @@ export interface DeviceConfigOverride {
     customPyatvCommands?: CustomPyATVCommandConfig[];
     deviceStateDelay?: number;
     deviceStates?: NodePyATVDeviceState[];
+    disableCharacteristics?: boolean,
+    disableInputs?: boolean,
+    disableRemote?: boolean,
+    disableSpeaker?: boolean,
     disableVolumeControlRemote?: boolean;
     mac?: string;
     mediaTypes?: NodePyATVMediaType[];
@@ -46,6 +50,10 @@ export interface DeviceConfigOverride {
     overrideCustomPyatvCommands?: boolean;
     overrideDeviceStateDelay?: boolean;
     overrideDeviceStates?: boolean;
+    overrideDisableCharacteristics?: boolean,
+    overrideDisableInputs?: boolean,
+    overrideDisableRemote?: boolean,
+    overrideDisableSpeaker?: boolean,
     overrideDisableVolumeControlRemote?: boolean;
     overrideMediaTypes?: boolean;
     overrideRemoteKeysAsSwitch?: boolean;
@@ -63,6 +71,10 @@ export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_br
     deviceSpecificOverrides?: DeviceConfigOverride[];
     deviceStateDelay?: number;
     deviceStates?: NodePyATVDeviceState[];
+    disableCharacteristics?: boolean,
+    disableInputs?: boolean,
+    disableRemote?: boolean,
+    disableSpeaker?: boolean,
     disableVolumeControlRemote?: boolean;
     discover?: {
         blacklist?: string[];
