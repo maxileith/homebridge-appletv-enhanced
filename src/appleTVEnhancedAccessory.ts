@@ -720,13 +720,21 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
     }
 
     private async createPyATVCharacteristics(): Promise<void> {
-        for (const pyatvChar of Object.values(PyATVCustomCharacteristicID)) {
 
-            if (this.config.disableCharacteristics === true) {
-                this.service?.removeCharacteristic(newPyatvCharacteristic(this.platform.api.hap, pyatvChar));
-                continue;
+        if (this.config.disableCharacteristics === true) {
+            const charIds: string[] = Object.values(PyATVCustomCharacteristicID);
+            const charUUIDs: Set<string> =
+                new Set<string>(charIds.map((char: string) => this.platform.api.hap.uuid.generate(`uuid-${char}`)));
+            for (const characteristic of this.service?.characteristics ?? []) {
+                if (charUUIDs.has(characteristic.UUID)) {
+                    this.service?.removeCharacteristic(characteristic);
+                    break;
+                }
             }
+            return;
+        }
 
+        for (const pyatvChar of Object.values(PyATVCustomCharacteristicID)) {
             const characteristic: Characteristic =
                 this.service!.addCharacteristic(newPyatvCharacteristic(this.platform.api.hap, pyatvChar));
             this.pyatvCharacteristics[pyatvChar] = characteristic;
