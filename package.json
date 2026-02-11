@@ -9,6 +9,7 @@
         "lint": "eslint src/**.ts --max-warnings=0",
         "lintFix": "eslint src/**.ts --max-warnings=0 --fix",
         "watch": "npm run build && npm link && APPLETV_ENHANCED_DEV=true nodemon",
+        "quickbuild": "rimraf -I ./dist && npm run lint && tsc && mkdir ./dist/html && cp -r ./src/html ./dist",
         "build": "npm ci --no-audit --no-fund && rimraf -I ./dist && npm run lint && tsc && mkdir ./dist/html && cp -r ./src/html ./dist",
         "prepublishOnly": "npm run build",
         "postversion": "git push && git push --tags",
