@@ -104,6 +104,7 @@ export class AppleTVEnhancedAccessory {
     private mediaConfigs: TMediaConfigs | undefined = undefined;
     private readonly mediaTypeServices: Partial<Record<NodePyATVMediaType, Service>> = {};
     private offline: boolean = false;
+    private pendingRemoteReconnect: boolean = false;
     private readonly pyatvCharacteristics: Partial<Record<PyATVCustomCharacteristicID, Characteristic>> = {};
     private readonly pyatvListenerHandlers: Partial<Record<PyATVCustomCharacteristicID, (e: Error | NodePyATVDeviceEvent) => void>> = {};
     private remoteKeyAsSwitchConfigs: TRemoteKeysAsSwitchConfigs | undefined = undefined;
@@ -783,8 +784,15 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         }).bind(this));
 
         this.rocketRemote.onClose((async (): Promise<void> => {
-            await delay(5000);
-            this.createRemote();
+            // Defer Rocket Remote reconnection until the Apple TV is awake.
+            // Reconnecting immediately spawns a new atvremote cli process whose
+            // Companion protocol handshake (_sessionStart, _touchStart,
+            // FetchAttentionState) wakes the Apple TV from sleep, which in turn
+            // triggers HDMI-CEC to turn on the TV.
+            // See: https://github.com/maxileith/homebridge-appletv-enhanced/issues/684
+            this.rocketRemote = undefined;
+            this.pendingRemoteReconnect = true;
+            this.log.warn('Rocket Remote disconnected. Deferring reconnect until device is awake.');
         }).bind(this));
     }
 
@@ -1172,6 +1180,14 @@ plugin after you have fixed the root cause. Enable debug logging to see the orig
         const STEPS: number = 500; // milliseconds
 
         if (state === this.platform.characteristic.Active.ACTIVE) {
+            // If Rocket Remote reconnection was deferred, reconnect now since
+            // the user is explicitly requesting to turn on the device.
+            if (this.pendingRemoteReconnect) {
+                this.pendingRemoteReconnect = false;
+                this.log.info('Reconnecting Rocket Remote for explicit turn-on request.');
+                this.createRemote();
+                await delay(2000); // Give atvremote time to connect
+            }
             this.rocketRemote?.turnOn();
             for (let i: number = STEPS; i <= WAIT_MAX_FOR_STATES * 1000; i += STEPS) {
                 const { mediaType, deviceState } = await this.device.getState();
@@ -1208,6 +1224,14 @@ plugin after you have fixed the root cause. Enable debug logging to see the orig
         this.log.info(`New Active State: ${event.value}`);
         if (value === this.platform.characteristic.Active.ACTIVE) {
             this.lastTurningOnEvent = Date.now();
+            // Reconnect Rocket Remote now that the device is confirmed awake.
+            // This avoids the Companion protocol handshake waking a sleeping
+            // Apple TV and triggering HDMI-CEC to turn on the TV.
+            if (this.pendingRemoteReconnect) {
+                this.pendingRemoteReconnect = false;
+                this.log.info('Device is awake. Reconnecting Rocket Remote now.');
+                this.createRemote();
+            }
         } else {
             this.log.debug('Reset all motion sensors.');
             // set all device state sensors to inactive
