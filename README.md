@@ -87,7 +87,7 @@ This plugin automatically discovers Apple TV devices on the local network and ex
 > Raspberry Pi 1, 2, 3 and Zero 1, 2 are not recommended for performance reasons. Recommended are 3B+, 4B, 5B.
 
 -   Only Linux will be supported by the maintainer (although since MacOS / UNIX is similar to Linux, it should run on MacOS just fine)
--   Most recent Version of **Node 24 LTS, 22 LTS or 20 LTS**.
+-   Most recent Version of **Node 24 LTS or 22 LTS**.
 -   **Python 3.10, 3.11, 3.12, 3.13**
     -   Compiled with **OpenSSL 3**
 -   Python virtual environment module `virtualenv`. (the plugin will create a virtual environment on startup and will install python dependencies in this virtual environment)
