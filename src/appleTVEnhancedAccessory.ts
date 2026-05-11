@@ -94,11 +94,7 @@ export class AppleTVEnhancedAccessory {
     private readonly deviceStateServices: Partial<Record<NodePyATVDeviceState, Service>> = {};
     private homeInputService: Service | undefined = undefined;
     private readonly inputs: IInputs = {};
-    private lastDeviceState: NodePyATVDeviceState | null = null;
-    private lastDeviceStateChange: number = 0;
-    private lastDeviceStateDraft: NodePyATVDeviceState | null = null;
     private lastNonZeroVolume: number = 50;
-    private lastTurningOnEvent: number = 0;
     private readonly log: PrefixLogger;
     private mediaConfigs: TMediaConfigs | undefined = undefined;
     private readonly mediaTypeServices: Partial<Record<NodePyATVMediaType, Service>> = {};
@@ -227,9 +223,6 @@ remaining)`);
         }
         if (override.overrideDeviceStates === true) {
             config.deviceStates = override.deviceStates;
-        }
-        if (override.overrideDeviceStateDelay === true) {
-            config.deviceStateDelay = override.deviceStateDelay;
         }
         if (override.overrideRemoteKeysAsSwitch === true) {
             config.remoteKeysAsSwitch = override.remoteKeysAsSwitch;
@@ -1164,12 +1157,24 @@ plugin after you have fixed the root cause. Enable debug logging to see the orig
         }
     }
 
-    private async handleActiveSet(state: CharacteristicValue): Promise<void> {
-        const WAIT_MAX_FOR_STATES: number = 30; // seconds
-        const STEPS: number = 500; // milliseconds
-
+    private handleActiveSet(state: CharacteristicValue): void {
         if (state === this.platform.characteristic.Active.ACTIVE) {
             this.rocketRemote?.turnOn();
+        } else {
+            this.rocketRemote?.turnOff();
+        }
+    }
+
+    private async handleActiveUpdate(event: NodePyATVDeviceEvent): Promise<void> {
+        const WAIT_MAX_FOR_STATES: number = 20; // seconds
+        const STEPS: number = 500; // milliseconds
+        if (event.value === null) {
+            return;
+        }
+        const value: 0 | 1 =
+            event.value === 'on' ? this.platform.characteristic.Active.ACTIVE : this.platform.characteristic.Active.INACTIVE;
+        this.log.info(`New Active State: ${event.value}`);
+        if (value === this.platform.characteristic.Active.ACTIVE) {
             for (let i: number = STEPS; i <= WAIT_MAX_FOR_STATES * 1000; i += STEPS) {
                 const { mediaType, deviceState } = await this.device.getState();
                 if (deviceState === null || mediaType === null) {
@@ -1188,23 +1193,6 @@ plugin after you have fixed the root cause. Enable debug logging to see the orig
                     break;
                 }
             }
-        } else if (state === this.platform.characteristic.Active.INACTIVE) {
-            this.rocketRemote?.turnOff();
-        }
-    }
-
-    private handleActiveUpdate(event: NodePyATVDeviceEvent): void {
-        if (event.value === null) {
-            return;
-        }
-        const value: 0 | 1 =
-            event.value === 'on' ? this.platform.characteristic.Active.ACTIVE : this.platform.characteristic.Active.INACTIVE;
-        if (value === this.platform.characteristic.Active.INACTIVE && this.lastTurningOnEvent + 7500 > Date.now()) {
-            return;
-        }
-        this.log.info(`New Active State: ${event.value}`);
-        if (value === this.platform.characteristic.Active.ACTIVE) {
-            this.lastTurningOnEvent = Date.now();
         } else {
             this.log.debug('Reset all motion sensors.');
             // set all device state sensors to inactive
@@ -1240,33 +1228,6 @@ plugin after you have fixed the root cause. Enable debug logging to see the orig
     }
 
     private async handleDeviceStateUpdate(event: NodePyATVDeviceEvent): Promise<void> {
-        this.lastDeviceStateChange = Date.now();
-        this.lastDeviceStateDraft = event.value as NodePyATVDeviceState | null;
-
-        // check if the state has changed
-        if (this.lastDeviceState === event.value) {
-            return;
-        }
-
-        // only make device state changes if Apple TV is on
-        if (this.service!.getCharacteristic(this.platform.characteristic.Active).value === this.platform.characteristic.Active.INACTIVE) {
-            this.log.debug(`New Device State Draft discarded (since Apple TV is off): ${event.value}`);
-            this.lastDeviceStateDraft = null;
-            this.lastDeviceState = null;
-            return;
-        }
-
-        const deviceStateDelay: number = (this.config.deviceStateDelay ?? 0) * 1000;
-        this.log.debug(`New Device State Draft (might be discarded if there are state changes until the configured delay of \
-${deviceStateDelay}ms is over): ${event.value}`);
-        // wait for the delay to expire
-        await delay(deviceStateDelay);
-        // abort if there was another device state update in the meantime
-        if (this.lastDeviceStateChange + deviceStateDelay > Date.now()) {
-            this.log.debug(`New Device State Draft discarded (since there was another state change): ${event.value}`);
-            return;
-        }
-        // set all device state sensors to inactive
         for (const deviceState of Object.keys(this.deviceStateServices)) {
             if (deviceState === event.value) {
                 continue;
@@ -1274,8 +1235,9 @@ ${deviceStateDelay}ms is over): ${event.value}`);
             const s: Service = this.deviceStateServices[deviceState];
             s.updateCharacteristic(this.platform.characteristic.MotionDetected, false);
         }
-
-        this.lastDeviceState = event.value as NodePyATVDeviceState | null;
+        if (this.service!.getCharacteristic(this.platform.characteristic.Active).value === this.platform.characteristic.Active.INACTIVE) {
+            return;
+        }
         this.log.info(`New Device State: ${event.value}`);
         if (event.value !== null && this.deviceStateServices[event.value] !== undefined) {
             const s: Service = this.deviceStateServices[event.value];
@@ -1335,14 +1297,18 @@ ${deviceStateDelay}ms is over): ${event.value}`);
                 this.setCommonConfig('activeIdentifier', appIdentifier);
                 this.service!.updateCharacteristic(this.platform.characteristic.ActiveIdentifier, appIdentifier);
             } else {
-                this.log.warn(`Could not update the input to ${appId} since the app is unknown.`);
+                this.log.warn(`Could not update the input to ${appId} since the app is unknown. Fallback to homescreen.`);
+                this.service!.updateCharacteristic(this.platform.characteristic.ActiveIdentifier, HOME_IDENTIFIER);
             }
         }
     }
 
     private async handleMediaTypeUpdate(event: NodePyATVDeviceEvent): Promise<void> {
-        if (event.oldValue !== null && this.mediaTypeServices[event.oldValue] !== undefined) {
-            const s: Service = this.mediaTypeServices[event.oldValue];
+        for (const mediaType of Object.keys(this.mediaTypeServices)) {
+            if (mediaType === event.value) {
+                continue;
+            }
+            const s: Service = this.mediaTypeServices[mediaType];
             s.updateCharacteristic(this.platform.characteristic.MotionDetected, false);
         }
         if (this.service!.getCharacteristic(this.platform.characteristic.Active).value === this.platform.characteristic.Active.INACTIVE) {
@@ -1379,7 +1345,11 @@ ${deviceStateDelay}ms is over): ${event.value}`);
             ? ` ${characteristic.props.unit}`
             : '';
 
-        this.log.info(`Updating characteristic ${characteristic.displayName} to "${value}${unit}".`);
+        if (value === null) {
+            this.log.info(`Unsetting characteristic ${characteristic.displayName}.`);
+        } else {
+            this.log.info(`Updating characteristic ${characteristic.displayName} to "${value}${unit}".`);
+        }
         characteristic.updateValue(value);
     }
 
@@ -1690,7 +1660,7 @@ media-src * \'self\'');
                 return;
             }
 
-            if (this.lastDeviceStateDraft !== NodePyATVDeviceState.playing) {
+            if (this.service!.getCharacteristic(this.platform.characteristic.CurrentMediaState).value !== this.platform.characteristic.CurrentMediaState.PLAY) {
                 this.log.verbose('Skipping position update since not playing.');
                 return;
             }

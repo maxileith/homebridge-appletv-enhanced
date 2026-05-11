@@ -29,7 +29,6 @@
                 "paused",
                 "stopped"
             ],
-            "deviceStateDelay": 1,
             "remoteKeysAsSwitch": [
                 "channel_down",
                 "channel_up",
@@ -73,8 +72,6 @@
                     "mediaTypes": ["music", "video"],
                     "overrideDeviceStates": true,
                     "deviceStates": ["paused", "playing"],
-                    "overrideDeviceStateDelay": true,
-                    "deviceStateDelay": 3,
                     "overrideRemoteKeysAsSwitch": true,
                     "remoteKeysAsSwitch": [
                         "home",

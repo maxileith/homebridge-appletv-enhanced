@@ -45,16 +45,6 @@
                 },
                 "required": false
             },
-            "deviceStateDelay": {
-                "title": "Device State Delay (seconds)",
-                "description": "The time in seconds that the Apple TV needs to report a device state continuously before the plugin will report the device state. E.g. when pausing a video, the video needs to stay paused for x seconds before the state will be reported.",
-                "type": "integer",
-                "default": 0,
-                "placeholder": 0,
-                "required": false,
-                "minimum": 0,
-                "maximum": 15
-            },
             "remoteKeysAsSwitch": {
                 "title": "Remote Keys as Switches",
                 "description": "Remote keys which will be exposed as switches to HomeKit, e.g. to use the remote keys in automations.",
@@ -369,21 +359,6 @@
                             },
                             "required": false
                         },
-                        "overrideDeviceStateDelay": {
-                            "title": "Override: Device State Delay (seconds)",
-                            "type": "boolean",
-                            "default": false,
-                            "required": true
-                        },
-                        "deviceStateDelay": {
-                            "title": "Device State Delay (seconds)",
-                            "type": "integer",
-                            "placeholder": 0,
-                            "required": false,
-                            "minimum": 0,
-                            "maximum": 15,
-                            "default": 0
-                        },
                         "overrideRemoteKeysAsSwitch": {
                             "title": "Override: Remote Keys as Switches",
                             "type": "boolean",
@@ -542,7 +517,6 @@
             "items": [
                 "mediaTypes",
                 "deviceStates",
-                "deviceStateDelay",
                 "remoteKeysAsSwitch",
                 {
                     "key": "customInputURIs",
@@ -598,18 +572,6 @@
                             "key": "deviceSpecificOverrides[].deviceStates",
                             "condition": {
                                 "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideDeviceStates === true;"
-                            }
-                        },
-                        {
-                            "key": "deviceSpecificOverrides[].overrideDeviceStateDelay",
-                            "condition": {
-                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac);"
-                            }
-                        },
-                        {
-                            "key": "deviceSpecificOverrides[].deviceStateDelay",
-                            "condition": {
-                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideDeviceStateDelay === true;"
                             }
                         },
                         {
