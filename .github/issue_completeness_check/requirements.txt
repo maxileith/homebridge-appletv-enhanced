@@ -1,4 +1,4 @@
-certifi==2026.1.4
+certifi==2026.4.22
 charset-normalizer==3.4.4
 idna==3.11
 packaging==26.1
