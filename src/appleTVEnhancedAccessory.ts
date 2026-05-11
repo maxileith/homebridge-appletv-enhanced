@@ -1660,7 +1660,10 @@ media-src * \'self\'');
                 return;
             }
 
-            if (this.service!.getCharacteristic(this.platform.characteristic.CurrentMediaState).value !== this.platform.characteristic.CurrentMediaState.PLAY) {
+            if (
+                this.service!.getCharacteristic(this.platform.characteristic.CurrentMediaState).value !==
+                    this.platform.characteristic.CurrentMediaState.PLAY
+            ) {
                 this.log.verbose('Skipping position update since not playing.');
                 return;
             }
