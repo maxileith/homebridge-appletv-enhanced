@@ -947,8 +947,8 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
 
                 if (
                     error instanceof Error &&
-                    error.message.includes('asyncio.exceptions.CancelledError') &&
-                    error.message.includes('TimeoutError')
+                    error.message.includes('Failed to set up remote control channel') &&
+                    error.message.includes('pyatv.exceptions.InvalidResponseError')
                 ) {
                     this.log.debug(error.message);
                     this.log.debug(error.stack as string);
@@ -1522,6 +1522,11 @@ http://${localIP}:${httpPort}/. Then, enter the pairing code that will be displa
             });
             process.stdout.setEncoding('utf8');
             process.stdout.on('data', (data: string) => {
+                if (data.toUpperCase().includes('ERROR')) {
+                    goOn = true;
+                    this.log.error(data);
+                    return;
+                }
                 this.log.debug('stdout: ' + data);
                 if (data.includes('Enter PIN on screen:')) {
                     return;
@@ -1529,19 +1534,6 @@ http://${localIP}:${httpPort}/. Then, enter the pairing code that will be displa
                 if (data.includes('BackOff=')) {
                     backOffSeconds = parseInt(data.substring(data.search('BackOff=') + 8).split('s', 2)[0]) + 5;
                     goOn = true;
-                    return;
-                }
-                if (data.toUpperCase().includes('ERROR')) {
-                    goOn = true;
-                    let message: string = data;
-                    let traceback: string | null = null;
-                    if (data.includes('Traceback')) {
-                        [message, traceback] = data.split('Traceback', 1);
-                    }
-                    this.log.error('stdout: ' + message.trim());
-                    if (traceback !== null) {
-                        this.log.debug(traceback);
-                    }
                     return;
                 }
                 if (data.includes('You may now use these credentials: ')) {
