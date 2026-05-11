@@ -5,6 +5,7 @@
         "rootDir": "src",
         "module": "NodeNext",
         "moduleResolution": "nodenext",
+        "skipLibCheck": true,
         "strict": true,
         "declaration": true,
         "declarationMap": true,
