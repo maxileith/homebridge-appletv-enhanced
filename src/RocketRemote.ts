@@ -260,6 +260,7 @@ class RocketRemote {
             '--id', this.mac,
             '--companion-credentials', this.companionCredentials,
             '--airplay-credentials', this.airplayCredentials,
+            '--storage', 'none',
         ];
         if (args !== undefined) {
             finalArgs.push(...args);
