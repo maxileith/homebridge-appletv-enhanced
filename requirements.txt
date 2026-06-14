@@ -15,7 +15,7 @@ miniaudio==1.71
 multidict==6.7.1
 propcache==0.5.2
 protobuf==7.35.0
-pyatv==0.17.0
+pyatv@https://github.com/postlund/pyatv/archive/9177803dec6a165d4610d5d63fe09562820fccdb.zip
 pycparser==3.0
 pydantic==2.13.4
 pydantic_core==2.46.4
