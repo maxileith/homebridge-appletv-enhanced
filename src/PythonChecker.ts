@@ -228,7 +228,7 @@ trick. Restart the plugin after fixing the permissions.`);
         const lines: string[] = value.trim().split('\n');
         const packages: Record<string, string> = {};
         for (const line of lines) {
-            const [pkg, version]: string[] = line.split('==');
+            const [pkg,, version]: string[] = line.split(/(==|@)/);
             packages[pkg.replaceAll('_', '-')] = version;
         }
         return packages;
