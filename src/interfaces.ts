@@ -2,7 +2,6 @@ import type { PlatformConfig, Service } from 'homebridge';
 import type { RocketRemoteKey } from './enums';
 import type { NodePyATVDeviceState, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
 import type { LogLevel } from './LogLevelLogger';
-import type { TAutoUpdate, TUpdateCheckTime, TUpdateCheckLevel } from './types';
 
 export interface NodePyATVApp {
     id: string;
@@ -35,8 +34,9 @@ export interface DeviceConfigOverride {
     avadaKedavraAppAmount?: number;
     customInputURIs?: string[];
     customPyatvCommands?: CustomPyATVCommandConfig[];
-    deviceStateDelay?: number;
     deviceStates?: NodePyATVDeviceState[];
+    disableCharacteristics?: boolean,
+    disableInputs?: boolean,
     disableVolumeControlRemote?: boolean;
     mac?: string;
     mediaTypes?: NodePyATVMediaType[];
@@ -44,8 +44,9 @@ export interface DeviceConfigOverride {
     overrideAvadaKedavraAppAmount?: boolean;
     overrideCustomInputURIs?: boolean;
     overrideCustomPyatvCommands?: boolean;
-    overrideDeviceStateDelay?: boolean;
     overrideDeviceStates?: boolean;
+    overrideDisableCharacteristics?: boolean,
+    overrideDisableInputs?: boolean,
     overrideDisableVolumeControlRemote?: boolean;
     overrideMediaTypes?: boolean;
     overrideRemoteKeysAsSwitch?: boolean;
@@ -56,13 +57,13 @@ export interface DeviceConfigOverride {
 
 export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_bridge' | 'name' | 'platform'> {
     absoluteVolumeControl?: boolean;
-    autoUpdate?: TAutoUpdate;
     avadaKedavraAppAmount?: number;
     customInputURIs?: string[];
     customPyatvCommands?: CustomPyATVCommandConfig[];
     deviceSpecificOverrides?: DeviceConfigOverride[];
-    deviceStateDelay?: number;
     deviceStates?: NodePyATVDeviceState[];
+    disableCharacteristics?: boolean,
+    disableInputs?: boolean,
     disableVolumeControlRemote?: boolean;
     discover?: {
         blacklist?: string[];
@@ -75,8 +76,6 @@ export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_br
     pythonExecutable?: string;
     remoteKeysAsSwitch?: RocketRemoteKey[];
     setTopBox?: boolean;
-    updateCheckLevel?: TUpdateCheckLevel;
-    updateCheckTime?: TUpdateCheckTime;
 }
 
 export interface AlternatePyATVDeviceOptions {

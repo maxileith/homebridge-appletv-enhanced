@@ -45,7 +45,6 @@ import PrefixLogger from './PrefixLogger';
 import { DisplayOrderTypes, PyATVCustomCharacteristicID, RocketRemoteKey } from './enums';
 import type { TDeviceStateConfigs, TMediaConfigs, TRemoteKeysAsSwitchConfigs } from './types';
 import RocketRemote from './RocketRemote';
-import tvOS18InputBugSolver from './tvOS18InputBugSolver';
 import { newPyatvCharacteristic, newStringCharacteristic } from './Characteristics';
 
 const HIDE_BY_DEFAULT_APPS: string[] = [
@@ -82,6 +81,9 @@ const AIR_PLAY_IDENTIFIER: number = 7567;
  * Each accessory may expose multiple services of different service types.
  */
 export class AppleTVEnhancedAccessory {
+    public readonly mac: string;
+    public readonly name: string;
+
     private airPlayInputService: Service | undefined = undefined;
     private appConfigs: AppConfigs | undefined = undefined;
     private avadaKedavraService: Service | undefined = undefined;
@@ -95,17 +97,12 @@ export class AppleTVEnhancedAccessory {
     private readonly deviceStateServices: Partial<Record<NodePyATVDeviceState, Service>> = {};
     private homeInputService: Service | undefined = undefined;
     private readonly inputs: IInputs = {};
-    private lastDeviceState: NodePyATVDeviceState | null = null;
-    private lastDeviceStateChange: number = 0;
-    private lastDeviceStateDraft: NodePyATVDeviceState | null = null;
     private lastNonZeroVolume: number = 50;
-    private lastTurningOnEvent: number = 0;
     private readonly log: PrefixLogger;
     private mediaConfigs: TMediaConfigs | undefined = undefined;
     private readonly mediaTypeServices: Partial<Record<NodePyATVMediaType, Service>> = {};
     private offline: boolean = false;
     private readonly pyatvCharacteristics: Partial<Record<PyATVCustomCharacteristicID, Characteristic>> = {};
-    private readonly pyatvListenerHandlers: Partial<Record<PyATVCustomCharacteristicID, (e: Error | NodePyATVDeviceEvent) => void>> = {};
     private remoteKeyAsSwitchConfigs: TRemoteKeysAsSwitchConfigs | undefined = undefined;
     private readonly remoteKeyServices: Partial<Record<RocketRemoteKey, Service>> = {};
     private rocketRemote: RocketRemote | undefined = undefined;
@@ -121,11 +118,11 @@ export class AppleTVEnhancedAccessory {
 
         this.device = CustomPyAtvInstance.deviceAdvanced({ mac: this.accessory.context.mac as string })!;
 
+        this.name = this.device.name;
+        this.mac = this.device.mac!;
         this.log = new PrefixLogger(this.platform.logLevelLogger, `${this.device.name} (${this.device.mac})`);
 
         this.log.debug(`Accessory Config: ${JSON.stringify(this.config)}`);
-
-        tvOS18InputBugSolver(this.log, this.platform.api.user.storagePath(), this.device.mac!);
 
         const credentials: string | undefined = this.getCredentials();
         this.device = CustomPyAtvInstance.deviceAdvanced({
@@ -161,6 +158,16 @@ export class AppleTVEnhancedAccessory {
         };
 
         validationLoop();
+    }
+
+    public async stop(): Promise<void> {
+        this.log.info('Stopping ...');
+        this.rocketRemote?.close().catch(() => {
+            this.log.error('Failed to close connection.');
+        });
+        this.log.info('Removing all event listeners ...');
+        this.device.removeAllListeners();
+        this.log.success('Removed all event listeners successfully.');
     }
 
     public async untilBooted(): Promise<void> {
@@ -231,9 +238,6 @@ remaining)`);
         if (override.overrideDeviceStates === true) {
             config.deviceStates = override.deviceStates;
         }
-        if (override.overrideDeviceStateDelay === true) {
-            config.deviceStateDelay = override.deviceStateDelay;
-        }
         if (override.overrideRemoteKeysAsSwitch === true) {
             config.remoteKeysAsSwitch = override.remoteKeysAsSwitch;
         }
@@ -245,6 +249,12 @@ remaining)`);
         }
         if (override.overrideCustomPyatvCommands === true) {
             config.customPyatvCommands = override.customPyatvCommands;
+        }
+        if (override.overrideDisableCharacteristics === true) {
+            config.disableCharacteristics = override.disableCharacteristics;
+        }
+        if (override.overrideDisableInputs === true) {
+            config.disableInputs = override.disableInputs;
         }
         if (override.overrideDisableVolumeControlRemote === true) {
             config.disableVolumeControlRemote = override.disableVolumeControlRemote;
@@ -512,7 +522,7 @@ ${value}.`);
 The following services have been added:
 - 01 One service for Accessory Information
 - 01 The television service (Apple TV) itself
-- 01 Television speaker service to control the volume with the iOS remote
+- ${this.config.disableVolumeControlRemote === true ? '00' : '01'} Television speaker service to control the volume with the iOS remote
 - ${this.config.absoluteVolumeControl === true ? '01' : '00'} Fans for volume control
 - ${Object.keys(this.deviceStateServices).length.toString().padStart(2, '0')} motion sensors for device states
 - ${Object.keys(this.mediaTypeServices).length.toString().padStart(2, '0')} motion sensors for media types
@@ -632,12 +642,13 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         this.device.on('update:mediaType', mediaTypeListener);
         this.device.on('update:volume', volumeListener);
 
-        for (const characteristicID of Object.values(PyATVCustomCharacteristicID)) {
-            const handler: (e: Error | NodePyATVDeviceEvent) => void = (e): void => {
-                pyatvCharacteristicListener(e, characteristicID);
-            };
-            this.pyatvListenerHandlers[characteristicID] = handler;
-            this.device.on(`update:${characteristicID}`, handler);
+        if (this.config.disableCharacteristics !== true) {
+            for (const characteristicID of Object.values(PyATVCustomCharacteristicID)) {
+                const handler: (e: Error | NodePyATVDeviceEvent) => void = (e): void => {
+                    pyatvCharacteristicListener(e, characteristicID);
+                };
+                this.device.on(`update:${characteristicID}`, handler);
+            }
         }
 
         this.device.once('error', ((e: Error | NodePyATVDeviceEvent): void => {
@@ -645,16 +656,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
             this.offline = true;
             this.log.warn('Lost connection. Trying to reconnect ...');
 
-            this.device.removeListener('update:powerState', powerStateListener);
-            this.device.removeListener('update:appId', appIdListener);
-            this.device.removeListener('update:app', appListener);
-            this.device.removeListener('update:deviceState', deviceStateListener);
-            this.device.removeListener('update:mediaType', mediaTypeListener);
-            this.device.removeListener('update:volume', volumeListener);
-
-            for (const characteristic in this.pyatvListenerHandlers) {
-                this.device.removeListener(`update:${characteristic}`, this.pyatvListenerHandlers[characteristic]);
-            }
+            this.device.removeAllListeners();
 
             setTimeout(this.createListeners.bind(this), 5000);
 
@@ -848,38 +850,31 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         this.televisionSpeakerService.setCharacteristic(this.platform.characteristic.Active, this.platform.characteristic.Active.ACTIVE);
         this.televisionSpeakerService.setCharacteristic(this.platform.characteristic.Mute, false);
 
-        if (this.config.disableVolumeControlRemote !== true) {
-            this.televisionSpeakerService.setCharacteristic(
-                this.platform.characteristic.VolumeControlType,
-                this.platform.characteristic.VolumeControlType.RELATIVE,
-            );
-            this.televisionSpeakerService.getCharacteristic(this.platform.characteristic.VolumeSelector)
-                .onSet(async (value: CharacteristicValue): Promise<void> => {
-                    if (value === this.platform.characteristic.VolumeSelector.INCREMENT) {
-                        this.rocketRemote?.volumeUp();
-                    } else {
-                        this.rocketRemote?.volumeDown();
-                    }
-                });
-            this.televisionSpeakerService.getCharacteristic(this.platform.characteristic.Mute)
-                .onSet(async (value: CharacteristicValue): Promise<void> => {
-                    if (value === true) {
-                        this.unmute();
-                    } else {
-                        this.mute();
-                    }
-                });
-        }
+        this.televisionSpeakerService.setCharacteristic(
+            this.platform.characteristic.VolumeControlType,
+            this.platform.characteristic.VolumeControlType.RELATIVE,
+        );
+        this.televisionSpeakerService.getCharacteristic(this.platform.characteristic.VolumeSelector)
+            .onSet(async (value: CharacteristicValue): Promise<void> => {
+                if (value === this.platform.characteristic.VolumeSelector.INCREMENT) {
+                    this.rocketRemote?.volumeUp();
+                } else {
+                    this.rocketRemote?.volumeDown();
+                }
+            });
+        this.televisionSpeakerService.getCharacteristic(this.platform.characteristic.Mute)
+            .onSet(async (value: CharacteristicValue): Promise<void> => {
+                if (value === true) {
+                    this.unmute();
+                } else {
+                    this.mute();
+                }
+            });
 
         this.service!.addLinkedService(this.televisionSpeakerService);
     }
 
     private async createVolumeFan(): Promise<void> {
-        if (this.config.absoluteVolumeControl !== true) {
-            this.log.debug('Adding no fan for volume control as it has not been configured on this Apple TV.');
-            return;
-        }
-
         this.log.debug('Adding fan for volume control.');
 
         const volTmp: number | null = (await this.device.getState({ maxAge: 600000 })).volume; // TTL 10min
@@ -957,8 +952,8 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
 
                 if (
                     error instanceof Error &&
-                    error.message.includes('asyncio.exceptions.CancelledError') &&
-                    error.message.includes('TimeoutError')
+                    error.message.includes('Failed to set up remote control channel') &&
+                    error.message.includes('pyatv.exceptions.InvalidResponseError')
                 ) {
                     this.log.debug(error.message);
                     this.log.debug(error.stack as string);
@@ -1167,12 +1162,24 @@ plugin after you have fixed the root cause. Enable debug logging to see the orig
         }
     }
 
-    private async handleActiveSet(state: CharacteristicValue): Promise<void> {
-        const WAIT_MAX_FOR_STATES: number = 30; // seconds
-        const STEPS: number = 500; // milliseconds
-
+    private handleActiveSet(state: CharacteristicValue): void {
         if (state === this.platform.characteristic.Active.ACTIVE) {
             this.rocketRemote?.turnOn();
+        } else {
+            this.rocketRemote?.turnOff();
+        }
+    }
+
+    private async handleActiveUpdate(event: NodePyATVDeviceEvent): Promise<void> {
+        const WAIT_MAX_FOR_STATES: number = 20; // seconds
+        const STEPS: number = 500; // milliseconds
+        if (event.value === null) {
+            return;
+        }
+        const value: 0 | 1 =
+            event.value === 'on' ? this.platform.characteristic.Active.ACTIVE : this.platform.characteristic.Active.INACTIVE;
+        this.log.info(`New Active State: ${event.value}`);
+        if (value === this.platform.characteristic.Active.ACTIVE) {
             for (let i: number = STEPS; i <= WAIT_MAX_FOR_STATES * 1000; i += STEPS) {
                 const { mediaType, deviceState } = await this.device.getState();
                 if (deviceState === null || mediaType === null) {
@@ -1191,23 +1198,6 @@ plugin after you have fixed the root cause. Enable debug logging to see the orig
                     break;
                 }
             }
-        } else if (state === this.platform.characteristic.Active.INACTIVE) {
-            this.rocketRemote?.turnOff();
-        }
-    }
-
-    private handleActiveUpdate(event: NodePyATVDeviceEvent): void {
-        if (event.value === null) {
-            return;
-        }
-        const value: 0 | 1 =
-            event.value === 'on' ? this.platform.characteristic.Active.ACTIVE : this.platform.characteristic.Active.INACTIVE;
-        if (value === this.platform.characteristic.Active.INACTIVE && this.lastTurningOnEvent + 7500 > Date.now()) {
-            return;
-        }
-        this.log.info(`New Active State: ${event.value}`);
-        if (value === this.platform.characteristic.Active.ACTIVE) {
-            this.lastTurningOnEvent = Date.now();
         } else {
             this.log.debug('Reset all motion sensors.');
             // set all device state sensors to inactive
@@ -1243,33 +1233,6 @@ plugin after you have fixed the root cause. Enable debug logging to see the orig
     }
 
     private async handleDeviceStateUpdate(event: NodePyATVDeviceEvent): Promise<void> {
-        this.lastDeviceStateChange = Date.now();
-        this.lastDeviceStateDraft = event.value as NodePyATVDeviceState | null;
-
-        // check if the state has changed
-        if (this.lastDeviceState === event.value) {
-            return;
-        }
-
-        // only make device state changes if Apple TV is on
-        if (this.service!.getCharacteristic(this.platform.characteristic.Active).value === this.platform.characteristic.Active.INACTIVE) {
-            this.log.debug(`New Device State Draft discarded (since Apple TV is off): ${event.value}`);
-            this.lastDeviceStateDraft = null;
-            this.lastDeviceState = null;
-            return;
-        }
-
-        const deviceStateDelay: number = (this.config.deviceStateDelay ?? 0) * 1000;
-        this.log.debug(`New Device State Draft (might be discarded if there are state changes until the configured delay of \
-${deviceStateDelay}ms is over): ${event.value}`);
-        // wait for the delay to expire
-        await delay(deviceStateDelay);
-        // abort if there was another device state update in the meantime
-        if (this.lastDeviceStateChange + deviceStateDelay > Date.now()) {
-            this.log.debug(`New Device State Draft discarded (since there was another state change): ${event.value}`);
-            return;
-        }
-        // set all device state sensors to inactive
         for (const deviceState of Object.keys(this.deviceStateServices)) {
             if (deviceState === event.value) {
                 continue;
@@ -1277,8 +1240,9 @@ ${deviceStateDelay}ms is over): ${event.value}`);
             const s: Service = this.deviceStateServices[deviceState];
             s.updateCharacteristic(this.platform.characteristic.MotionDetected, false);
         }
-
-        this.lastDeviceState = event.value as NodePyATVDeviceState | null;
+        if (this.service!.getCharacteristic(this.platform.characteristic.Active).value === this.platform.characteristic.Active.INACTIVE) {
+            return;
+        }
         this.log.info(`New Device State: ${event.value}`);
         if (event.value !== null && this.deviceStateServices[event.value] !== undefined) {
             const s: Service = this.deviceStateServices[event.value];
@@ -1338,14 +1302,18 @@ ${deviceStateDelay}ms is over): ${event.value}`);
                 this.setCommonConfig('activeIdentifier', appIdentifier);
                 this.service!.updateCharacteristic(this.platform.characteristic.ActiveIdentifier, appIdentifier);
             } else {
-                this.log.warn(`Could not update the input to ${appId} since the app is unknown.`);
+                this.log.warn(`Could not update the input to ${appId} since the app is unknown. Fallback to homescreen.`);
+                this.service!.updateCharacteristic(this.platform.characteristic.ActiveIdentifier, HOME_IDENTIFIER);
             }
         }
     }
 
     private async handleMediaTypeUpdate(event: NodePyATVDeviceEvent): Promise<void> {
-        if (event.oldValue !== null && this.mediaTypeServices[event.oldValue] !== undefined) {
-            const s: Service = this.mediaTypeServices[event.oldValue];
+        for (const mediaType of Object.keys(this.mediaTypeServices)) {
+            if (mediaType === event.value) {
+                continue;
+            }
+            const s: Service = this.mediaTypeServices[mediaType];
             s.updateCharacteristic(this.platform.characteristic.MotionDetected, false);
         }
         if (this.service!.getCharacteristic(this.platform.characteristic.Active).value === this.platform.characteristic.Active.INACTIVE) {
@@ -1382,7 +1350,11 @@ ${deviceStateDelay}ms is over): ${event.value}`);
             ? ` ${characteristic.props.unit}`
             : '';
 
-        this.log.info(`Updating characteristic ${characteristic.displayName} to "${value}${unit}".`);
+        if (value === null) {
+            this.log.info(`Unsetting characteristic ${characteristic.displayName}.`);
+        } else {
+            this.log.info(`Updating characteristic ${characteristic.displayName} to "${value}${unit}".`);
+        }
         characteristic.updateValue(value);
     }
 
@@ -1555,6 +1527,11 @@ http://${localIP}:${httpPort}/. Then, enter the pairing code that will be displa
             });
             process.stdout.setEncoding('utf8');
             process.stdout.on('data', (data: string) => {
+                if (data.toUpperCase().includes('ERROR')) {
+                    goOn = true;
+                    this.log.error(data);
+                    return;
+                }
                 this.log.debug('stdout: ' + data);
                 if (data.includes('Enter PIN on screen:')) {
                     return;
@@ -1562,19 +1539,6 @@ http://${localIP}:${httpPort}/. Then, enter the pairing code that will be displa
                 if (data.includes('BackOff=')) {
                     backOffSeconds = parseInt(data.substring(data.search('BackOff=') + 8).split('s', 2)[0]) + 5;
                     goOn = true;
-                    return;
-                }
-                if (data.toUpperCase().includes('ERROR')) {
-                    goOn = true;
-                    let message: string = data;
-                    let traceback: string | null = null;
-                    if (data.includes('Traceback')) {
-                        [message, traceback] = data.split('Traceback', 1);
-                    }
-                    this.log.error('stdout: ' + message.trim());
-                    if (traceback !== null) {
-                        this.log.debug(traceback);
-                    }
                     return;
                 }
                 if (data.includes('You may now use these credentials: ')) {
@@ -1693,7 +1657,10 @@ media-src * \'self\'');
                 return;
             }
 
-            if (this.lastDeviceStateDraft !== NodePyATVDeviceState.playing) {
+            if (
+                this.service!.getCharacteristic(this.platform.characteristic.CurrentMediaState).value !==
+                    this.platform.characteristic.CurrentMediaState.PLAY
+            ) {
                 this.log.verbose('Skipping position update since not playing.');
                 return;
             }
@@ -1785,12 +1752,16 @@ ${characteristic.props.unit}".`);
         this.log.setPrefix(`${configuredName} (${this.device.mac})`);
 
         // create pyatv characteristics
-        await this.createPyATVCharacteristics();
+        if (this.config.disableCharacteristics !== true) {
+            await this.createPyATVCharacteristics();
+        }
 
         // create television speaker
-        this.createTelevisionSpeaker();
+        if (this.config.disableVolumeControlRemote !== true) {
+            this.createTelevisionSpeaker();
+        }
 
-        // create input and sensor services
+        // create sensor services
         const currentDeviceState: NodePyATVDeviceState | null =
             await this.device.getPowerState() === NodePyATVPowerState.on ? await this.device.getDeviceState() : null;
         this.createDeviceStateSensors(currentDeviceState);
@@ -1798,13 +1769,23 @@ ${characteristic.props.unit}".`);
             await this.device.getPowerState() === NodePyATVPowerState.on ? await this.device.getMediaType() : null;
         this.createMediaTypeSensors(currentMediaType);
         this.createRemoteKeysAsSwitches();
-        await this.createVolumeFan();
-        this.createAvadaKedavra();
-        this.createHomeInput();
-        this.createAirPlayInput();
+
+        // create volume fan
+        if (this.config.absoluteVolumeControl === true) {
+            await this.createVolumeFan();
+        }
+
+        // create switches
         this.createCustomPyatvCommandSwitches(this.config.customPyatvCommands || []);
-        const apps: NodePyATVApp[] = await this.device.listApps();
-        this.createInputs(apps, this.config.customInputURIs || []);
+
+        // create inputs
+        if (this.config.disableInputs !== true) {
+            this.createAvadaKedavra();
+            this.createHomeInput();
+            this.createAirPlayInput();
+            const apps: NodePyATVApp[] = await this.device.listApps();
+            this.createInputs(apps, this.config.customInputURIs || []);
+        }
 
         // create event listeners to keep everything up-to-date
         this.createListeners();
@@ -1813,7 +1794,9 @@ ${characteristic.props.unit}".`);
         this.createRemote();
 
         // start updating the position update
-        this.startPositionUpdate();
+        if (this.config.disableCharacteristics !== true) {
+            this.startPositionUpdate();
+        }
 
         this.log.info('Finished initializing');
 

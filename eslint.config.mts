@@ -1,34 +1,19 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/typedef */
-import stylistic from '@stylistic/eslint-plugin';
-import tsParser from '@typescript-eslint/parser';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import js from '@eslint/js';
-import { FlatCompat } from '@eslint/eslintrc';
+import { defineConfig } from 'eslint/config';
+import tseslint from 'typescript-eslint';
+import stylistic from '@stylistic/eslint-plugin';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-    baseDirectory: __dirname,
-    recommendedConfig: js.configs.recommended,
-    allConfig: js.configs.all,
-});
-
-export default [
+export default defineConfig([
     {
-        ignores: ['**/dist'],
-    },
-    ...compat.extends(
-        'eslint:recommended',
-        'plugin:@typescript-eslint/eslint-recommended',
-        'plugin:@typescript-eslint/recommended',
-    ),
-    {
+        files: ['src/**.{js,ts}'],
+        extends: [js.configs.recommended, tseslint.configs.recommended],
+        linterOptions: {
+            reportUnusedDisableDirectives: 'warn',
+            reportUnusedInlineConfigs: 'warn',
+        },
         languageOptions: {
-            parser: tsParser,
-            ecmaVersion: 2018,
+            ecmaVersion: 2025,
             sourceType: 'module',
             parserOptions: {
                 project: 'tsconfig.json',
@@ -37,7 +22,6 @@ export default [
         plugins: {
             '@stylistic': stylistic,
         },
-
         rules: {
             'lines-between-class-members': [
                 'warn',
@@ -46,8 +30,6 @@ export default [
                     exceptAfterSingleLine: true,
                 },
             ],
-
-            'class-methods-use-this': 'off',
             'comma-dangle': ['warn', 'always-multiline'],
             'comma-spacing': ['error'],
             curly: ['warn', 'all'],
@@ -80,7 +62,6 @@ export default [
             '@typescript-eslint/array-type': 'warn',
             '@typescript-eslint/await-thenable': 'error',
             '@typescript-eslint/class-literal-property-style': 'error',
-            // '@typescript-eslint/class-methods-use-this': 'error',
             '@typescript-eslint/consistent-generic-constructors': 'error',
             '@typescript-eslint/consistent-indexed-object-style': 'error',
             '@typescript-eslint/consistent-return': 'warn',
@@ -292,13 +273,10 @@ export default [
                     before: false,
                     after: true,
                     overrides: {
-                        arrow: {
-                            before: true,
-                            after: true,
-                        },
+                        arrow: 'ignore',
                     },
                 },
             ],
         },
     },
-];
+]);

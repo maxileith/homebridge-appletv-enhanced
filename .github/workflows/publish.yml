@@ -3,7 +3,11 @@ name: Publish
 on:
   push:
     tags:
-      - "*"
+      - "v*"
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   publish:
@@ -23,13 +27,9 @@ jobs:
       - name: Publish Beta
         if: ${{ contains(github.ref_name, '-') }}
         shell: bash
-        run: npm publish --tag beta --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --tag beta
 
       - name: Publish Stable
         if: ${{ ! contains(github.ref_name, '-') }}
         shell: bash
-        run: npm publish --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish

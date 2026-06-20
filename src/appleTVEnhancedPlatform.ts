@@ -1,4 +1,4 @@
-import type { API, DynamicPlatformPlugin, Logger, PlatformAccessory, Service, Characteristic, HomebridgeConfig } from 'homebridge';
+import type { API, DynamicPlatformPlugin, Logger, PlatformAccessory, Service, Characteristic } from 'homebridge';
 import { PLUGIN_NAME } from './settings';
 import { AppleTVEnhancedAccessory } from './appleTVEnhancedAccessory';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
@@ -7,15 +7,12 @@ import type { NodePyATVDevice, NodePyATVFindResponseObject } from '@sebbo2002/no
 import PythonChecker from './PythonChecker';
 import PrefixLogger from './PrefixLogger';
 import LogLevelLogger from './LogLevelLogger';
-import UpdateChecker from './UpdateChecker';
-import fs from 'fs';
+import { hostname } from 'os';
 
 // compatible model identifiers according to https://pyatv.dev/api/const/#pyatv.const.DeviceModel
 const ALLOWED_MODELS: string[] = [
     'Gen4',
     'Gen4K',
-    'AppleTVGen4', // future proof since they will be renamed in pyatv
-    'AppleTVGen4K', // future proof since they will be renamed in pyatv
     'AppleTV4KGen2',
     'AppleTV4KGen3',
 ];
@@ -26,6 +23,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
     public readonly characteristic: typeof Characteristic;
     public readonly logLevelLogger: LogLevelLogger;
     public readonly service: typeof Service;
+    private atvAccessories: AppleTVEnhancedAccessory[] = [];
 
     private readonly log: PrefixLogger;
     private readonly publishedUUIDs: string[] = [];
@@ -55,16 +53,6 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
         this.api.on('didFinishLaunching', async (): Promise<void> => {
             this.log.debug('Executed didFinishLaunching callback');
 
-            // enable update check
-            const updateChecker: UpdateChecker = new UpdateChecker(
-                this.logLevelLogger,
-                this.isAutoUpdateOn(),
-                this.config.updateCheckLevel === 'beta',
-                this.config.updateCheckTime,
-            );
-            await updateChecker.check('success');
-            updateChecker.startInterval(true);
-
             // make sure the Python environment is ready
             await new PythonChecker(this.logLevelLogger, this.api.user.storagePath(), this.config.pythonExecutable)
                 .allInOne(this.config.forceVenvRecreate);
@@ -91,10 +79,19 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
                 this.warnNoDevices();
             }, 150000);
         });
+
+        // Shutdown event will stop all ATV accessories
+        this.api.on('shutdown', (): void => {
+            for (const atvAccessory of this.atvAccessories) {
+                atvAccessory.stop().catch(() => {
+                    this.log.error(`Failed to stop ${atvAccessory.name} (${atvAccessory.mac})`);
+                });
+            }
+        });
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
-    public configureAccessory(_accessory: PlatformAccessory): void {}
+    public configureAccessory(_accessory: PlatformAccessory): void { }
 
     /**
    * This is an example method showing how to register discovered accessories.
@@ -190,7 +187,13 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             // generate a unique id for the accessory this should be generated from
             // something globally unique, but constant, for example, the device serial
             // number or MAC address
-            const uuid: string = this.api.hap.uuid.generate(DEV_MODE === true ? `x${mac}` : mac);
+            let uuid: string = this.api.hap.uuid.generate(mac);
+            if (DEV_MODE === true) {
+                const localHostname: string = hostname();
+                uuid = this.api.hap.uuid.generate(`${localHostname}${mac}`);
+                this.log.debug(`Generated UUID ${uuid} for ${appleTV.name} from local hostname ${localHostname} and MAC address ${mac} \
+since development mode is enabled.`);
+            }
             if (this.publishedUUIDs.includes(uuid)) {
                 this.log.debug(`${appleTV.name} (${appleTV.mac}) with UUID ${uuid} already exists. Skipping.`);
                 continue;
@@ -201,49 +204,28 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             this.log.info(`Adding ${appleTV.name} (${appleTV.mac})`);
 
             // create a new accessory
-            const accessory: PlatformAccessory = new this.api.platformAccessory(appleTV.name, uuid);
+            const newAccessory: PlatformAccessory = new this.api.platformAccessory(appleTV.name, uuid);
 
             // store a copy of the device object in the `accessory.context`
             // the `context` property can be used to store any data about the accessory you may need
-            accessory.context.mac = mac;
+            newAccessory.context.mac = mac;
 
             // create the accessory handler for the newly create accessory
             // this is imported from `platformAccessory.ts`
             void (async (): Promise<void> => {
                 this.log.debug(`Waiting for ${appleTV.name} (${appleTV.mac}) to boot ...`);
-                await new AppleTVEnhancedAccessory(this, accessory).untilBooted();
+
+                const newAtvAccessory: AppleTVEnhancedAccessory = new AppleTVEnhancedAccessory(this, newAccessory);
+                await newAtvAccessory.untilBooted();
+                this.atvAccessories.push(newAtvAccessory);
 
                 // link the accessory to your platform
                 this.log.debug(`${appleTV.name} (${appleTV.mac}) finished booting. Publishing the accessory now.`);
-                this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
+                this.api.publishExternalAccessories(PLUGIN_NAME, [newAccessory]);
             })();
         }
 
         this.log.debug('Finished device discovery.');
-    }
-
-    private isAutoUpdateOn(): boolean {
-        switch (this.config.autoUpdate) {
-            case 'on':
-                return true;
-            case 'off':
-                return false;
-            case 'auto':
-            case undefined:
-            default:
-                // by default, autoUpdate should be turned on when the plugin is running as a child bridge
-                const ogConfig: HomebridgeConfig = JSON.parse(fs.readFileSync(this.api.user.configPath(), 'utf-8'));
-                const ogAppleTVEnhancedConfig: AppleTVEnhancedPlatformConfig | undefined =
-                    ogConfig.platforms.find((p) => p.platform === 'AppleTVEnhanced');
-                if (ogAppleTVEnhancedConfig !== undefined) {
-                    return ogAppleTVEnhancedConfig._bridge !== undefined;
-                } else {
-                    this.log.warn('Could not determine whether or not the plugin is running as a child bridge. Therefore, the default \
-setting for automatic updates could not be determined. Falling back to "off". You can enable or disable automatic updates in the \
-configuration explicitly.');
-                    return false;
-                }
-        }
     }
 
     private warnNoDevices(): void {

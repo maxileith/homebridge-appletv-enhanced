@@ -2,20 +2,31 @@
     "bridge": {
         "name": "Homebridge E01F",
         "username": "0E:D9:CF:BB:96:51",
-        "port": 51667,
+        "port": 30000,
         "pin": "918-01-412",
         "advertiser": "bonjour-hap"
+    },
+    "ports": {
+        "start": 30001,
+        "end": 30001
     },
     "accessories": [],
     "platforms": [
         {
             "name": "Config",
+            "platform": "config",
             "port": 8581,
             "auth": "form",
-            "theme": "auto",
+            "theme": "purple",
+            "lightingMode": "auto",
+            "menuMode": "default",
             "tempUnits": "c",
-            "lang": "auto",
-            "platform": "config"
+            "lang": "en",
+            "plugins": {
+                "hideUpdatesFor": [
+                    "homebridge-appletv-eb=nhanced"
+                ]
+            }
         },
         {
             "name": "Apple TV Enhanced",
@@ -29,7 +40,6 @@
                 "paused",
                 "stopped"
             ],
-            "deviceStateDelay": 1,
             "remoteKeysAsSwitch": [
                 "channel_down",
                 "channel_up",
@@ -63,6 +73,8 @@
                 "https://tv.apple.com/show/silo/umc.cmc.3yksgc857px0k0rqe5zd4jice",
                 "vlc://https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8"
             ],
+            "disableCharacteristics": false,
+            "disableInputs": false,
             "disableVolumeControlRemote": false,
             "absoluteVolumeControl": false,
             "setTopBox": false,
@@ -73,8 +85,6 @@
                     "mediaTypes": ["music", "video"],
                     "overrideDeviceStates": true,
                     "deviceStates": ["paused", "playing"],
-                    "overrideDeviceStateDelay": true,
-                    "deviceStateDelay": 3,
                     "overrideRemoteKeysAsSwitch": true,
                     "remoteKeysAsSwitch": [
                         "home",
@@ -89,6 +99,10 @@
                     "customInputURIs": [
                         "https://www.disneyplus.com/de-de/movies/avatar-the-way-of-water/6hlsDJnhiU30"
                     ],
+                    "overrideDisableCharacteristics": true,
+                    "disableCharacteristics": true,
+                    "overrideDisableInputs": true,
+                    "disableInputs": true,
                     "overrideDisableVolumeControlRemote": true,
                     "disableVolumeControlRemote": true,
                     "overrideAbsoluteVolumeControl": true,
@@ -104,9 +118,6 @@
             },
             "forceVenvRecreate": false,
             "logLevel": 4,
-            "updateCheckLevel": "beta",
-            "updateCheckTime": 3,
-            "autoUpdate": "on",
             "pythonExecutable": "/path/to/python3"
         }
     ]

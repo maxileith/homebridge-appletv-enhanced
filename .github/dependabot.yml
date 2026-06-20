@@ -17,6 +17,7 @@ updates:
       # Use CET
       timezone: Europe/Berlin
     target-branch: develop
+    open-pull-requests-limit: 100
     labels:
       - dependency
     assignees:
@@ -41,9 +42,9 @@ updates:
         patterns:
           - "@types/md5"
           - "md5"
-    # ignore:
-    #   - dependency-name: "@types/node"
-    #     update-types: ["version-update:semver-major"]
+    ignore:
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   # Enable version updates for pip
   - package-ecosystem: pip
@@ -57,6 +58,7 @@ updates:
       # Use CET
       timezone: Europe/Berlin
     target-branch: develop
+    open-pull-requests-limit: 100
     labels:
       - dependency
     assignees:
@@ -90,6 +92,10 @@ updates:
       time: "15:00"
       # Use CET
       timezone: Europe/Berlin
+    target-branch: develop
+    open-pull-requests-limit: 100
+    labels:
+      - dependency
     assignees:
       - maxileith
     commit-message:
@@ -108,6 +114,7 @@ updates:
       # Use CET
       timezone: Europe/Berlin
     target-branch: develop
+    open-pull-requests-limit: 100
     labels:
       - dependency
     assignees:
