@@ -73,6 +73,8 @@
                 "https://tv.apple.com/show/silo/umc.cmc.3yksgc857px0k0rqe5zd4jice",
                 "vlc://https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8"
             ],
+            "disableCharacteristics": false,
+            "disableInputs": false,
             "disableVolumeControlRemote": false,
             "absoluteVolumeControl": false,
             "setTopBox": false,
@@ -97,6 +99,10 @@
                     "customInputURIs": [
                         "https://www.disneyplus.com/de-de/movies/avatar-the-way-of-water/6hlsDJnhiU30"
                     ],
+                    "overrideDisableCharacteristics": true,
+                    "disableCharacteristics": true,
+                    "overrideDisableInputs": true,
+                    "disableInputs": true,
                     "overrideDisableVolumeControlRemote": true,
                     "disableVolumeControlRemote": true,
                     "overrideAbsoluteVolumeControl": true,

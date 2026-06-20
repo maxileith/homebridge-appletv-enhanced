@@ -105,6 +105,20 @@
                     "placeholder": "https://www.disneyplus.com/movies/rogue-one-a-star-wars-story/14CV6eSbygOA"
                 }
             },
+            "disableCharacteristics": {
+                "title": "Disable Characteristics",
+                "description": "Don't create or update characteristics like Album, Artist, etc.",
+                "type": "boolean",
+                "default": false,
+                "required": false
+            },
+            "disableInputs": {
+                "title": "Disable Inputs",
+                "description": "Don't create Inputs. Useful for decluttering the accessory in the Home app.",
+                "type": "boolean",
+                "default": false,
+                "required": false
+            },
             "disableVolumeControlRemote": {
                 "title": "Disable volume control in iOS remote",
                 "description": "Disables the volume control in the iOS remote. It is recommended to disable volume control when the audio setup that the Apple TV is connected to does not support HDMI-CEC since the Apple TV does not have any control over the volume in this scenario anyways.",
@@ -408,6 +422,30 @@
                                 "placeholder": "https://www.disneyplus.com/movies/rogue-one-a-star-wars-story/14CV6eSbygOA"
                             }
                         },
+                        "overrideDisableCharacteristics": {
+                            "title": "Override: Disable Characteristics",
+                            "type": "boolean",
+                            "default": false,
+                            "required": false
+                        },
+                        "disableCharacteristics": {
+                            "title": "Disable Characteristics",
+                            "type": "boolean",
+                            "default": false,
+                            "required": false
+                        },
+                        "overrideDisableInputs": {
+                            "title": "Override: Disable Inputs",
+                            "type": "boolean",
+                            "default": false,
+                            "required": false
+                        },
+                        "disableInputs": {
+                            "title": "Disable Inputs",
+                            "type": "boolean",
+                            "default": false,
+                            "required": false
+                        },
                         "overrideDisableVolumeControlRemote": {
                             "title": "Override: Disable volume control in iOS remote",
                             "type": "boolean",
@@ -474,6 +512,8 @@
                     ]
                 },
                 "avadaKedavraAppAmount",
+                "disableCharacteristics",                
+                "disableInputs",
                 "disableVolumeControlRemote",
                 "absoluteVolumeControl",
                 "setTopBox"
@@ -573,6 +613,30 @@
                             "type": "array",
                             "items": {
                                 "key": "deviceSpecificOverrides[].customInputURIs[]"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].overrideDisableCharacteristics",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac);"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].disableCharacteristics",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideDisableCharacteristics === true;"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].overrideDisableInputs",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac);"
+                            }
+                        },
+                        {
+                            "key": "deviceSpecificOverrides[].disableInputs",
+                            "condition": {
+                                "functionBody": "return (new RegExp('^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$')).test(model.deviceSpecificOverrides[arrayIndices].mac) && model.deviceSpecificOverrides[arrayIndices].overrideDisableInputs === true;"
                             }
                         },
                         {
