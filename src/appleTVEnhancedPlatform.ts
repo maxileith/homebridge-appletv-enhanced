@@ -7,6 +7,7 @@ import type { NodePyATVDevice, NodePyATVFindResponseObject } from '@sebbo2002/no
 import PythonChecker from './PythonChecker';
 import PrefixLogger from './PrefixLogger';
 import LogLevelLogger from './LogLevelLogger';
+import { hostname } from 'os';
 
 // compatible model identifiers according to https://pyatv.dev/api/const/#pyatv.const.DeviceModel
 const ALLOWED_MODELS: string[] = [
@@ -186,7 +187,13 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             // generate a unique id for the accessory this should be generated from
             // something globally unique, but constant, for example, the device serial
             // number or MAC address
-            const uuid: string = this.api.hap.uuid.generate(DEV_MODE === true ? `x${mac}` : mac);
+            let uuid: string = this.api.hap.uuid.generate(mac);
+            if (DEV_MODE === true) {
+                const localHostname: string = hostname();
+                uuid = this.api.hap.uuid.generate(`${localHostname}${mac}`);
+                this.log.debug(`Generated UUID ${uuid} for ${appleTV.name} from local hostname ${localHostname} and MAC address ${mac} \
+since development mode is enabled.`);
+            }
             if (this.publishedUUIDs.includes(uuid)) {
                 this.log.debug(`${appleTV.name} (${appleTV.mac}) with UUID ${uuid} already exists. Skipping.`);
                 continue;

@@ -2,9 +2,13 @@
     "bridge": {
         "name": "Homebridge E01F",
         "username": "0E:D9:CF:BB:96:51",
-        "port": 51667,
+        "port": 30000,
         "pin": "918-01-412",
         "advertiser": "bonjour-hap"
+    },
+    "ports": {
+        "start": 30001,
+        "end": 30001
     },
     "accessories": [],
     "platforms": [
