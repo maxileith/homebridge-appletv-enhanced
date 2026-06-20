@@ -103,7 +103,6 @@ export class AppleTVEnhancedAccessory {
     private readonly mediaTypeServices: Partial<Record<NodePyATVMediaType, Service>> = {};
     private offline: boolean = false;
     private readonly pyatvCharacteristics: Partial<Record<PyATVCustomCharacteristicID, Characteristic>> = {};
-    private readonly pyatvListenerHandlers: Partial<Record<PyATVCustomCharacteristicID, (e: Error | NodePyATVDeviceEvent) => void>> = {};
     private remoteKeyAsSwitchConfigs: TRemoteKeysAsSwitchConfigs | undefined = undefined;
     private readonly remoteKeyServices: Partial<Record<RocketRemoteKey, Service>> = {};
     private rocketRemote: RocketRemote | undefined = undefined;
@@ -641,7 +640,6 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
             const handler: (e: Error | NodePyATVDeviceEvent) => void = (e): void => {
                 pyatvCharacteristicListener(e, characteristicID);
             };
-            this.pyatvListenerHandlers[characteristicID] = handler;
             this.device.on(`update:${characteristicID}`, handler);
         }
 
