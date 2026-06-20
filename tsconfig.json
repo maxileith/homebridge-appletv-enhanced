@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
-        "target": "ESNext",
-        "lib": ["DOM", "ESNext"],
+        "target": "es2025",
+        "lib": ["DOM", "ES2025"],
         "rootDir": "src",
         "module": "NodeNext",
         "moduleResolution": "nodenext",
@@ -20,6 +20,6 @@
         "noUnusedLocals": true,
         "noUnusedParameters": true
     },
-    "include": ["src/", "eslint.config.mjs"],
+    "include": ["src/"],
     "exclude": ["**/*.spec.ts"]
 }
