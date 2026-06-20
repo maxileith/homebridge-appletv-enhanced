@@ -2,7 +2,6 @@ import type { PlatformConfig, Service } from 'homebridge';
 import type { RocketRemoteKey } from './enums';
 import type { NodePyATVDeviceState, NodePyATVMediaType } from '@sebbo2002/node-pyatv';
 import type { LogLevel } from './LogLevelLogger';
-import type { TAutoUpdate, TUpdateCheckTime, TUpdateCheckLevel } from './types';
 
 export interface NodePyATVApp {
     id: string;
@@ -54,7 +53,6 @@ export interface DeviceConfigOverride {
 
 export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_bridge' | 'name' | 'platform'> {
     absoluteVolumeControl?: boolean;
-    autoUpdate?: TAutoUpdate;
     avadaKedavraAppAmount?: number;
     customInputURIs?: string[];
     customPyatvCommands?: CustomPyATVCommandConfig[];
@@ -72,8 +70,6 @@ export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_br
     pythonExecutable?: string;
     remoteKeysAsSwitch?: RocketRemoteKey[];
     setTopBox?: boolean;
-    updateCheckLevel?: TUpdateCheckLevel;
-    updateCheckTime?: TUpdateCheckTime;
 }
 
 export interface AlternatePyATVDeviceOptions {

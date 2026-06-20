@@ -70,7 +70,6 @@
     "devDependencies": {
         "@eslint/js": "^9.39.2",
         "@stylistic/eslint-plugin": "^5.7.1",
-        "@types/fs-extra": "^11.0.4",
         "@types/md5": "^2.3.6",
         "@types/node": "^24.13.2",
         "@typescript-eslint/eslint-plugin": "^8.61.1",
@@ -88,7 +87,6 @@
         "@sebbo2002/node-pyatv": "^9.0.2",
         "axios": "^1.18.0",
         "compare-versions": "^6.1.1",
-        "fs-extra": "^11.3.5",
         "md5": "^2.3.0"
     },
     "homepage": "https://github.com/maxileith/homebridge-appletv-enhanced#readme",

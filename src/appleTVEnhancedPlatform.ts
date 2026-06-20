@@ -1,4 +1,4 @@
-import type { API, DynamicPlatformPlugin, Logger, PlatformAccessory, Service, Characteristic, HomebridgeConfig } from 'homebridge';
+import type { API, DynamicPlatformPlugin, Logger, PlatformAccessory, Service, Characteristic } from 'homebridge';
 import { PLUGIN_NAME } from './settings';
 import { AppleTVEnhancedAccessory } from './appleTVEnhancedAccessory';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
@@ -7,8 +7,6 @@ import type { NodePyATVDevice, NodePyATVFindResponseObject } from '@sebbo2002/no
 import PythonChecker from './PythonChecker';
 import PrefixLogger from './PrefixLogger';
 import LogLevelLogger from './LogLevelLogger';
-import UpdateChecker from './UpdateChecker';
-import fs from 'fs';
 
 // compatible model identifiers according to https://pyatv.dev/api/const/#pyatv.const.DeviceModel
 const ALLOWED_MODELS: string[] = [
@@ -55,16 +53,6 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this.api.on('didFinishLaunching', async (): Promise<void> => {
             this.log.debug('Executed didFinishLaunching callback');
-
-            // enable update check
-            const updateChecker: UpdateChecker = new UpdateChecker(
-                this.logLevelLogger,
-                this.isAutoUpdateOn(),
-                this.config.updateCheckLevel === 'beta',
-                this.config.updateCheckTime,
-            );
-            await updateChecker.check('success');
-            updateChecker.startInterval(true);
 
             // make sure the Python environment is ready
             await new PythonChecker(this.logLevelLogger, this.api.user.storagePath(), this.config.pythonExecutable)
@@ -233,30 +221,6 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
         }
 
         this.log.debug('Finished device discovery.');
-    }
-
-    private isAutoUpdateOn(): boolean {
-        switch (this.config.autoUpdate) {
-            case 'on':
-                return true;
-            case 'off':
-                return false;
-            case 'auto':
-            case undefined:
-            default:
-                // by default, autoUpdate should be turned on when the plugin is running as a child bridge
-                const ogConfig: HomebridgeConfig = JSON.parse(fs.readFileSync(this.api.user.configPath(), 'utf-8'));
-                const ogAppleTVEnhancedConfig: AppleTVEnhancedPlatformConfig | undefined =
-                    ogConfig.platforms.find((p) => p.platform === 'AppleTVEnhanced');
-                if (ogAppleTVEnhancedConfig !== undefined) {
-                    return ogAppleTVEnhancedConfig._bridge !== undefined;
-                } else {
-                    this.log.warn('Could not determine whether or not the plugin is running as a child bridge. Therefore, the default \
-setting for automatic updates could not be determined. Falling back to "off". You can enable or disable automatic updates in the \
-configuration explicitly.');
-                    return false;
-                }
-        }
     }
 
     private warnNoDevices(): void {
