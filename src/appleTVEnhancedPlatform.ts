@@ -26,6 +26,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
     public readonly characteristic: typeof Characteristic;
     public readonly logLevelLogger: LogLevelLogger;
     public readonly service: typeof Service;
+    private atvAccessories: AppleTVEnhancedAccessory[] = [];
 
     private readonly log: PrefixLogger;
     private readonly publishedUUIDs: string[] = [];
@@ -91,10 +92,19 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
                 this.warnNoDevices();
             }, 150000);
         });
+
+        // Shutdown event will stop all ATV accessories
+        this.api.on('shutdown', (): void => {
+            for (const atvAccessory of this.atvAccessories) {
+                atvAccessory.stop().catch(() => {
+                    this.log.error(`Failed to stop ${atvAccessory.name} (${atvAccessory.mac})`);
+                });
+            }
+        });
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
-    public configureAccessory(_accessory: PlatformAccessory): void {}
+    public configureAccessory(_accessory: PlatformAccessory): void { }
 
     /**
    * This is an example method showing how to register discovered accessories.
@@ -201,21 +211,24 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             this.log.info(`Adding ${appleTV.name} (${appleTV.mac})`);
 
             // create a new accessory
-            const accessory: PlatformAccessory = new this.api.platformAccessory(appleTV.name, uuid);
+            const newAccessory: PlatformAccessory = new this.api.platformAccessory(appleTV.name, uuid);
 
             // store a copy of the device object in the `accessory.context`
             // the `context` property can be used to store any data about the accessory you may need
-            accessory.context.mac = mac;
+            newAccessory.context.mac = mac;
 
             // create the accessory handler for the newly create accessory
             // this is imported from `platformAccessory.ts`
             void (async (): Promise<void> => {
                 this.log.debug(`Waiting for ${appleTV.name} (${appleTV.mac}) to boot ...`);
-                await new AppleTVEnhancedAccessory(this, accessory).untilBooted();
+
+                const newAtvAccessory: AppleTVEnhancedAccessory = new AppleTVEnhancedAccessory(this, newAccessory);
+                await newAtvAccessory.untilBooted();
+                this.atvAccessories.push(newAtvAccessory);
 
                 // link the accessory to your platform
                 this.log.debug(`${appleTV.name} (${appleTV.mac}) finished booting. Publishing the accessory now.`);
-                this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
+                this.api.publishExternalAccessories(PLUGIN_NAME, [newAccessory]);
             })();
         }
 

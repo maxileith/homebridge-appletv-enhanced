@@ -8,6 +8,7 @@ import { NodePyATVRepeatState, NodePyATVShuffleState } from '@sebbo2002/node-pya
 class RocketRemote {
 
     private readonly avadaKedavraSequence: string[];
+    private closed: boolean = false;
     private heartbeatInterval?: NodeJS.Timeout;
     private lastCommandSend: number = 0;
     private readonly log: PrefixLogger;
@@ -55,6 +56,12 @@ class RocketRemote {
         this.sendCommand(RocketRemoteKey.CHANNEL_UP, hideLog);
     }
 
+    public async close(): Promise<void> {
+        this.closed = true;
+        this.log.info('Closing connection ...');
+        this.sendCommand('exit', true);
+    }
+
     public down(hideLog: boolean = false): void {
         this.sendCommand(RocketRemoteKey.DOWN, hideLog);
     }
@@ -82,12 +89,15 @@ class RocketRemote {
     public onClose(f: () => Promise<void> | void): void {
         this.onCloseCallable = f;
         this.process.once('close', () => {
-            this.process.stdout.removeListener('data', this.stdoutListener);
-            this.process.stderr.removeListener('data', this.stderrListener);
-            clearInterval(this.heartbeatInterval);
-            this.log.warn('Lost connection. Trying to reconnect ...');
-            if (this.onCloseCallable) {
-                void this.onCloseCallable();
+            this.cleanUp();
+            if (this.closed === false) {
+                this.log.warn('Lost connection. Trying to reconnect ...');
+                if (this.onCloseCallable) {
+                    void this.onCloseCallable();
+                }
+            } else {
+                this.log.success('Closed connection successfully.');
+                this.log.debug('Skipping to reconnect since it was closed on purpose.');
             }
         });
     }
@@ -228,6 +238,12 @@ class RocketRemote {
 
     public volumeUp(hideLog: boolean = false): void {
         this.sendCommand(RocketRemoteKey.VOLUME_UP, hideLog);
+    }
+
+    private cleanUp(): void {
+        clearInterval(this.heartbeatInterval);
+        this.process.stdout.removeListener('data', this.stdoutListener);
+        this.process.stderr.removeListener('data', this.stderrListener);
     }
 
     private generateAvadaKedavraSequence(numberOfApps: number): string[] {

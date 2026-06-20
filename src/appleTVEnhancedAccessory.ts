@@ -81,6 +81,9 @@ const AIR_PLAY_IDENTIFIER: number = 7567;
  * Each accessory may expose multiple services of different service types.
  */
 export class AppleTVEnhancedAccessory {
+    public readonly mac: string;
+    public readonly name: string;
+
     private airPlayInputService: Service | undefined = undefined;
     private appConfigs: AppConfigs | undefined = undefined;
     private avadaKedavraService: Service | undefined = undefined;
@@ -116,6 +119,8 @@ export class AppleTVEnhancedAccessory {
 
         this.device = CustomPyAtvInstance.deviceAdvanced({ mac: this.accessory.context.mac as string })!;
 
+        this.name = this.device.name;
+        this.mac = this.device.mac!;
         this.log = new PrefixLogger(this.platform.logLevelLogger, `${this.device.name} (${this.device.mac})`);
 
         this.log.debug(`Accessory Config: ${JSON.stringify(this.config)}`);
@@ -154,6 +159,16 @@ export class AppleTVEnhancedAccessory {
         };
 
         validationLoop();
+    }
+
+    public async stop(): Promise<void> {
+        this.log.info('Stopping ...');
+        this.rocketRemote?.close().catch(() => {
+            this.log.error('Failed to close connection.');
+        });
+        this.log.info('Removing all event listeners ...');
+        this.device.removeAllListeners();
+        this.log.success('Removed all event listeners successfully.');
     }
 
     public async untilBooted(): Promise<void> {
@@ -635,16 +650,7 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
             this.offline = true;
             this.log.warn('Lost connection. Trying to reconnect ...');
 
-            this.device.removeListener('update:powerState', powerStateListener);
-            this.device.removeListener('update:appId', appIdListener);
-            this.device.removeListener('update:app', appListener);
-            this.device.removeListener('update:deviceState', deviceStateListener);
-            this.device.removeListener('update:mediaType', mediaTypeListener);
-            this.device.removeListener('update:volume', volumeListener);
-
-            for (const characteristic in this.pyatvListenerHandlers) {
-                this.device.removeListener(`update:${characteristic}`, this.pyatvListenerHandlers[characteristic]);
-            }
+            this.device.removeAllListeners();
 
             setTimeout(this.createListeners.bind(this), 5000);
 

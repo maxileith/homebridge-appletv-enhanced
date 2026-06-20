@@ -10,12 +10,19 @@
     "platforms": [
         {
             "name": "Config",
+            "platform": "config",
             "port": 8581,
             "auth": "form",
-            "theme": "auto",
+            "theme": "purple",
+            "lightingMode": "auto",
+            "menuMode": "default",
             "tempUnits": "c",
-            "lang": "auto",
-            "platform": "config"
+            "lang": "en",
+            "plugins": {
+                "hideUpdatesFor": [
+                    "homebridge-appletv-eb=nhanced"
+                ]
+            }
         },
         {
             "name": "Apple TV Enhanced",
