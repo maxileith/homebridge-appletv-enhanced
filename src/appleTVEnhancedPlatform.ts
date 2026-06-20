@@ -12,8 +12,6 @@ import LogLevelLogger from './LogLevelLogger';
 const ALLOWED_MODELS: string[] = [
     'Gen4',
     'Gen4K',
-    'AppleTVGen4', // future proof since they will be renamed in pyatv
-    'AppleTVGen4K', // future proof since they will be renamed in pyatv
     'AppleTV4KGen2',
     'AppleTV4KGen3',
 ];
