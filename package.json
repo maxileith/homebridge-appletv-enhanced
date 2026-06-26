@@ -85,7 +85,7 @@
     },
     "dependencies": {
         "@sebbo2002/node-pyatv": "^10.0.0",
-        "axios": "^1.18.0",
+        "axios": "^1.18.1",
         "compare-versions": "^6.1.1",
         "md5": "^2.3.0"
     },
