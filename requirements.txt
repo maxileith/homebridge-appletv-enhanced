@@ -28,4 +28,4 @@ typing-inspection==0.4.2
 typing_extensions==4.15.0
 urllib3==2.7.0
 yarl==1.24.2
-zeroconf==0.149.16
+zeroconf==0.150.0
