@@ -18,7 +18,7 @@ protobuf==7.35.1
 pyatv==0.18.0
 pycparser==3.0
 pydantic==2.13.4
-pydantic_core==2.46.4
+pydantic_core==2.47.0
 requests==2.34.2
 six==1.17.0
 srptools==1.0.1
