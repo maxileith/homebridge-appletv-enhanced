@@ -84,7 +84,7 @@
         "typescript-eslint": "^8.62.1"
     },
     "dependencies": {
-        "@sebbo2002/node-pyatv": "^v10.0.1-develop.4",
+        "@sebbo2002/node-pyatv": "^v10.0.1-develop.7",
         "axios": "^1.18.1",
         "compare-versions": "^6.1.1",
         "md5": "^2.3.0"
