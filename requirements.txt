@@ -27,5 +27,5 @@ tinytag==2.2.1
 typing-inspection==0.4.2
 typing_extensions==4.16.0
 urllib3==2.7.0
-yarl==1.24.2
+yarl==1.24.5
 zeroconf==0.150.0
