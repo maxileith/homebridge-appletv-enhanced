@@ -25,7 +25,7 @@
         "arm64"
     ],
     "engines": {
-        "homebridge": "^2.1.0",
+        "homebridge": "^2.2.1",
         "node": "^24.18.0 || ^22.23.0"
     },
     "type": "commonjs",
