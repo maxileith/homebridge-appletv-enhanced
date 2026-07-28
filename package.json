@@ -71,7 +71,7 @@
         "@eslint/js": "^10.0.1",
         "@stylistic/eslint-plugin": "^5.10.0",
         "@types/md5": "^2.3.6",
-        "@types/node": "^24.13.2",
+        "@types/node": "^24.13.3",
         "eslint": "^10.7.0",
         "homebridge": "^2.2.1",
         "homebridge-config-ui-x": "^5.27.0",
