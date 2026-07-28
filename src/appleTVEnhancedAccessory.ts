@@ -75,6 +75,8 @@ const HOME_IDENTIFIER: number = 69;
 const AVADA_KEDAVRA_IDENTIFIER: number = 42;
 const AIR_PLAY_IDENTIFIER: number = 7567;
 
+const STARTUP_RETRY_DELAY_MS: number = 60000;
+
 /**
  * Platform Accessory
  * An instance of this class is created for each accessory your platform registers
@@ -144,17 +146,28 @@ export class AppleTVEnhancedAccessory {
         };
 
         const validationLoop = (): void => {
-            //FIXME: catch errors / remove void
-            void this.credentialsValid().then((valid: boolean): void => {
-                if (valid) {
-                    this.log.success('Credentials are still valid. Continuing ...');
-                    void this.startUp();
-                } else {
+            // Every step below talks to the device through pyatv. Discarding these promises with
+            // `void` orphans their rejections, which Node turns into an unhandled rejection and the
+            // child bridge dies with it - a single transient pyatv error takes the accessory down
+            // for good once Homebridge exhausts its restart attempts. Keep hold of the chain and
+            // retry instead.
+            this.credentialsValid()
+                .then(async (valid: boolean): Promise<void> => {
+                    if (valid) {
+                        this.log.success('Credentials are still valid. Continuing ...');
+                        await this.startUp();
+                        return;
+                    }
                     this.log.warn('Credentials are no longer valid. Need to repair ...');
-                    //FIXME: catch errors / remove void
-                    void pairingRequired().then(validationLoop.bind(this));
-                }
-            });
+                    await pairingRequired();
+                    validationLoop();
+                })
+                .catch((e: unknown): void => {
+                    const reason: string = e instanceof Error ? e.message : String(e);
+                    this.log.error(`Start up failed: ${reason}`);
+                    this.log.warn(`Retrying in ${STARTUP_RETRY_DELAY_MS / 1000} seconds ...`);
+                    setTimeout(validationLoop, STARTUP_RETRY_DELAY_MS);
+                });
         };
 
         validationLoop();
