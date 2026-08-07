@@ -4,7 +4,7 @@ aiosignal==1.4.0
 annotated-types==0.8.0
 attrs==26.1.0
 certifi==2026.7.22
-cffi==2.1.0
+cffi==2.1.1
 chacha20poly1305-reuseable==0.13.2
 charset-normalizer==3.4.9
 cryptography==49.0.0
