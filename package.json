@@ -74,7 +74,7 @@
         "@types/node": "^24.13.3",
         "eslint": "^10.8.0",
         "homebridge": "^2.2.1",
-        "homebridge-config-ui-x": "^5.27.0",
+        "homebridge-config-ui-x": "^5.29.0",
         "jiti": "^2.7.0",
         "nodemon": "^3.1.11",
         "rimraf": "^6.1.2",
