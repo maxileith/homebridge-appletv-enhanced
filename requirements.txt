@@ -26,6 +26,6 @@ tabulate==0.10.0
 tinytag==2.3.0
 typing-inspection==0.4.2
 typing_extensions==4.16.0
-urllib3==2.7.0
+urllib3==2.8.0
 yarl==1.24.5
 zeroconf==0.150.0
