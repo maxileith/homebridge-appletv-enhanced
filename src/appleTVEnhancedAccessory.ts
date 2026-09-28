@@ -879,9 +879,9 @@ from ${appConfigs[app.id].visibilityState} to ${value}.`);
         this.televisionSpeakerService.getCharacteristic(this.platform.characteristic.Mute)
             .onSet(async (value: CharacteristicValue): Promise<void> => {
                 if (value === true) {
-                    this.unmute();
-                } else {
                     this.mute();
+                } else {
+                    this.unmute();
                 }
             });
 
