@@ -77,6 +77,7 @@
             "disableInputs": false,
             "disableVolumeControlRemote": false,
             "absoluteVolumeControl": false,
+            "exposeAs": "appleTV",
             "setTopBox": false,
             "deviceSpecificOverrides": [
                 {
@@ -107,8 +108,8 @@
                     "disableVolumeControlRemote": true,
                     "overrideAbsoluteVolumeControl": true,
                     "absoluteVolumeControl": true,
-                    "overrideSetTopBox": true,
-                    "setTopBox": true
+                    "overrideExposeAs": true,
+                    "exposeAs": "setTopBox"
                 }
             ],
             "discover": {

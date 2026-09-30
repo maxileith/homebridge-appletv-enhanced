@@ -8,6 +8,10 @@ export interface NodePyATVApp {
     name: string;
 }
 
+export type AccessoryMode = 'sensorsOnly' | 'television';
+
+export type ExposeAs = 'appleTV' | 'sensorsOnly' | 'setTopBox';
+
 export type IInputs = Record<string, Service>;
 
 export interface AppConfig {
@@ -38,6 +42,7 @@ export interface DeviceConfigOverride {
     disableCharacteristics?: boolean,
     disableInputs?: boolean,
     disableVolumeControlRemote?: boolean;
+    exposeAs?: ExposeAs;
     mac?: string;
     mediaTypes?: NodePyATVMediaType[];
     overrideAbsoluteVolumeControl?: boolean;
@@ -48,6 +53,7 @@ export interface DeviceConfigOverride {
     overrideDisableCharacteristics?: boolean,
     overrideDisableInputs?: boolean,
     overrideDisableVolumeControlRemote?: boolean;
+    overrideExposeAs?: boolean;
     overrideMediaTypes?: boolean;
     overrideRemoteKeysAsSwitch?: boolean;
     overrideSetTopBox?: boolean;
@@ -70,6 +76,7 @@ export interface AppleTVEnhancedPlatformConfig extends Pick<PlatformConfig, '_br
         multicast?: boolean;
         unicast?: string[];
     };
+    exposeAs?: ExposeAs;
     forceVenvRecreate?: boolean;
     logLevel?: LogLevel;
     mediaTypes?: NodePyATVMediaType[];

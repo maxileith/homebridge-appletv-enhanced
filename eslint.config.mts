@@ -16,7 +16,7 @@ export default defineConfig([
             ecmaVersion: 2025,
             sourceType: 'module',
             parserOptions: {
-                project: 'tsconfig.json',
+                project: 'tsconfig.eslint.json',
             },
         },
         plugins: {
@@ -277,6 +277,13 @@ export default defineConfig([
                     },
                 },
             ],
+        },
+    },
+    {
+        files: ['src/**/*.spec.ts'],
+        rules: {
+            // `describe`/`it` from `node:test` return promises that are intentionally not awaited
+            '@typescript-eslint/no-floating-promises': 'off',
         },
     },
 ]);
