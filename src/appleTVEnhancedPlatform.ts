@@ -1,8 +1,11 @@
 import type { API, DynamicPlatformPlugin, Logger, PlatformAccessory, Service, Characteristic } from 'homebridge';
-import { PLUGIN_NAME } from './settings';
+import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { AppleTVEnhancedAccessory } from './appleTVEnhancedAccessory';
+import { planAccessoryActions } from './accessoryPlan';
+import type { AccessoryPlan, PlannedDevice } from './accessoryPlan';
+import { accessoryUuidSeed, getAccessoryMode, resolveDeviceConfig } from './config';
 import CustomPyAtvInstance from './CustomPyAtvInstance';
-import type { AppleTVEnhancedPlatformConfig } from './interfaces';
+import type { AccessoryMode, AppleTVEnhancedPlatformConfig } from './interfaces';
 import type { NodePyATVDevice, NodePyATVFindResponseObject } from '@sebbo2002/node-pyatv';
 import PythonChecker from './PythonChecker';
 import PrefixLogger from './PrefixLogger';
@@ -24,6 +27,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
     public readonly logLevelLogger: LogLevelLogger;
     public readonly service: typeof Service;
     private atvAccessories: AppleTVEnhancedAccessory[] = [];
+    private readonly cachedAccessories: PlatformAccessory[] = [];
 
     private readonly log: PrefixLogger;
     private readonly publishedUUIDs: string[] = [];
@@ -90,8 +94,19 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
         });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
-    public configureAccessory(_accessory: PlatformAccessory): void { }
+    public configureAccessory(accessory: PlatformAccessory): void {
+        this.log.debug(`Restoring cached accessory ${accessory.displayName} (${accessory.UUID}).`);
+        this.cachedAccessories.push(accessory);
+    }
+
+    private accessoryUUID(mac: string, mode: AccessoryMode): string {
+        const devHostname: string | undefined = DEV_MODE === true ? hostname() : undefined;
+        const uuid: string = this.api.hap.uuid.generate(accessoryUuidSeed(mac, mode, devHostname));
+        if (DEV_MODE === true) {
+            this.log.debug(`Generated UUID ${uuid} for ${mac} from local hostname ${devHostname} since development mode is enabled.`);
+        }
+        return uuid;
+    }
 
     /**
    * This is an example method showing how to register discovered accessories.
@@ -163,7 +178,9 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
 
         const appleTVs: NodePyATVDevice[] = scanResults.filter((d) => ALLOWED_MODELS.includes(d.model ?? '') && d.os === 'TvOS');
 
-        // loop over the discovered devices and register each one if it has not already been registered
+        // resolve the discovered devices that have not been handled yet
+        const plannedDevices: PlannedDevice[] = [];
+        const blacklistedMacs: string[] = [];
         for (const appleTV of appleTVs) {
             this.log.debug(`Found ${appleTV.name} (${appleTV.mac}).`);
 
@@ -176,52 +193,64 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             if (this.config.discover?.blacklist) {
                 if (this.config.discover.blacklist.map((e) => e.toUpperCase()).includes(mac)) {
                     this.log.debug(`${appleTV.name} (${appleTV.mac}) is on the blacklist. Skipping.`);
+                    blacklistedMacs.push(mac);
                     continue;
                 }
                 if (this.config.discover.blacklist.includes(appleTV.host ?? '')) {
                     this.log.debug(`${appleTV.name} (${appleTV.host}) is on the blacklist. Skipping.`);
+                    blacklistedMacs.push(mac);
                     continue;
                 }
             }
 
-            // generate a unique id for the accessory this should be generated from
-            // something globally unique, but constant, for example, the device serial
-            // number or MAC address
-            let uuid: string = this.api.hap.uuid.generate(mac);
-            if (DEV_MODE === true) {
-                const localHostname: string = hostname();
-                uuid = this.api.hap.uuid.generate(`${localHostname}${mac}`);
-                this.log.debug(`Generated UUID ${uuid} for ${appleTV.name} from local hostname ${localHostname} and MAC address ${mac} \
-since development mode is enabled.`);
-            }
+            const deviceConfig: AppleTVEnhancedPlatformConfig = resolveDeviceConfig(this.config, mac);
+            const mode: AccessoryMode = getAccessoryMode(deviceConfig);
+            const uuid: string = this.accessoryUUID(mac, mode);
             if (this.publishedUUIDs.includes(uuid)) {
                 this.log.debug(`${appleTV.name} (${appleTV.mac}) with UUID ${uuid} already exists. Skipping.`);
                 continue;
             }
             this.publishedUUIDs.push(uuid);
 
-            // the accessory does not yet exist, so we need to create it
-            this.log.info(`Adding ${appleTV.name} (${appleTV.mac})`);
+            plannedDevices.push({ mac, mode, name: appleTV.name, uuid });
+        }
 
-            // create a new accessory
-            const newAccessory: PlatformAccessory = new this.api.platformAccessory(appleTV.name, uuid);
+        const plan: AccessoryPlan = planAccessoryActions(plannedDevices, this.cachedAccessories, blacklistedMacs);
+        if (plan.unregister.length !== 0) {
+            this.log.info(`Removing ${plan.unregister.length} cached accessory/accessories that are no longer used.`);
+            this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, plan.unregister);
+        }
+
+        for (const device of plannedDevices) {
+            // reuse the cached accessory of this device and mode if it exists, otherwise create a new one
+            const cachedAccessory: PlatformAccessory | undefined = plan.reuse.get(device.uuid);
+            const accessory: PlatformAccessory = cachedAccessory ?? new this.api.platformAccessory(device.name, device.uuid);
+            const fresh: boolean = cachedAccessory === undefined;
 
             // store a copy of the device object in the `accessory.context`
             // the `context` property can be used to store any data about the accessory you may need
-            newAccessory.context.mac = mac;
+            accessory.context.mac = device.mac;
 
-            // create the accessory handler for the newly create accessory
-            // this is imported from `platformAccessory.ts`
+            this.log.info(`Adding ${device.name} (${device.mac})`);
+
+            // create the accessory handler and publish/register the accessory once it has booted
             void (async (): Promise<void> => {
-                this.log.debug(`Waiting for ${appleTV.name} (${appleTV.mac}) to boot ...`);
+                this.log.debug(`Waiting for ${device.name} (${device.mac}) to boot ...`);
 
-                const newAtvAccessory: AppleTVEnhancedAccessory = new AppleTVEnhancedAccessory(this, newAccessory);
-                await newAtvAccessory.untilBooted();
-                this.atvAccessories.push(newAtvAccessory);
+                const atvAccessory: AppleTVEnhancedAccessory = new AppleTVEnhancedAccessory(this, accessory);
+                await atvAccessory.untilBooted();
+                this.atvAccessories.push(atvAccessory);
 
-                // link the accessory to your platform
-                this.log.debug(`${appleTV.name} (${appleTV.mac}) finished booting. Publishing the accessory now.`);
-                this.api.publishExternalAccessories(PLUGIN_NAME, [newAccessory]);
+                this.log.debug(`${device.name} (${device.mac}) finished booting.`);
+                if (device.mode === 'sensorsOnly') {
+                    if (fresh) {
+                        this.log.info(`Registering ${device.name} (${device.mac}) on the bridge.`);
+                        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+                    }
+                } else {
+                    this.log.debug(`Publishing ${device.name} (${device.mac}) as external accessory.`);
+                    this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
+                }
             })();
         }
 
