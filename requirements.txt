@@ -12,7 +12,7 @@ frozenlist==1.8.0
 idna==3.18
 ifaddr==0.2.0
 miniaudio==1.71
-multidict==6.7.1
+multidict==7.2.1
 propcache==0.5.2
 protobuf==7.35.1
 pyatv==0.18.0
