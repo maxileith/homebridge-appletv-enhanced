@@ -2,6 +2,7 @@ import * as nodePyatv from '@sebbo2002/node-pyatv';
 import path from 'path';
 import type { AlternatePyATVDeviceOptions } from './interfaces';
 import PrefixLogger from './PrefixLogger';
+import { PYATV_WRAPPER_NAMES } from './PythonChecker';
 import type LogLevelLogger from './LogLevelLogger';
 
 
@@ -66,7 +67,7 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
     }
 
     public static getAtvscriptPath(): string {
-        return CustomPyATVInstance.atvremotePath ?? 'atvscript';
+        return CustomPyATVInstance.atvscriptPath ?? 'atvscript';
     }
 
     public static setLogger(logger: LogLevelLogger | PrefixLogger): void {
@@ -74,8 +75,8 @@ class CustomPyATVInstance extends nodePyatv.NodePyATVInstance {
     }
 
     public static setStoragePath(storagePath: string): void {
-        CustomPyATVInstance.atvscriptPath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvscript');
-        CustomPyATVInstance.atvremotePath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', 'atvremote');
+        CustomPyATVInstance.atvscriptPath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', PYATV_WRAPPER_NAMES.atvscript);
+        CustomPyATVInstance.atvremotePath = path.join(storagePath, 'appletv-enhanced', '.venv', 'bin', PYATV_WRAPPER_NAMES.atvremote);
         CustomPyATVInstance.log?.debug(`Set atvscript path to "${CustomPyATVInstance.atvscriptPath}".`);
         CustomPyATVInstance.log?.debug(`Set atvremote path to "${CustomPyATVInstance.atvremotePath}".`);
     }
