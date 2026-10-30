@@ -13,9 +13,18 @@ const supportedPythonVersions: string[] = [
     '3.11',
     '3.12',
     '3.13',
+    '3.14',
+    '3.15',
 ];
 
 const MIN_OPENSSL_VERSION: string = '3.0.0';
+
+// The pyatv scripts call asyncio.get_event_loop() without a running loop, which raises a RuntimeError since python 3.14.
+// These wrappers set an event loop before handing over to the original entry points.
+export const PYATV_WRAPPER_NAMES: Record<'atvremote' | 'atvscript', string> = {
+    atvremote: 'atvremote-compat',
+    atvscript: 'atvscript-compat',
+};
 
 const UID: number = os.userInfo().uid;
 const GID: number = os.userInfo().gid;
@@ -42,8 +51,8 @@ class PythonChecker {
         this.venvPythonExecutable = path.join(this.venvPath, 'bin', 'python3');
         this.venvPipExecutable = path.join(this.venvPath, 'bin', 'pip3');
         this.venvConfigPath = path.join(this.venvPath, 'pyvenv.cfg');
-        this.venvAtvremoteExecutable = path.join(this.venvPath, 'bin', 'atvremote');
-        this.venvAtvscriptExecutable = path.join(this.venvPath, 'bin', 'atvscript');
+        this.venvAtvremoteExecutable = path.join(this.venvPath, 'bin', PYATV_WRAPPER_NAMES.atvremote);
+        this.venvAtvscriptExecutable = path.join(this.venvPath, 'bin', PYATV_WRAPPER_NAMES.atvscript);
     }
 
     public async allInOne(forceVenvRecreate: boolean = false): Promise<void> {
@@ -126,6 +135,31 @@ wonder why this fix is required, please refer to https://github.com/maxileith/ho
         }
     }
 
+    private ensurePyatvWrappers(): void {
+        for (const [script, wrapperName] of Object.entries(PYATV_WRAPPER_NAMES)) {
+            const wrapperPath: string = path.join(this.venvPath, 'bin', wrapperName);
+            // the sh trampoline (as used by pip) avoids shebang issues with long paths or paths containing spaces
+            const content: string = `#!/bin/sh
+'''exec' "${this.venvPythonExecutable}" "$0" "$@"
+' '''
+import asyncio
+import sys
+
+from pyatv.scripts.${script} import main
+
+asyncio.set_event_loop(asyncio.new_event_loop())
+sys.exit(main())
+`;
+            if (fs.existsSync(wrapperPath) && fs.readFileSync(wrapperPath, 'utf-8') === content) {
+                this.log.debug(`${wrapperName} wrapper is up to date.`);
+                continue;
+            }
+            fs.writeFileSync(wrapperPath, content, { mode: 0o755 });
+            fs.chmodSync(wrapperPath, 0o755);
+            this.log.info(`${wrapperName} wrapper (re)created.`);
+        }
+    }
+
     private async ensurePythonVersion(): Promise<void> {
         const version: string = await this.getSystemPythonVersion();
         if (supportedPythonVersions.findIndex((e) => version.startsWith(e)) === -1) {
@@ -190,6 +224,7 @@ trick. Restart the plugin after fixing the permissions.`);
                 }
             }
         }
+        this.ensurePyatvWrappers();
         if (this.isPyatvExecutable() === false) {
             while (true) {
                 this.log.error(`The current user ${UID}:${GID} does not have the permissions to execute the PyATV scripts. \
