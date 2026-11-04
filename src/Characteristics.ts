@@ -10,7 +10,7 @@ const STRING_CHARACTERISTIC_PROPS: CharacteristicProps = {
     maxLen: 256,
 };
 
-const NUMBER_CHARACTERISTIC_PROPS: CharacteristicProps = {
+const INT_CHARACTERISTIC_PROPS: CharacteristicProps = {
     format: Formats.UINT32,
     perms: [Perms.PAIRED_READ, Perms.NOTIFY],
     minStep: 1,
@@ -37,12 +37,14 @@ export function newPyatvCharacteristic(hap: HAP, char: PyATVCustomCharacteristic
             break;
         case PyATVCustomCharacteristicID.EPISODE_NUMBER:
         case PyATVCustomCharacteristicID.SEASON_NUMBER:
+            props = INT_CHARACTERISTIC_PROPS;
+            break;
         case PyATVCustomCharacteristicID.ITUNES_STORE_IDENTIFIER:
-            props = NUMBER_CHARACTERISTIC_PROPS;
+            props = { ...INT_CHARACTERISTIC_PROPS, format: Formats.UINT64 };
             break;
         case PyATVCustomCharacteristicID.POSITION:
         case PyATVCustomCharacteristicID.TOTAL_TIME:
-            props = { ...NUMBER_CHARACTERISTIC_PROPS, unit: Units.SECONDS };
+            props = { ...INT_CHARACTERISTIC_PROPS, unit: Units.SECONDS };
             break;
     }
     return new hap.Characteristic(camelCaseToTitleCase(char), hap.uuid.generate(`uuid-${char}`), props);

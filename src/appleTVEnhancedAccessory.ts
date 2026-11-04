@@ -16,7 +16,7 @@ import {
     NodePyATVMediaType,
     NodePyATVPowerState,
 } from '@sebbo2002/node-pyatv';
-import type { NodePyATVDevice, NodePyATVDeviceEvent, NodePyATVEventValueType } from '@sebbo2002/node-pyatv';
+import type { NodePyATVDevice, NodePyATVDeviceEvent, NodePyATVEventValueType, NodePyATVState } from '@sebbo2002/node-pyatv';
 import md5 from 'md5';
 import { type ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import path from 'path';
@@ -1195,7 +1195,19 @@ plugin after you have fixed the root cause. Enable debug logging to see the orig
         this.log.info(`New Active State: ${event.value}`);
         if (value === this.platform.characteristic.Active.ACTIVE) {
             for (let i: number = STEPS; i <= WAIT_MAX_FOR_STATES * 1000; i += STEPS) {
-                const { mediaType, deviceState } = await this.device.getState();
+                let mediaType: NodePyATVMediaType | null = null;
+                let deviceState: NodePyATVDeviceState | null = null;
+                try {
+                    const state: NodePyATVState = await this.device.getState();
+                    mediaType = state.mediaType;
+                    deviceState = state.deviceState;
+                } catch (error: unknown) {
+                    if (error instanceof Error) {
+                        this.log.debug(`Error while getting device state: ${error.message}`);
+                    } else {
+                        throw error;
+                    }
+                }
                 if (deviceState === null || mediaType === null) {
                     await delay(STEPS);
                     this.log.debug(`Waiting until mediaType and deviceState is reported: ${i}ms`);
