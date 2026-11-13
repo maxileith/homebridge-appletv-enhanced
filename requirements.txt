@@ -24,7 +24,7 @@ six==1.17.0
 srptools==2.0.0
 tabulate==0.10.0
 tinytag==2.3.2
-typing-inspection==0.4.4
+typing-inspection==0.4.5
 typing_extensions==4.16.0
 urllib3==2.8.0
 yarl==1.25.1
