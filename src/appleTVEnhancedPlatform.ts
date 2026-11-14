@@ -8,14 +8,7 @@ import PythonChecker from './PythonChecker';
 import PrefixLogger from './PrefixLogger';
 import LogLevelLogger from './LogLevelLogger';
 import { hostname } from 'os';
-
-// compatible model identifiers according to https://pyatv.dev/api/const/#pyatv.const.DeviceModel
-const ALLOWED_MODELS: string[] = [
-    'Gen4',
-    'Gen4K',
-    'AppleTV4KGen2',
-    'AppleTV4KGen3',
-];
+import { isSupportedAppleTV } from './deviceSupport';
 
 const DEV_MODE: boolean = process.env.APPLETV_ENHANCED_DEV?.toLowerCase() === 'true';
 
@@ -161,7 +154,7 @@ export class AppleTVEnhancedPlatform implements DynamicPlatformPlugin {
             }
         }
 
-        const appleTVs: NodePyATVDevice[] = scanResults.filter((d) => ALLOWED_MODELS.includes(d.model ?? '') && d.os === 'TvOS');
+        const appleTVs: NodePyATVDevice[] = scanResults.filter(isSupportedAppleTV);
 
         // loop over the discovered devices and register each one if it has not already been registered
         for (const appleTV of appleTVs) {
