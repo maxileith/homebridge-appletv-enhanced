@@ -96,14 +96,17 @@ export class AppleTVEnhancedAccessory {
     private readonly customPyatvCommandServices: Record<string, Service> = {};
     private device: NodePyATVDevice;
     private deviceStateConfigs: TDeviceStateConfigs | undefined = undefined;
+    private deviceStateGeneration: number = 0;
     private readonly deviceStateServices: Partial<Record<NodePyATVDeviceState, Service>> = {};
     private homeInputService: Service | undefined = undefined;
     private readonly inputs: IInputs = {};
     private lastNonZeroVolume: number = 50;
     private readonly log: PrefixLogger;
     private mediaConfigs: TMediaConfigs | undefined = undefined;
+    private mediaTypeGeneration: number = 0;
     private readonly mediaTypeServices: Partial<Record<NodePyATVMediaType, Service>> = {};
     private offline: boolean = false;
+    private powerStateGeneration: number = 0;
     private readonly pyatvCharacteristics: Partial<Record<PyATVCustomCharacteristicID, Characteristic>> = {};
     private remoteKeyAsSwitchConfigs: TRemoteKeysAsSwitchConfigs | undefined = undefined;
     private readonly remoteKeyServices: Partial<Record<RocketRemoteKey, Service>> = {};
@@ -174,6 +177,7 @@ export class AppleTVEnhancedAccessory {
     }
 
     public async stop(): Promise<void> {
+        this.powerStateGeneration++;
         this.log.info('Stopping ...');
         this.rocketRemote?.close().catch(() => {
             this.log.error('Failed to close connection.');
@@ -1187,14 +1191,31 @@ plugin after you have fixed the root cause. Enable debug logging to see the orig
     private async handleActiveUpdate(event: NodePyATVDeviceEvent): Promise<void> {
         const WAIT_MAX_FOR_STATES: number = 20; // seconds
         const STEPS: number = 500; // milliseconds
-        if (event.value === null) {
+        if (event.value !== NodePyATVPowerState.on && event.value !== NodePyATVPowerState.off) {
             return;
         }
-        const value: 0 | 1 =
-            event.value === 'on' ? this.platform.characteristic.Active.ACTIVE : this.platform.characteristic.Active.INACTIVE;
+        const generation: number = ++this.powerStateGeneration;
+        const value: 0 | 1 = event.value === NodePyATVPowerState.on
+            ? this.platform.characteristic.Active.ACTIVE
+            : this.platform.characteristic.Active.INACTIVE;
         this.log.info(`New Active State: ${event.value}`);
+        // Power must not wait for media information, which may be unavailable during wake-up.
+        this.service!.updateCharacteristic(this.platform.characteristic.Active, value);
         if (value === this.platform.characteristic.Active.ACTIVE) {
-            for (let i: number = STEPS; i <= WAIT_MAX_FOR_STATES * 1000; i += STEPS) {
+            let deviceStateGeneration: number = this.deviceStateGeneration;
+            let mediaTypeGeneration: number = this.mediaTypeGeneration;
+            let refreshDeviceState: boolean = Object.keys(this.deviceStateServices).length > 0;
+            let refreshMediaType: boolean = Object.keys(this.mediaTypeServices).length > 0;
+            for (let i: number = STEPS; i <= WAIT_MAX_FOR_STATES * 1000 && (refreshDeviceState || refreshMediaType); i += STEPS) {
+                if (generation !== this.powerStateGeneration) {
+                    return;
+                }
+                // HomeKit may reflect a requested off state before the device confirms it.
+                if (this.service!.getCharacteristic(this.platform.characteristic.Active).value
+                    !== this.platform.characteristic.Active.ACTIVE) {
+                    await delay(STEPS);
+                    continue;
+                }
                 let mediaType: NodePyATVMediaType | null = null;
                 let deviceState: NodePyATVDeviceState | null = null;
                 try {
@@ -1208,20 +1229,51 @@ plugin after you have fixed the root cause. Enable debug logging to see the orig
                         throw error;
                     }
                 }
-                if (deviceState === null || mediaType === null) {
+                // Only a newer power event or shutdown invalidates this refresh.
+                if (generation !== this.powerStateGeneration) {
+                    return;
+                }
+                if (this.service!.getCharacteristic(this.platform.characteristic.Active).value
+                    !== this.platform.characteristic.Active.ACTIVE) {
                     await delay(STEPS);
-                    this.log.debug(`Waiting until mediaType and deviceState is reported: ${i}ms`);
                     continue;
                 }
-                if (
-                    this.mediaTypeServices[mediaType] &&
-                    this.deviceStateServices[deviceState]
-                ) {
-                    this.log.info(`New Media Type: ${mediaType}`);
-                    this.mediaTypeServices[mediaType]!.updateCharacteristic(this.platform.characteristic.MotionDetected, true);
-                    this.log.info(`New Device State: ${deviceState}`);
-                    this.deviceStateServices[deviceState]!.updateCharacteristic(this.platform.characteristic.MotionDetected, true);
-                    break;
+                // Avoid direct snapshot writes after intervening media events. getState() can
+                // itself emit events; their ordering is controlled by node-pyatv, not this guard.
+                // Null or unconfigured events invalidate this result but still need recovery.
+                if (mediaTypeGeneration !== this.mediaTypeGeneration) {
+                    mediaTypeGeneration = this.mediaTypeGeneration;
+                    mediaType = null;
+                    refreshMediaType = Object.keys(this.mediaTypeServices).length > 0
+                        && !Object.values(this.mediaTypeServices).some((sensor: Service | undefined): boolean =>
+                            sensor?.getCharacteristic(this.platform.characteristic.MotionDetected).value === true);
+                }
+                if (deviceStateGeneration !== this.deviceStateGeneration) {
+                    deviceStateGeneration = this.deviceStateGeneration;
+                    deviceState = null;
+                    refreshDeviceState = Object.keys(this.deviceStateServices).length > 0
+                        && !Object.values(this.deviceStateServices).some((sensor: Service | undefined): boolean =>
+                            sensor?.getCharacteristic(this.platform.characteristic.MotionDetected).value === true);
+                }
+                if (refreshMediaType && mediaType !== null) {
+                    const sensor: Service | undefined = this.mediaTypeServices[mediaType];
+                    if (sensor !== undefined) {
+                        this.log.info(`New Media Type: ${mediaType}`);
+                        sensor.updateCharacteristic(this.platform.characteristic.MotionDetected, true);
+                        refreshMediaType = false;
+                    }
+                }
+                if (refreshDeviceState && deviceState !== null) {
+                    const sensor: Service | undefined = this.deviceStateServices[deviceState];
+                    if (sensor !== undefined) {
+                        this.log.info(`New Device State: ${deviceState}`);
+                        sensor.updateCharacteristic(this.platform.characteristic.MotionDetected, true);
+                        refreshDeviceState = false;
+                    }
+                }
+                if (refreshMediaType || refreshDeviceState) {
+                    await delay(STEPS);
+                    this.log.debug(`Waiting for mediaType or deviceState: ${i}ms`);
                 }
             }
         } else {
@@ -1237,7 +1289,6 @@ plugin after you have fixed the root cause. Enable debug logging to see the orig
                 s.updateCharacteristic(this.platform.characteristic.MotionDetected, false);
             }
         }
-        this.service!.updateCharacteristic(this.platform.characteristic.Active, value);
     }
 
     private async handleConfiguredNameGet(): Promise<Nullable<CharacteristicValue>> {
@@ -1259,6 +1310,7 @@ plugin after you have fixed the root cause. Enable debug logging to see the orig
     }
 
     private async handleDeviceStateUpdate(event: NodePyATVDeviceEvent): Promise<void> {
+        this.deviceStateGeneration++;
         for (const deviceState of Object.keys(this.deviceStateServices)) {
             if (deviceState === event.value) {
                 continue;
@@ -1335,6 +1387,7 @@ plugin after you have fixed the root cause. Enable debug logging to see the orig
     }
 
     private async handleMediaTypeUpdate(event: NodePyATVDeviceEvent): Promise<void> {
+        this.mediaTypeGeneration++;
         for (const mediaType of Object.keys(this.mediaTypeServices)) {
             if (mediaType === event.value) {
                 continue;
