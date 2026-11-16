@@ -21,7 +21,7 @@ pydantic==2.14.2
 pydantic_core==2.50.2
 requests==2.34.2
 six==1.17.0
-srptools==2.0.0
+srptools==1.0.1
 tabulate==0.10.0
 tinytag==2.3.2
 typing-inspection==0.4.4
